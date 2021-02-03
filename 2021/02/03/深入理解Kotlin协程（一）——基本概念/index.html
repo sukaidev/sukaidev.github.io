@@ -244,45 +244,121 @@
 <li><strong>无栈协程（Stackless Coroutine）</strong>：协程没有自己的调用栈，挂起点的状态由状态机或者闭包等语法来实现</li>
 </ul>
 <p>有栈协程的优点是可以在任意函数调用层级的任意位置挂起，并转移调度权。无栈协程的有点是不需要开辟栈空间，因此在内存紧张的程序上有优势。</p>
-<p><strong>Kotlin的协程通常被认为是一种无栈协程的实现，它的控制流转依靠对协程体本身编译生成的状态机的状态流转来实现，变量保存也是通过闭包语法来实现。</strong>不过，kotlin协程可以在挂起函数范围内的任意调用层次挂起，这也是有栈协程的一个重要特性之一。</p>
+<p>**Kotlin的协程通常被认为是一种无栈协程的实现，它的控制流转依靠对协程体本身编译生成的状态机的状态流转来实现，变量保存也是通过闭包语法来实现。 **不过，kotlin协程可以在挂起函数范围内的任意调用层次挂起，这也是有栈协程的一个重要特性之一。</p>
 <h3 id="按调度方式分类"><a href="#按调度方式分类" class="headerlink" title="按调度方式分类"></a>按调度方式分类</h3><p>调度过程中，根据协程调度权的转移目标的不同又可将协程分为<strong>对称协程</strong>和<strong>非对称协程</strong>。</p>
 <ul>
 <li><strong>对称协程（Symmetric Coroutine）</strong>：任何一个协程都是相互独立且平等的，调度权可以在任意协程之间转移</li>
 <li><strong>非对称协程（Asymmetric Coroutine）</strong>：协程出让调度权的目标只能是它的的调用者，即协程之间存在调用和被调用关系</li>
 </ul>
 <p>对称协程的概念跟线程十分类似，例如go routine可以通过读写不同的channel来实现控制权的自由转移。常见语言的协程大多是非对称实现。实际上在非对称的基础上，我们只需要添加一个中立的第三方作为协程调度权的分发中心，所有协程在挂起时都将调度权转移给分发中心，分发中心根据参数来决定将调度权转移给哪个协程，即可实现对称协程。</p>
-<h2 id="协程基础"><a href="#协程基础" class="headerlink" title="协程基础"></a>协程基础</h2><h3 id="协程的创建"><a href="#协程的创建" class="headerlink" title="协程的创建"></a>协程的创建</h3><p>我们可以通过**createCoroutine()**方法快速创建一个协程：</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> <span class="hljs-params">(<span class="hljs-keyword">suspend</span> ()</span></span> -&gt; T).createCoroutine(<br>    completion: Continuation&lt;T&gt;<br>): Continuation&lt;<span class="hljs-built_in">Unit</span>&gt; =<br> SafeContinuation(createCoroutineUnintercepted(completion).intercepted(), COROUTINE_SUSPENDED)<br></code></pre></td></tr></table></figure>
+<h2 id="协程基础"><a href="#协程基础" class="headerlink" title="协程基础"></a>协程基础</h2><h3 id="协程的创建"><a href="#协程的创建" class="headerlink" title="协程的创建"></a>协程的创建</h3><p>我们可以通过<strong>createCoroutine</strong>方法快速创建一个协程：</p>
+<div class="hljs code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> <span class="hljs-params">(<span class="hljs-keyword">suspend</span> ()</span></span> -&gt; T).createCoroutine(
+    completion: Continuation&lt;T&gt;
+): Continuation&lt;<span class="hljs-built_in">Unit</span>&gt; =
+ SafeContinuation(createCoroutineUnintercepted(completion).intercepted(), COROUTINE_SUSPENDED)</code></pre></div>
 <p>可以看到该方法是个扩展方法，Receiver类型为<strong>suspend ()-&gt;T</strong>，是一个挂起函数。<strong>completion</strong>是协程完成后的回调，有点类似于我们常写的Callback。方法返回一个Continuation对象， 拿到了这个对象后我们就可以随时的启动协程了。</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">val</span> continuation = <span class="hljs-keyword">suspend</span> &#123;<br>    println(<span class="hljs-string">&quot;Coroutine Start.&quot;</span>)<br>    <span class="hljs-string">&quot;return value.&quot;</span><br>&#125;.createCoroutine(<span class="hljs-keyword">object</span> : Continuation&lt;String&gt; &#123;<br>    <span class="hljs-keyword">override</span> <span class="hljs-keyword">val</span> context: CoroutineContext<br>        <span class="hljs-keyword">get</span>() = EmptyCoroutineContext<br><br>    <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">resumeWith</span><span class="hljs-params">(result: <span class="hljs-type">Result</span>&lt;<span class="hljs-type">String</span>&gt;)</span></span> &#123;<br>        println(<span class="hljs-string">&quot;Coroutine End : <span class="hljs-variable">$result</span>&quot;</span>)<br>    &#125;<br>&#125;)<br></code></pre></td></tr></table></figure>
-<h3 id="协程的启动"><a href="#协程的启动" class="headerlink" title="协程的启动"></a>协程的启动</h3><p>上面代码中我们顺利创建一个协程，那么如何启动这个协程呢？Continuation中并没有类型startXXX()的方法，而是调用**Continuation#resume()**来启动一个协程。</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs kotlin">continuation.resume(<span class="hljs-built_in">Unit</span>)   <span class="hljs-comment">// 启动协程</span><br><br><span class="hljs-comment">// 控制台输出：</span><br>Coroutine Start.<br>Coroutine End : Success(<span class="hljs-keyword">return</span> value.)<br></code></pre></td></tr></table></figure>
-<p>当然我们也可通过**startCoroutine()**来直接创建和启动一个协程：</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> <span class="hljs-params">(<span class="hljs-keyword">suspend</span> ()</span></span> -&gt; T).startCoroutine(<br>    completion: Continuation&lt;T&gt;<br>) &#123;<br> createCoroutineUnintercepted(completion).intercepted().resume(<span class="hljs-built_in">Unit</span>)<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="hljs code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-keyword">val</span> continuation = <span class="hljs-keyword">suspend</span> &#123;
+    println(<span class="hljs-string">&quot;Coroutine Start.&quot;</span>)
+    <span class="hljs-string">&quot;return value.&quot;</span>
+&#125;.createCoroutine(<span class="hljs-keyword">object</span> : Continuation&lt;String&gt; &#123;
+    <span class="hljs-keyword">override</span> <span class="hljs-keyword">val</span> context: CoroutineContext
+        <span class="hljs-keyword">get</span>() = EmptyCoroutineContext
+
+    <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">resumeWith</span><span class="hljs-params">(result: <span class="hljs-type">Result</span>&lt;<span class="hljs-type">String</span>&gt;)</span></span> &#123;
+        println(<span class="hljs-string">&quot;Coroutine End : <span class="hljs-variable">$result</span>&quot;</span>)
+    &#125;
+&#125;)</code></pre></div>
+<h3 id="协程的启动"><a href="#协程的启动" class="headerlink" title="协程的启动"></a>协程的启动</h3><p>上面代码中我们顺利创建一个协程，那么如何启动这个协程呢？Continuation中并没有类型startXXX()的方法，而是调用<strong>Continuation#resume</strong>来启动一个协程。</p>
+<div class="hljs code-wrapper"><pre><code class="hljs kotlin">continuation.resume(<span class="hljs-built_in">Unit</span>)   <span class="hljs-comment">// 启动协程</span>
+
+<span class="hljs-comment">// 控制台输出：</span>
+Coroutine Start.
+Coroutine End : Success(<span class="hljs-keyword">return</span> value.)</code></pre></div>
+<p>当然我们也可通过<strong>startCoroutine</strong>来直接创建和启动一个协程：</p>
+<div class="hljs code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> <span class="hljs-params">(<span class="hljs-keyword">suspend</span> ()</span></span> -&gt; T).startCoroutine(
+    completion: Continuation&lt;T&gt;
+) &#123;
+ createCoroutineUnintercepted(completion).intercepted().resume(<span class="hljs-built_in">Unit</span>)
+&#125;</code></pre></div>
 <p>上面有个非常令人疑惑的点是，为什么调用返回的Continuation对象就可以启动协程呢？按照我们上面的写的，continuation的resumeWith方法应该作为回调成功的方法才对。</p>
-<p>通过上面<strong>createCoroutine()**方法源码我们得知返回给我们的是一个</strong>SafeContinuation**对象，这里就不贴源码了毕竟这篇只是个初识（笑），这里要说的是SafeContinuation其实只是个”马甲“，它的所有操作均交由其私有属性delegate来执行，当然delegate也是一个Continuation对象。当我们执行了</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs kotlin">continuation.resume(<span class="hljs-built_in">Unit</span>)<br></code></pre></td></tr></table></figure>
-<p>这行代码时，实际上是执行了<strong>delegate.resumeWith()**方法。那么新问题来了，delegate对象又是哪来的呢？通过查阅字节码和反编译文件我们发现，我们写的协程体也就是suspend修饰的这个lambda编译后实际上变成了一个匿名内部类，而我们的协程体中的代码实际被包装在了其</strong>invokeSuspend()<strong>方法中。而当我们调用Suspend Lambda的扩展方法</strong>createCoroutine()<strong>创建一个协程时，我们的Suspend Lambda也就是协程体实际被传入</strong>SafeContinuation**的构造方法中，也就是说SafeContinuation的delegate属性其实就是我们的协程体。</p>
-<p>这样看来就比较清晰了，创建协程返回的Continuation实例其实就是套了几层马甲的协程体，协程体先被编译器封装到一个匿名内部类内部的<strong>invokeSuspend()**方法中，再传入SafeContinuation充当其代理，当我们调用</strong>SafeContinuation#resume()**的时候，我们的协程体自然就得到了执行。</p>
+<p>通过上面<strong>createCoroutine</strong>方法源码我们得知返回给我们的是一个<strong>SafeContinuation</strong>对象，这里就不贴源码了毕竟这篇只是个初识（笑），这里要说的是SafeContinuation其实只是个”马甲“，它的所有操作均交由其私有属性delegate来执行，当然delegate也是一个Continuation对象。当我们执行了</p>
+<div class="hljs code-wrapper"><pre><code class="hljs kotlin">continuation.resume(<span class="hljs-built_in">Unit</span>)</code></pre></div>
+<p>这行代码时，实际上是执行了<strong>delegate.resumeWith</strong>方法。那么新问题来了，delegate对象又是哪来的呢？通过查阅字节码和反编译文件我们发现，我们写的协程体也就是suspend修饰的这个lambda编译后实际上变成了一个匿名内部类，而我们的协程体中的代码实际被包装在了其<strong>invokeSuspend</strong>方法中。而当我们调用Suspend Lambda的扩展方法<strong>createCoroutine</strong>创建一个协程时，我们的Suspend Lambda也就是协程体实际被传入<strong>SafeContinuation</strong>的构造方法中，也就是说SafeContinuation的delegate属性其实就是我们的协程体。</p>
+<p>这样看来就比较清晰了，创建协程返回的Continuation实例其实就是套了几层马甲的协程体，协程体先被编译器封装到一个匿名内部类内部的<strong>invokeSuspend</strong>方法中，再传入SafeContinuation充当其代理，当我们调用<strong>SafeContinuation#resume</strong>的时候，我们的协程体自然就得到了执行。</p>
 <h3 id="协程体的Receiver"><a href="#协程体的Receiver" class="headerlink" title="协程体的Receiver"></a>协程体的Receiver</h3><p>与协程创建和启动相关的API有两组，现在看下第二组：</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;R, T&gt;</span> <span class="hljs-params">(<span class="hljs-keyword">suspend</span> R.()</span></span> -&gt; T).createCoroutine(<br>    receiver: R,<br>    completion: Continuation&lt;T&gt;<br>)<br><br><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;R, T&gt;</span> <span class="hljs-params">(<span class="hljs-keyword">suspend</span> R.()</span></span> -&gt; T).startCoroutine(<br>    receiver: R,<br>    completion: Continuation&lt;T&gt;<br>)<br></code></pre></td></tr></table></figure>
+<div class="hljs code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;R, T&gt;</span> <span class="hljs-params">(<span class="hljs-keyword">suspend</span> R.()</span></span> -&gt; T).createCoroutine(
+    receiver: R,
+    completion: Continuation&lt;T&gt;
+)
+
+<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;R, T&gt;</span> <span class="hljs-params">(<span class="hljs-keyword">suspend</span> R.()</span></span> -&gt; T).startCoroutine(
+    receiver: R,
+    completion: Continuation&lt;T&gt;
+)</code></pre></div>
 <p>两组区别仅仅在于这一组协程体多了一个Receiver类型R。协程体的Receiver可以为协程提供一个作用域，使得我们可以在协程体内使用作用域提供的函数或者状态等。</p>
 <p>由于Kotlin本身没有提供带有Receiver的Lambda表达式的语法，这里我们自己实现一个：</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;R, T&gt;</span> <span class="hljs-title">launchCoroutine</span><span class="hljs-params">(receiver: <span class="hljs-type">R</span>, block: <span class="hljs-type">suspend</span> <span class="hljs-type">R</span>.() -&gt; <span class="hljs-type">T</span>)</span></span> &#123;<br>    block.startCoroutine(receiver, <span class="hljs-keyword">object</span> : Continuation&lt;T&gt; &#123;<br>        <span class="hljs-keyword">override</span> <span class="hljs-keyword">val</span> context: CoroutineContext<br>            <span class="hljs-keyword">get</span>() = EmptyCoroutineContext<br><br>        <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">resumeWith</span><span class="hljs-params">(result: <span class="hljs-type">Result</span>&lt;<span class="hljs-type">T</span>&gt;)</span></span> &#123;<br>            println(<span class="hljs-string">&quot;Coroutine End : <span class="hljs-variable">$result</span>&quot;</span>)<br>        &#125;<br>    &#125;)<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="hljs code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;R, T&gt;</span> <span class="hljs-title">launchCoroutine</span><span class="hljs-params">(receiver: <span class="hljs-type">R</span>, block: <span class="hljs-type">suspend</span> <span class="hljs-type">R</span>.() -&gt; <span class="hljs-type">T</span>)</span></span> &#123;
+    block.startCoroutine(receiver, <span class="hljs-keyword">object</span> : Continuation&lt;T&gt; &#123;
+        <span class="hljs-keyword">override</span> <span class="hljs-keyword">val</span> context: CoroutineContext
+            <span class="hljs-keyword">get</span>() = EmptyCoroutineContext
+
+        <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">resumeWith</span><span class="hljs-params">(result: <span class="hljs-type">Result</span>&lt;<span class="hljs-type">T</span>&gt;)</span></span> &#123;
+            println(<span class="hljs-string">&quot;Coroutine End : <span class="hljs-variable">$result</span>&quot;</span>)
+        &#125;
+    &#125;)
+&#125;</code></pre></div>
 <p>使用时首先需要一个作用域，这里我们来手动模拟一个协程作用域：</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MainScope</span>&lt;<span class="hljs-type">T</span>&gt; </span>&#123;<br>    <span class="hljs-keyword">suspend</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">print</span><span class="hljs-params">(value: <span class="hljs-type">T</span>)</span></span> &#123;<br>        println(value.toString())<br>    &#125;<br><br>    <span class="hljs-keyword">suspend</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">hashCode</span><span class="hljs-params">(value: <span class="hljs-type">T</span>)</span></span> = value.hashCode() xor (value.hashCode() ushr <span class="hljs-number">16</span>)<br>&#125;<br><br> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">callLaunchCoroutine</span><span class="hljs-params">()</span></span> &#123;<br>    launchCoroutine(MainScope&lt;<span class="hljs-built_in">Int</span>&gt;()) &#123;<br>        println(<span class="hljs-string">&quot;Start Coroutine.&quot;</span>)<br>        print(<span class="hljs-number">1000</span>)<br>        delay(<span class="hljs-number">1000L</span>)<br>        hashCode(<span class="hljs-number">1000</span>)<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="hljs code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MainScope</span>&lt;<span class="hljs-type">T</span>&gt; </span>&#123;
+    <span class="hljs-keyword">suspend</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">print</span><span class="hljs-params">(value: <span class="hljs-type">T</span>)</span></span> &#123;
+        println(value.toString())
+    &#125;
+
+    <span class="hljs-keyword">suspend</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">hashCode</span><span class="hljs-params">(value: <span class="hljs-type">T</span>)</span></span> = value.hashCode() xor (value.hashCode() ushr <span class="hljs-number">16</span>)
+&#125;
+
+ <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">callLaunchCoroutine</span><span class="hljs-params">()</span></span> &#123;
+    launchCoroutine(MainScope&lt;<span class="hljs-built_in">Int</span>&gt;()) &#123;
+        println(<span class="hljs-string">&quot;Start Coroutine.&quot;</span>)
+        print(<span class="hljs-number">1000</span>)
+        delay(<span class="hljs-number">1000L</span>)
+        hashCode(<span class="hljs-number">1000</span>)
+    &#125;
+&#125;</code></pre></div>
 <p>可以看到我们可以直接使用作用域提供的函数，也可以调用作用域外部定义的挂起函数。</p>
-<p>除了可以提供函数支持外，作用域也可以用来增加限制，例如**@RestrictsSuspension<strong>注解，为作用域添加这个注解后，使用作用域构造的协程体将无法调用外部的挂起函数，例如上面代码中的</strong>delay(1000L)**将会报红。</p>
+<p>除了可以提供函数支持外，作用域也可以用来增加限制，例如<strong>RestrictsSuspension</strong>注解，为作用域添加这个注解后，使用作用域构造的协程体将无法调用外部的挂起函数，例如上面代码中的<strong>delay</strong>将会报红。</p>
 <h3 id="可挂起的main函数"><a href="#可挂起的main函数" class="headerlink" title="可挂起的main函数"></a>可挂起的main函数</h3><p>从Kotlin Version 1.3开始，我们**main()**函数可以直接被声明为suspend：</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">suspend</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span>&#123;<br>    ... ...<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>这意味着我们可以在JVM启动的时候直接获得一个协程。首先可以确定的是这个可挂起的**<em>main()**</em>函数肯定不会是真正的程序入口，因为JVM根本不会知道什么是协程，实际上我们反编译字节码后发现main方法是这样的：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] var0)</span> </span>&#123;<br>   RunSuspendKt.runSuspend(<span class="hljs-keyword">new</span> CoroutineKt$$$main(var0));<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>我们在suspend main()中写的可挂起的代码实际上由**RunSuspendKt#runSuspend()**来执行，来看看源码：</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">internal</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">runSuspend</span><span class="hljs-params">(block: <span class="hljs-type">suspend</span> () -&gt; <span class="hljs-type">Unit</span>)</span></span> &#123;<br>    <span class="hljs-keyword">val</span> run = RunSuspend()<br>    block.startCoroutine(run)<br>    run.await()<br>&#125;<br></code></pre></td></tr></table></figure>
+<div class="hljs code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-keyword">suspend</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span>&#123;
+    ... ...
+&#125;</code></pre></div>
+<p>这意味着我们可以在JVM启动的时候直接获得一个协程。首先可以确定的是这个可挂起的<strong>main</strong>函数肯定不会是真正的程序入口，因为JVM根本不会知道什么是协程，实际上我们反编译字节码后发现main方法是这样的：</p>
+<div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] var0)</span> </span>&#123;
+   RunSuspendKt.runSuspend(<span class="hljs-keyword">new</span> CoroutineKt$$$main(var0));
+&#125;</code></pre></div>
+<p>我们在suspend main()中写的可挂起的代码实际上由<strong>RunSuspendKt#runSuspend</strong>来执行，来看看源码：</p>
+<div class="hljs code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-keyword">internal</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">runSuspend</span><span class="hljs-params">(block: <span class="hljs-type">suspend</span> () -&gt; <span class="hljs-type">Unit</span>)</span></span> &#123;
+    <span class="hljs-keyword">val</span> run = RunSuspend()
+    block.startCoroutine(run)
+    run.await()
+&#125;</code></pre></div>
 <p>可以看到这里用我们的suspend main()来启动一个协程。</p>
-<p>这里还有一个RunSuspend类，它也是一个Continuation，作为我们整个程序运行完成的回调，这里我们可以关注下**await()**函数的实现：</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">resumeWith</span><span class="hljs-params">(result: <span class="hljs-type">Result</span>&lt;<span class="hljs-type">Unit</span>&gt;)</span></span> = synchronized(<span class="hljs-keyword">this</span>) &#123;<br>    <span class="hljs-keyword">this</span>.result = result<br>    <span class="hljs-meta">@Suppress(<span class="hljs-meta-string">&quot;PLATFORM_CLASS_MAPPED_TO_KOTLIN&quot;</span>)</span> (<span class="hljs-keyword">this</span> <span class="hljs-keyword">as</span> Object).notifyAll()<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">await</span><span class="hljs-params">()</span></span> = synchronized(<span class="hljs-keyword">this</span>) &#123;<br>    <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) &#123;<br>        <span class="hljs-keyword">when</span> (<span class="hljs-keyword">val</span> result = <span class="hljs-keyword">this</span>.result) &#123;<br>            <span class="hljs-literal">null</span> -&gt; <span class="hljs-meta">@Suppress(<span class="hljs-meta-string">&quot;PLATFORM_CLASS_MAPPED_TO_KOTLIN&quot;</span>)</span> (<span class="hljs-keyword">this</span> <span class="hljs-keyword">as</span> Object).wait()<br>            <span class="hljs-keyword">else</span> -&gt; &#123;<br>                result.getOrThrow() <span class="hljs-comment">// throw up failure</span><br>                <span class="hljs-keyword">return</span><br>            &#125;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>可以看到当我们调用了block.startCoroutine(run)启动了协程之后，main()方法所在线程实际会进入阻塞状态，当协程执行完毕，run的**resumeWith()**方法会被调用，main()方法所在线程从而被唤醒，使得JVM可以正常退出。</p>
+<p>这里还有一个RunSuspend类，它也是一个Continuation，作为我们整个程序运行完成的回调，这里我们可以关注下<strong>await</strong>函数的实现：</p>
+<div class="hljs code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">resumeWith</span><span class="hljs-params">(result: <span class="hljs-type">Result</span>&lt;<span class="hljs-type">Unit</span>&gt;)</span></span> = synchronized(<span class="hljs-keyword">this</span>) &#123;
+    <span class="hljs-keyword">this</span>.result = result
+    <span class="hljs-meta">@Suppress(<span class="hljs-meta-string">&quot;PLATFORM_CLASS_MAPPED_TO_KOTLIN&quot;</span>)</span> (<span class="hljs-keyword">this</span> <span class="hljs-keyword">as</span> Object).notifyAll()
+&#125;
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">await</span><span class="hljs-params">()</span></span> = synchronized(<span class="hljs-keyword">this</span>) &#123;
+    <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) &#123;
+        <span class="hljs-keyword">when</span> (<span class="hljs-keyword">val</span> result = <span class="hljs-keyword">this</span>.result) &#123;
+            <span class="hljs-literal">null</span> -&gt; <span class="hljs-meta">@Suppress(<span class="hljs-meta-string">&quot;PLATFORM_CLASS_MAPPED_TO_KOTLIN&quot;</span>)</span> (<span class="hljs-keyword">this</span> <span class="hljs-keyword">as</span> Object).wait()
+            <span class="hljs-keyword">else</span> -&gt; &#123;
+                result.getOrThrow() <span class="hljs-comment">// throw up failure</span>
+                <span class="hljs-keyword">return</span>
+            &#125;
+        &#125;
+    &#125;
+&#125;</code></pre></div>
+<p>可以看到当我们调用了block.startCoroutine(run)启动了协程之后，main()方法所在线程实际会进入阻塞状态，当协程执行完毕，run的<strong>resumeWith</strong>方法会被调用，main()方法所在线程从而被唤醒，使得JVM可以正常退出。</p>
 <p>参考：</p>
 <p><a target="_blank" rel="noopener" href="https://book.douban.com/subject/35094136/">《深入理解Kotlin协程》</a></p>
 <p><a target="_blank" rel="noopener" href="https://www.liaoxuefeng.com/wiki/897692888725344/923057403198272">协程</a></p>
@@ -292,6 +368,20 @@
             <div>
               <div class="post-metas mb-3">
                 
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Kotlin/">Kotlin</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Coroutine/">Coroutine</a>
+                    
+                  </div>
                 
               </div>
               
@@ -311,6 +401,32 @@
               
             </div>
 
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                
+  <div class="disqus" style="width:100%">
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      var disqus_config = function() {
+        this.page.url = 'http://example.com/2021/02/03/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Kotlin%E5%8D%8F%E7%A8%8B%EF%BC%88%E4%B8%80%EF%BC%89%E2%80%94%E2%80%94%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/';
+        this.page.identifier = '/2021/02/03/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Kotlin%E5%8D%8F%E7%A8%8B%EF%BC%88%E4%B8%80%EF%BC%89%E2%80%94%E2%80%94%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/';
+      };
+      Fluid.utils.waitElementVisible('disqus_thread', function () {
+        var d = document, s = d.createElement('script');
+        s.src = '//' + 'fluid' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', new Date());
+        (d.head || d.body).appendChild(s);
+      });
+    </script>
+    <noscript>Please enable JavaScript to view the
+      <a target="_blank" href="https://disqus.com/?ref_noscript" rel="nofollow noopener noopener">comments powered by Disqus.</a>
+    </noscript>
+  </div>
+
+
+              </article>
             
           </article>
         </div>
@@ -371,6 +487,30 @@
      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
   </div>
   
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
 
   
 
@@ -425,6 +565,8 @@
   <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
 
 
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
 
 
 
