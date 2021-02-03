@@ -181,6 +181,59 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
+        <a href="/2021/02/03/2a3d271f/">深入理解Kotlin协程（二）——基本原理</a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/02/03/2a3d271f/">
+          
+          
+            
+          
+          函数的挂起挂起函数用suspend修饰的函数称为挂起函数。挂起函数只能在协程体内或者另一个挂起函数内部调用，这样kotlin的函数就分为了两种：普通函数和挂起函数。其中挂起函数可以调用任何函数，而普通函数只能调用普通函数。
+suspend fun suspendFunc01(a: Int) &#123;
+    return
+&#125;
+
+suspend fun suspendFunc02(a:
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-02-03 23:46" pubdate>
+              2021-02-03
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Kotlin/">Kotlin</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Coroutine/">Coroutine</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
         <a href="/2021/02/03/595755ca/">深入理解Kotlin协程（一）——基本概念</a>
       </h1>
 
@@ -272,30 +325,6 @@
      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
   </div>
   
-  <div class="statistics">
-    
-    
-
-    
-      
-        <!-- 不蒜子统计PV -->
-        <span id="busuanzi_container_site_pv" style="display: none">
-            总访问量 
-            <span id="busuanzi_value_site_pv"></span>
-             次
-          </span>
-      
-      
-        <!-- 不蒜子统计UV -->
-        <span id="busuanzi_container_site_uv" style="display: none">
-            总访客数 
-            <span id="busuanzi_value_site_uv"></span>
-             人
-          </span>
-      
-    
-  </div>
-
 
   
 
@@ -344,8 +373,6 @@
   <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
 
 
-
-  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
 
 
 
