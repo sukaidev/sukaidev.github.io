@@ -1,0 +1,651 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" type="image/png" href="/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="Android Developer">
+  <meta name="author" content="sukaidev">
+  <meta name="keywords" content="Android sukaidev 苏海鸿">
+  <title>深入理解Kotlin协程（三）——协程拓展实践 - Sukai&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      
+        
+          
+        
+        <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.22.0/themes/prism.min.css" />
+      
+      
+        <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.22.0/plugins/line-numbers/prism-line-numbers.min.css" />
+      
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Sukai's Blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="深入理解Kotlin协程（三）——协程拓展实践">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-02-05 21:28" pubdate>
+        2021年2月5日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.8k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      23
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">深入理解Kotlin协程（三）——协程拓展实践</h1>
+            
+            <div class="markdown-body">
+              <p>本篇文章我们将介绍两种序列生成器，序列生成器包含“序列”和“生成器”两部分，我们先来仿写一个Python的Generator。</p>
+<h2 id="仿Python的Generator实现"><a href="#仿Python的Generator实现" class="headerlink" title="仿Python的Generator实现"></a>仿Python的Generator实现</h2><p>Python中的Generator可以在函数中调用yield将当前函数挂起并返回yield的参数，效果如下：</p>
+<div class="code-wrapper"><pre class="line-numbers language-kotlin" data-language="kotlin"><code class="language-kotlin"><span class="token keyword">val</span> nums<span class="token operator">:</span> <span class="token punctuation">(</span>Int<span class="token punctuation">)</span> <span class="token operator">-></span> Generator<span class="token operator">&lt;</span>Int<span class="token operator">></span> <span class="token operator">=</span> generator <span class="token punctuation">&#123;</span> start<span class="token operator">:</span> Int <span class="token operator">-></span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span>i <span class="token keyword">in</span> <span class="token number">0</span><span class="token operator">..</span><span class="token number">5</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">yield</span><span class="token punctuation">(</span>start <span class="token operator">+</span> i<span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">val</span> gen<span class="token operator">:</span> Generator<span class="token operator">&lt;</span>Int<span class="token operator">></span> <span class="token operator">=</span> <span class="token function">nums</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span>
+
+<span class="token keyword">for</span> <span class="token punctuation">(</span>j <span class="token keyword">in</span> gen<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">println</span><span class="token punctuation">(</span>j<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">// 运行结果 </span>
+<span class="token number">10</span>
+<span class="token number">11</span>
+<span class="token number">12</span>
+<span class="token number">13</span>
+<span class="token number">14</span>
+<span class="token number">15</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div>
+<p>我们通过generator函数来得到一个新的函数nums，通过调用这个函数我们可以得到一个序列生成器Generator，Generator需要重载iterator操作符并且返回一个迭代器。</p>
+<div class="code-wrapper"><pre class="line-numbers language-kotlin" data-language="kotlin"><code class="language-kotlin"><span class="token keyword">interface</span> Generator<span class="token operator">&lt;</span>T<span class="token operator">></span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">operator</span> <span class="token keyword">fun</span> <span class="token function">iterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">:</span> Iterator<span class="token operator">&lt;</span>T<span class="token operator">></span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">class</span> GeneratorImpl<span class="token operator">&lt;</span>T<span class="token operator">></span><span class="token punctuation">(</span>
+    <span class="token keyword">private</span> <span class="token keyword">val</span> block<span class="token operator">:</span> <span class="token keyword">suspend</span> GeneratorScope<span class="token operator">&lt;</span>T<span class="token operator">></span><span class="token punctuation">.</span><span class="token punctuation">(</span>T<span class="token punctuation">)</span> <span class="token operator">-></span> Unit<span class="token punctuation">,</span>
+    <span class="token keyword">private</span> <span class="token keyword">val</span> parameter<span class="token operator">:</span> T
+<span class="token punctuation">)</span> <span class="token operator">:</span> Generator<span class="token operator">&lt;</span>T<span class="token operator">></span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">override</span> <span class="token keyword">fun</span> <span class="token function">iterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">:</span> Iterator<span class="token operator">&lt;</span>T<span class="token operator">></span> <span class="token operator">=</span> <span class="token function">GeneratorIterator</span><span class="token punctuation">(</span>block<span class="token punctuation">,</span> parameter<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">/**
+ * 构建一个序列生成器
+ */</span>
+<span class="token keyword">fun</span> <span class="token operator">&lt;</span>T<span class="token operator">></span> <span class="token function">generator</span><span class="token punctuation">(</span>block<span class="token operator">:</span> <span class="token keyword">suspend</span> GeneratorScope<span class="token operator">&lt;</span>T<span class="token operator">></span><span class="token punctuation">.</span><span class="token punctuation">(</span>T<span class="token punctuation">)</span> <span class="token operator">-></span> Unit<span class="token punctuation">)</span><span class="token operator">:</span> <span class="token punctuation">(</span>T<span class="token punctuation">)</span> <span class="token operator">-></span> Generator<span class="token operator">&lt;</span>T<span class="token operator">></span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token punctuation">&#123;</span> parameter<span class="token operator">:</span> T <span class="token operator">-></span>
+        <span class="token function">GeneratorImpl</span><span class="token punctuation">(</span>block<span class="token punctuation">,</span> parameter<span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div>
+<p>我们来思考一下这个<strong>GeneratorIterator</strong>迭代器要怎么写。当<strong>GeneratorIterator#next</strong>被调用时，我们需要获取到<strong>yield</strong>函数返回的数据，同时yield函数将会挂起协程，当我们下一次获取数据时恢复协程执行，获取到下一个数据后再挂起。也就是说<strong>next</strong>函数除了获取下一个数据之外，还要配合yield函数恢复协程的执行，我们根据当前迭代器的状态总结出下面几种情况：</p>
+<ul>
+<li><strong>下个数据未准备完成</strong>。此状态表示协程尚未启动或者协程挂起后尚未恢复，此时调用next我们需要恢复协程的执行</li>
+<li><strong>下个数据准备完成</strong>。恢复执行后，yield函数被调用，此时我们拿到了下一个数据，协程需要被挂起等待恢复执行。</li>
+<li>生成器执行完毕。无更多数据产生。</li>
+</ul>
+<p>根据上面的分析我们定义出几种状态：</p>
+<div class="code-wrapper"><pre class="line-numbers language-kotlin" data-language="kotlin"><code class="language-kotlin"><span class="token keyword">sealed</span> <span class="token keyword">class</span> State <span class="token punctuation">&#123;</span>
+    <span class="token keyword">class</span> <span class="token function">NotReady</span><span class="token punctuation">(</span><span class="token keyword">val</span> continuation<span class="token operator">:</span> Continuation<span class="token operator">&lt;</span>Unit<span class="token operator">></span><span class="token punctuation">)</span> <span class="token operator">:</span> <span class="token function">State</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">class</span> Ready<span class="token operator">&lt;</span>T<span class="token operator">></span><span class="token punctuation">(</span><span class="token keyword">val</span> continuation<span class="token operator">:</span> Continuation<span class="token operator">&lt;</span>Unit<span class="token operator">></span><span class="token punctuation">,</span> <span class="token keyword">val</span> nextValue<span class="token operator">:</span> T<span class="token punctuation">)</span> <span class="token operator">:</span> <span class="token function">State</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">object</span> Done <span class="token operator">:</span> <span class="token function">State</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre></div>
+<p>序列生成时，<strong>next</strong>函数和<strong>yield</strong>相互配合实现状态的流转，next函数需要恢复协程的执行，yield函数需要挂起协程同时将产生的数据传递给next函数返回，因此这里我们将等待恢复的continuation实例和返回的数据作为入参添加到状态中方便两个函数获取。</p>
+<p>这几种状态的状态流转关系图如下：</p>
+<p><img src="/img/state_transfer.png?lastModify=1612513743" srcset="/img/loading.gif" alt="状态流转图"></p>
+<p>根据状态流转图编写GeneratorIterator的部分代码：</p>
+<div class="code-wrapper"><pre class="line-numbers language-kotlin" data-language="kotlin"><code class="language-kotlin"><span class="token comment">/**
+ * 获取下一个元素
+ * 当状态为[State.NotReady]时，表示协程未启动或已经挂起，调用[resume]函数启动或者恢复协程
+ * 当状态为[State.Ready]时，返回yield携带过来的value，并且将当前状态流转为[State.NotReady]状态
+ */</span>
+<span class="token keyword">override</span> <span class="token keyword">fun</span> <span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">:</span> T <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token keyword">when</span> <span class="token punctuation">(</span><span class="token keyword">val</span> currentState <span class="token operator">=</span> state<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">is</span> State<span class="token punctuation">.</span>NotReady <span class="token operator">-></span> <span class="token punctuation">&#123;</span>
+            <span class="token function">resume</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token keyword">return</span> <span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">is</span> State<span class="token punctuation">.</span>Ready<span class="token operator">&lt;</span><span class="token operator">*</span><span class="token operator">></span> <span class="token operator">-></span> <span class="token punctuation">&#123;</span>
+            state <span class="token operator">=</span> State<span class="token punctuation">.</span><span class="token function">NotReady</span><span class="token punctuation">(</span>currentState<span class="token punctuation">.</span>continuation<span class="token punctuation">)</span>
+            <span class="token punctuation">(</span>currentState <span class="token keyword">as</span> State<span class="token punctuation">.</span>Ready<span class="token operator">&lt;</span>T<span class="token operator">></span><span class="token punctuation">)</span><span class="token punctuation">.</span>nextValue
+        <span class="token punctuation">&#125;</span>
+        State<span class="token punctuation">.</span>Done <span class="token operator">-></span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">throw</span>  <span class="token function">IndexOutOfBoundsException</span><span class="token punctuation">(</span><span class="token string">"No value left."</span><span class="token punctuation">)</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">/**
+ * 使用suspendCoroutine挂起当前协程
+ * 并将当前状态流转为[State.Ready]状态，返回value
+ */</span>
+<span class="token keyword">override</span> <span class="token keyword">suspend</span> <span class="token keyword">fun</span> <span class="token function">yield</span><span class="token punctuation">(</span>value<span class="token operator">:</span> T<span class="token punctuation">)</span> <span class="token operator">=</span> suspendCoroutine<span class="token operator">&lt;</span>Unit<span class="token operator">></span> <span class="token punctuation">&#123;</span> continuation <span class="token operator">-></span>
+    state <span class="token operator">=</span> <span class="token keyword">when</span> <span class="token punctuation">(</span>state<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">is</span> State<span class="token punctuation">.</span>NotReady <span class="token operator">-></span> State<span class="token punctuation">.</span><span class="token function">Ready</span><span class="token punctuation">(</span>continuation<span class="token punctuation">,</span> value<span class="token punctuation">)</span>
+        <span class="token keyword">is</span> State<span class="token punctuation">.</span>Ready<span class="token operator">&lt;</span><span class="token operator">*</span><span class="token operator">></span> <span class="token operator">-></span> <span class="token keyword">throw</span> <span class="token function">IllegalStateException</span><span class="token punctuation">(</span><span class="token string">"cannot yield while ready."</span><span class="token punctuation">)</span>
+        <span class="token keyword">is</span> State<span class="token punctuation">.</span>Done <span class="token operator">-></span> <span class="token keyword">throw</span>  <span class="token function">IllegalStateException</span><span class="token punctuation">(</span><span class="token string">"cannot yield while done."</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div>
+<p>在yield函数的实现中，我们对当前的状态进行了判断，这是复合协程的一个核心逻辑：<strong>状态机</strong>。无论是何种场景下的协程，都会有挂起、恢复、结束等相应的状态需要维护，同时在有对应的事件到达时也需要完成状态的转移。状态转移务必考虑原子性，kotlin核心库中的状态转移都通过CAS操作来更新，由于本例仅限于单线程中使用，所以这里没有考虑线程安全问题。yield函数定义在协程作用域中：</p>
+<div class="code-wrapper"><pre class="line-numbers language-kotlin" data-language="kotlin"><code class="language-kotlin"><span class="token keyword">interface</span> GeneratorScope<span class="token operator">&lt;</span>T<span class="token operator">></span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">suspend</span> <span class="token keyword">fun</span> <span class="token function">yield</span><span class="token punctuation">(</span>value<span class="token operator">:</span> T<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></div>
+<p>yield函数处理了挂起事件，对应的我们也需要合适时候处理协程的恢复、完成等事件，下面函数都完成了部分时间的状态转移：</p>
+<div class="code-wrapper"><pre class="line-numbers language-kotlin" data-language="kotlin"><code class="language-kotlin"><span class="token keyword">override</span> <span class="token keyword">fun</span> <span class="token function">hasNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">:</span> Boolean <span class="token punctuation">&#123;</span>
+    <span class="token function">resume</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">return</span> state <span class="token operator">!=</span> State<span class="token punctuation">.</span>Done
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">/**
+ * 启动或者恢复协程
+ * 假设事实上的挂起发生了n次，那么[resume]将被调用n+1次
+ */</span>
+<span class="token keyword">private</span> <span class="token keyword">fun</span> <span class="token function">resume</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">when</span> <span class="token punctuation">(</span><span class="token keyword">val</span> currentState <span class="token operator">=</span> state<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">is</span> State<span class="token punctuation">.</span>NotReady <span class="token operator">-></span> currentState<span class="token punctuation">.</span>continuation<span class="token punctuation">.</span><span class="token function">resume</span><span class="token punctuation">(</span>Unit<span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">/**
+ * 创建协程的completion回调
+ * 协程执行完成后回调
+ */</span>
+<span class="token keyword">override</span> <span class="token keyword">fun</span> <span class="token function">resumeWith</span><span class="token punctuation">(</span>result<span class="token operator">:</span> Result<span class="token operator">&lt;</span>Any<span class="token operator">?</span><span class="token operator">></span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    state <span class="token operator">=</span> State<span class="token punctuation">.</span>Done
+    <span class="token function">println</span><span class="token punctuation">(</span>result<span class="token punctuation">.</span><span class="token function">getOrThrow</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div>
+<p>现在我们已经完成比较关键的状态流转代码，但我们还没有创建协程，我们在<strong>GeneratorIterator</strong>构造函数中创建一个协程：</p>
+<div class="code-wrapper"><pre class="line-numbers language-kotlin" data-language="kotlin"><code class="language-kotlin"><span class="token keyword">init</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">val</span> coroutineBlock<span class="token operator">:</span> <span class="token keyword">suspend</span> GeneratorScope<span class="token operator">&lt;</span>T<span class="token operator">></span><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-></span> Unit <span class="token operator">=</span> <span class="token punctuation">&#123;</span> <span class="token function">block</span><span class="token punctuation">(</span>parameter<span class="token punctuation">)</span> <span class="token punctuation">&#125;</span>
+    <span class="token comment">// 带Receiver的方式创建协程</span>
+    <span class="token keyword">val</span> start <span class="token operator">=</span> coroutineBlock<span class="token punctuation">.</span><span class="token function">createCoroutine</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">)</span>
+    <span class="token comment">// 初始化状态</span>
+    state <span class="token operator">=</span> State<span class="token punctuation">.</span><span class="token function">NotReady</span><span class="token punctuation">(</span>start<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div>
+<p>使用带Receiver的方式创建协程的好处是我们可以使用作用域中的方法，也就是<strong>yield</strong>函数。这里createCoroutine的两个个参数我们都传入了this，即<strong>GeneratorIterator</strong>同时实现了GeneratorScope接口和Continuation接口，如下所示。</p>
+<div class="code-wrapper"><pre class="line-numbers language-kotlin" data-language="kotlin"><code class="language-kotlin"><span class="token keyword">class</span> GeneratorIterator<span class="token operator">&lt;</span>T<span class="token operator">></span><span class="token punctuation">(</span>
+    <span class="token keyword">private</span> <span class="token keyword">val</span> block<span class="token operator">:</span> <span class="token keyword">suspend</span> GeneratorScope<span class="token operator">&lt;</span>T<span class="token operator">></span><span class="token punctuation">.</span><span class="token punctuation">(</span>T<span class="token punctuation">)</span> <span class="token operator">-></span> Unit<span class="token punctuation">,</span>
+    <span class="token keyword">private</span> <span class="token keyword">val</span> parameter<span class="token operator">:</span> T
+<span class="token punctuation">)</span> <span class="token operator">:</span> GeneratorScope<span class="token operator">&lt;</span>T<span class="token operator">></span><span class="token punctuation">,</span> Iterator<span class="token operator">&lt;</span>T<span class="token operator">></span><span class="token punctuation">,</span> Continuation<span class="token operator">&lt;</span>Any<span class="token operator">?</span><span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></div>
+<p>实现GeneratorScope接口我们可以复写或者实现yield函数，而实现Continuation的好处是<strong>GeneratorIterator</strong>自身可以监听到协程的执行结束，例如上面resumeWith函数使得我们可以在执行结束后将状态置为<strong>State.Done</strong>结束迭代。</p>
+<p>接下来就是<strong>generator</strong>函数了，它接收一个参数即协程体，返回一个函数用来创建迭代器/序列生成器，如下所示。</p>
+<div class="code-wrapper"><pre class="line-numbers language-kotlin" data-language="kotlin"><code class="language-kotlin"><span class="token keyword">fun</span> <span class="token operator">&lt;</span>T<span class="token operator">></span> <span class="token function">generator</span><span class="token punctuation">(</span>block<span class="token operator">:</span> <span class="token keyword">suspend</span> GeneratorScope<span class="token operator">&lt;</span>T<span class="token operator">></span><span class="token punctuation">.</span><span class="token punctuation">(</span>T<span class="token punctuation">)</span> <span class="token operator">-></span> Unit<span class="token punctuation">)</span><span class="token operator">:</span> <span class="token punctuation">(</span>T<span class="token punctuation">)</span> <span class="token operator">-></span> Generator<span class="token operator">&lt;</span>T<span class="token operator">></span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token punctuation">&#123;</span> parameter<span class="token operator">:</span> T <span class="token operator">-></span>
+        <span class="token function">GeneratorImpl</span><span class="token punctuation">(</span>block<span class="token punctuation">,</span> parameter<span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre></div>
+<p>现在我们完成了一个序列生成器，该序列生成器比较具备代表性，具有以下代表结构：</p>
+<ul>
+<li><strong>返回值：</strong>GeneratorIterator的泛型参数T即为元素类型。对于存在结果的协程，一定存在相应的泛型参数生命。</li>
+<li><strong>状态机：</strong>GeneratorIterator实现Continuation接口之后，自身即可作为协程执行完成后的回调completion参数传入，进而监听协程的完成情况。</li>
+<li><strong>作用域：</strong>GeneratorIterator实现GeneratorScope接口之后，可以作为协程体的Receiver，这样即可令协程体获得相应的扩展函数，如本例中的yield函数。</li>
+</ul>
+<h2 id="kotlin标准库中的序列生成器"><a href="#kotlin标准库中的序列生成器" class="headerlink" title="kotlin标准库中的序列生成器"></a>kotlin标准库中的序列生成器</h2><p>Kotlin标准库中提供了类似的生成器实现，通常我们称它为“懒序列生成器”。序列使用方法如下所示。</p>
+<div class="code-wrapper"><pre class="line-numbers language-kotlin" data-language="kotlin"><code class="language-kotlin"><span class="token keyword">val</span> sequence <span class="token operator">=</span> sequence <span class="token punctuation">&#123;</span>
+        <span class="token function">yield</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+        <span class="token function">yield</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>
+        <span class="token function">yield</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span>
+        <span class="token function">yieldAll</span><span class="token punctuation">(</span><span class="token function">listOf</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">,</span> <span class="token number">4</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">for</span> <span class="token punctuation">(</span>num <span class="token keyword">in</span> sequence<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">println</span><span class="token punctuation">(</span>num<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div>
+<p>sequence函数接收一个函数作为参数，结合我们自己实现的generator，这个函数实际上就是协程体。除了提供yield函数外，sequence还支持批量生产元素yieldAll。与generator不同的是，这里sequence {}的返回值直接就是迭代器。</p>
+<p>我们可以通过sequence来获取一个斐波那契数列，如下所示。</p>
+<div class="code-wrapper"><pre class="line-numbers language-kotlin" data-language="kotlin"><code class="language-kotlin"><span class="token keyword">val</span> fibonacci <span class="token operator">=</span> sequence <span class="token punctuation">&#123;</span>
+    <span class="token function">yield</span><span class="token punctuation">(</span><span class="token number">1L</span><span class="token punctuation">)</span>
+    <span class="token keyword">var</span> current <span class="token operator">=</span> <span class="token number">1L</span>
+    <span class="token keyword">var</span> next <span class="token operator">=</span> <span class="token number">1L</span>
+    <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">yield</span><span class="token punctuation">(</span>next<span class="token punctuation">)</span>
+        next <span class="token operator">+=</span> current
+        current <span class="token operator">=</span> next <span class="token operator">-</span> current
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+fibonacci<span class="token punctuation">.</span><span class="token function">take</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token operator">::</span>println<span class="token punctuation">)</span> <span class="token comment">// 使用take(10)获取前10个元素</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div>
+
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span>Kotlin标准库1.4.21
+<a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/35094136/">《深入理解Kotlin协程》</a>
+<a href="#fnref:2" rev="footnote" class="footnote-backref"> ↩</a></span></span></li></ol></div></section>
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Kotlin/">Kotlin</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Coroutine/">Coroutine</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/02/03/2a3d271f/">
+                        <span class="hidden-mobile">深入理解Kotlin协程（二）——基本原理</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                
+  <script type="text/javascript">
+    Fluid.utils.waitElementVisible('comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'sukaidev/sukaidev.github.io');
+      s.setAttribute('issue-term', 'pathname');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+<!-- SCRIPTS -->
+
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+    
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    (function () {
+      var path = "/local-search.xml";
+      var inputArea = document.querySelector("#local-search-input");
+      inputArea.onclick = function () {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+        this.onclick = null
+      }
+    })()
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+
+</body>
+</html>

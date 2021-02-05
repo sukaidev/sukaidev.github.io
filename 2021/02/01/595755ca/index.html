@@ -29,7 +29,15 @@
     
     
       
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/github-gist.min.css" />
+      
+        
+          
+        
+        <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.22.0/themes/prism.min.css" />
+      
+      
+        <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.22.0/plugins/line-numbers/prism-line-numbers.min.css" />
+      
     
   
 
@@ -55,7 +63,7 @@
 
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
   </script>
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
@@ -184,7 +192,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      2.8k 字
+      2.7k 字
     </span>
   
 
@@ -252,112 +260,112 @@
 </ul>
 <p>对称协程的概念跟线程十分类似，例如go routine可以通过读写不同的channel来实现控制权的自由转移。常见语言的协程大多是非对称实现。实际上在非对称的基础上，我们只需要添加一个中立的第三方作为协程调度权的分发中心，所有协程在挂起时都将调度权转移给分发中心，分发中心根据参数来决定将调度权转移给哪个协程，即可实现对称协程。</p>
 <h2 id="协程基础"><a href="#协程基础" class="headerlink" title="协程基础"></a>协程基础</h2><h3 id="协程的创建"><a href="#协程的创建" class="headerlink" title="协程的创建"></a>协程的创建</h3><p>我们可以通过<strong>createCoroutine</strong>方法快速创建一个协程：</p>
-<div class="code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> <span class="hljs-params">(<span class="hljs-keyword">suspend</span> ()</span></span> -&gt; T).createCoroutine(
-    completion: Continuation&lt;T&gt;
-): Continuation&lt;<span class="hljs-built_in">Unit</span>&gt; =
- SafeContinuation(createCoroutineUnintercepted(completion).intercepted(), COROUTINE_SUSPENDED)</code></pre></div>
+<div class="code-wrapper"><pre class="line-numbers language-kotlin" data-language="kotlin"><code class="language-kotlin"><span class="token keyword">public</span> <span class="token keyword">fun</span> <span class="token operator">&lt;</span>T<span class="token operator">></span> <span class="token punctuation">(</span><span class="token keyword">suspend</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-></span> T<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">createCoroutine</span><span class="token punctuation">(</span>
+    completion<span class="token operator">:</span> Continuation<span class="token operator">&lt;</span>T<span class="token operator">></span>
+<span class="token punctuation">)</span><span class="token operator">:</span> Continuation<span class="token operator">&lt;</span>Unit<span class="token operator">></span> <span class="token operator">=</span>
+ <span class="token function">SafeContinuation</span><span class="token punctuation">(</span><span class="token function">createCoroutineUnintercepted</span><span class="token punctuation">(</span>completion<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">intercepted</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> COROUTINE_SUSPENDED<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre></div>
 <p>可以看到该方法是个扩展方法，Receiver类型为<strong>suspend ()-&gt;T</strong>，是一个挂起函数。<strong>completion</strong>是协程完成后的回调，有点类似于我们常写的Callback。方法返回一个Continuation对象， 拿到了这个对象后我们就可以随时的启动协程了。</p>
-<div class="code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-keyword">val</span> continuation = <span class="hljs-keyword">suspend</span> &#123;
-    println(<span class="hljs-string">&quot;Coroutine Start.&quot;</span>)
-    <span class="hljs-string">&quot;return value.&quot;</span>
-&#125;.createCoroutine(<span class="hljs-keyword">object</span> : Continuation&lt;String&gt; &#123;
-    <span class="hljs-keyword">override</span> <span class="hljs-keyword">val</span> context: CoroutineContext
-        <span class="hljs-keyword">get</span>() = EmptyCoroutineContext
+<div class="code-wrapper"><pre class="line-numbers language-kotlin" data-language="kotlin"><code class="language-kotlin"><span class="token keyword">val</span> continuation <span class="token operator">=</span> <span class="token keyword">suspend</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"Coroutine Start."</span><span class="token punctuation">)</span>
+    <span class="token string">"return value."</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">.</span><span class="token function">createCoroutine</span><span class="token punctuation">(</span><span class="token keyword">object</span> <span class="token operator">:</span> Continuation<span class="token operator">&lt;</span>String<span class="token operator">></span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">override</span> <span class="token keyword">val</span> context<span class="token operator">:</span> CoroutineContext
+        <span class="token keyword">get</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=</span> EmptyCoroutineContext
 
-    <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">resumeWith</span><span class="hljs-params">(result: <span class="hljs-type">Result</span>&lt;<span class="hljs-type">String</span>&gt;)</span></span> &#123;
-        println(<span class="hljs-string">&quot;Coroutine End : <span class="hljs-variable">$result</span>&quot;</span>)
-    &#125;
-&#125;)</code></pre></div>
+    <span class="token keyword">override</span> <span class="token keyword">fun</span> <span class="token function">resumeWith</span><span class="token punctuation">(</span>result<span class="token operator">:</span> Result<span class="token operator">&lt;</span>String<span class="token operator">></span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"Coroutine End : <span class="token interpolation variable">$result</span>"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div>
 <h3 id="协程的启动"><a href="#协程的启动" class="headerlink" title="协程的启动"></a>协程的启动</h3><p>上面代码中我们顺利创建一个协程，那么如何启动这个协程呢？Continuation中并没有类型startXXX()的方法，而是调用<strong>Continuation#resume</strong>来启动一个协程。</p>
-<div class="code-wrapper"><pre><code class="hljs kotlin">continuation.resume(<span class="hljs-built_in">Unit</span>)   <span class="hljs-comment">// 启动协程</span>
+<div class="code-wrapper"><pre class="line-numbers language-kotlin" data-language="kotlin"><code class="language-kotlin">continuation<span class="token punctuation">.</span><span class="token function">resume</span><span class="token punctuation">(</span>Unit<span class="token punctuation">)</span>   <span class="token comment">// 启动协程</span>
 
-<span class="hljs-comment">// 控制台输出：</span>
-Coroutine Start.
-Coroutine End : Success(<span class="hljs-keyword">return</span> value.)</code></pre></div>
+<span class="token comment">// 控制台输出：</span>
+Coroutine Start<span class="token punctuation">.</span>
+Coroutine End <span class="token operator">:</span> <span class="token function">Success</span><span class="token punctuation">(</span><span class="token keyword">return</span> value<span class="token punctuation">.</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre></div>
 <p>当然我们也可通过<strong>startCoroutine</strong>来直接创建和启动一个协程：</p>
-<div class="code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> <span class="hljs-params">(<span class="hljs-keyword">suspend</span> ()</span></span> -&gt; T).startCoroutine(
-    completion: Continuation&lt;T&gt;
-) &#123;
- createCoroutineUnintercepted(completion).intercepted().resume(<span class="hljs-built_in">Unit</span>)
-&#125;</code></pre></div>
+<div class="code-wrapper"><pre class="line-numbers language-kotlin" data-language="kotlin"><code class="language-kotlin"><span class="token keyword">public</span> <span class="token keyword">fun</span> <span class="token operator">&lt;</span>T<span class="token operator">></span> <span class="token punctuation">(</span><span class="token keyword">suspend</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-></span> T<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">startCoroutine</span><span class="token punctuation">(</span>
+    completion<span class="token operator">:</span> Continuation<span class="token operator">&lt;</span>T<span class="token operator">></span>
+<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+ <span class="token function">createCoroutineUnintercepted</span><span class="token punctuation">(</span>completion<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">intercepted</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">resume</span><span class="token punctuation">(</span>Unit<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre></div>
 <p>上面有个非常令人疑惑的点是，为什么调用返回的Continuation对象就可以启动协程呢？按照我们上面的写的，continuation的resumeWith方法应该作为回调成功的方法才对。</p>
 <p>通过上面<strong>createCoroutine</strong>方法源码我们得知返回给我们的是一个<strong>SafeContinuation</strong>对象，这里就不贴源码了毕竟这篇只是个初识（笑），这里要说的是SafeContinuation其实只是个”马甲“，它的所有操作均交由其私有属性delegate来执行，当然delegate也是一个Continuation对象。当我们执行了</p>
-<div class="code-wrapper"><pre><code class="hljs kotlin">continuation.resume(<span class="hljs-built_in">Unit</span>)</code></pre></div>
+<div class="code-wrapper"><pre class="line-numbers language-kotlin" data-language="kotlin"><code class="language-kotlin">continuation<span class="token punctuation">.</span><span class="token function">resume</span><span class="token punctuation">(</span>Unit<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></div>
 <p>这行代码时，实际上是执行了<strong>delegate.resumeWith</strong>方法。那么新问题来了，delegate对象又是哪来的呢？通过查阅字节码和反编译文件我们发现，我们写的协程体也就是suspend修饰的这个lambda编译后实际上变成了一个匿名内部类，而我们的协程体中的代码实际被包装在了其<strong>invokeSuspend</strong>方法中。而当我们调用Suspend Lambda的扩展方法<strong>createCoroutine</strong>创建一个协程时，我们的Suspend Lambda也就是协程体实际被传入<strong>SafeContinuation</strong>的构造方法中，也就是说SafeContinuation的delegate属性其实就是我们的协程体。</p>
 <p>这样看来就比较清晰了，创建协程返回的Continuation实例其实就是套了几层马甲的协程体，协程体先被编译器封装到一个匿名内部类内部的<strong>invokeSuspend</strong>方法中，再传入SafeContinuation充当其代理，当我们调用<strong>SafeContinuation#resume</strong>的时候，我们的协程体自然就得到了执行。</p>
 <h3 id="协程体的Receiver"><a href="#协程体的Receiver" class="headerlink" title="协程体的Receiver"></a>协程体的Receiver</h3><p>与协程创建和启动相关的API有两组，现在看下第二组：</p>
-<div class="code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;R, T&gt;</span> <span class="hljs-params">(<span class="hljs-keyword">suspend</span> R.()</span></span> -&gt; T).createCoroutine(
-    receiver: R,
-    completion: Continuation&lt;T&gt;
-)
+<div class="code-wrapper"><pre class="line-numbers language-kotlin" data-language="kotlin"><code class="language-kotlin"><span class="token keyword">public</span> <span class="token keyword">fun</span> <span class="token operator">&lt;</span>R<span class="token punctuation">,</span> T<span class="token operator">></span> <span class="token punctuation">(</span><span class="token keyword">suspend</span> R<span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-></span> T<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">createCoroutine</span><span class="token punctuation">(</span>
+    receiver<span class="token operator">:</span> R<span class="token punctuation">,</span>
+    completion<span class="token operator">:</span> Continuation<span class="token operator">&lt;</span>T<span class="token operator">></span>
+<span class="token punctuation">)</span>
 
-<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;R, T&gt;</span> <span class="hljs-params">(<span class="hljs-keyword">suspend</span> R.()</span></span> -&gt; T).startCoroutine(
-    receiver: R,
-    completion: Continuation&lt;T&gt;
-)</code></pre></div>
+<span class="token keyword">public</span> <span class="token keyword">fun</span> <span class="token operator">&lt;</span>R<span class="token punctuation">,</span> T<span class="token operator">></span> <span class="token punctuation">(</span><span class="token keyword">suspend</span> R<span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-></span> T<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">startCoroutine</span><span class="token punctuation">(</span>
+    receiver<span class="token operator">:</span> R<span class="token punctuation">,</span>
+    completion<span class="token operator">:</span> Continuation<span class="token operator">&lt;</span>T<span class="token operator">></span>
+<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div>
 <p>两组区别仅仅在于这一组协程体多了一个Receiver类型R。协程体的Receiver可以为协程提供一个作用域，使得我们可以在协程体内使用作用域提供的函数或者状态等。</p>
 <p>由于Kotlin本身没有提供带有Receiver的Lambda表达式的语法，这里我们自己实现一个：</p>
-<div class="code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;R, T&gt;</span> <span class="hljs-title">launchCoroutine</span><span class="hljs-params">(receiver: <span class="hljs-type">R</span>, block: <span class="hljs-type">suspend</span> <span class="hljs-type">R</span>.() -&gt; <span class="hljs-type">T</span>)</span></span> &#123;
-    block.startCoroutine(receiver, <span class="hljs-keyword">object</span> : Continuation&lt;T&gt; &#123;
-        <span class="hljs-keyword">override</span> <span class="hljs-keyword">val</span> context: CoroutineContext
-            <span class="hljs-keyword">get</span>() = EmptyCoroutineContext
+<div class="code-wrapper"><pre class="line-numbers language-kotlin" data-language="kotlin"><code class="language-kotlin"><span class="token keyword">fun</span> <span class="token operator">&lt;</span>R<span class="token punctuation">,</span> T<span class="token operator">></span> <span class="token function">launchCoroutine</span><span class="token punctuation">(</span>receiver<span class="token operator">:</span> R<span class="token punctuation">,</span> block<span class="token operator">:</span> <span class="token keyword">suspend</span> R<span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-></span> T<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    block<span class="token punctuation">.</span><span class="token function">startCoroutine</span><span class="token punctuation">(</span>receiver<span class="token punctuation">,</span> <span class="token keyword">object</span> <span class="token operator">:</span> Continuation<span class="token operator">&lt;</span>T<span class="token operator">></span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">override</span> <span class="token keyword">val</span> context<span class="token operator">:</span> CoroutineContext
+            <span class="token keyword">get</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=</span> EmptyCoroutineContext
 
-        <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">resumeWith</span><span class="hljs-params">(result: <span class="hljs-type">Result</span>&lt;<span class="hljs-type">T</span>&gt;)</span></span> &#123;
-            println(<span class="hljs-string">&quot;Coroutine End : <span class="hljs-variable">$result</span>&quot;</span>)
-        &#125;
-    &#125;)
-&#125;</code></pre></div>
+        <span class="token keyword">override</span> <span class="token keyword">fun</span> <span class="token function">resumeWith</span><span class="token punctuation">(</span>result<span class="token operator">:</span> Result<span class="token operator">&lt;</span>T<span class="token operator">></span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"Coroutine End : <span class="token interpolation variable">$result</span>"</span><span class="token punctuation">)</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div>
 <p>使用时首先需要一个作用域，这里我们来手动模拟一个协程作用域：</p>
-<div class="code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MainScope</span>&lt;<span class="hljs-type">T</span>&gt; </span>&#123;
-    <span class="hljs-keyword">suspend</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">print</span><span class="hljs-params">(value: <span class="hljs-type">T</span>)</span></span> &#123;
-        println(value.toString())
-    &#125;
+<div class="code-wrapper"><pre class="line-numbers language-kotlin" data-language="kotlin"><code class="language-kotlin"><span class="token keyword">class</span> MainScope<span class="token operator">&lt;</span>T<span class="token operator">></span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">suspend</span> <span class="token keyword">fun</span> <span class="token function">print</span><span class="token punctuation">(</span>value<span class="token operator">:</span> T<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">println</span><span class="token punctuation">(</span>value<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
 
-    <span class="hljs-keyword">suspend</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">hashCode</span><span class="hljs-params">(value: <span class="hljs-type">T</span>)</span></span> = value.hashCode() xor (value.hashCode() ushr <span class="hljs-number">16</span>)
-&#125;
+    <span class="token keyword">suspend</span> <span class="token keyword">fun</span> <span class="token function">hashCode</span><span class="token punctuation">(</span>value<span class="token operator">:</span> T<span class="token punctuation">)</span> <span class="token operator">=</span> value<span class="token punctuation">.</span><span class="token function">hashCode</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token function">xor</span> <span class="token punctuation">(</span>value<span class="token punctuation">.</span><span class="token function">hashCode</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">ushr</span> <span class="token number">16</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span>
 
- <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">callLaunchCoroutine</span><span class="hljs-params">()</span></span> &#123;
-    launchCoroutine(MainScope&lt;<span class="hljs-built_in">Int</span>&gt;()) &#123;
-        println(<span class="hljs-string">&quot;Start Coroutine.&quot;</span>)
-        print(<span class="hljs-number">1000</span>)
-        delay(<span class="hljs-number">1000L</span>)
-        hashCode(<span class="hljs-number">1000</span>)
-    &#125;
-&#125;</code></pre></div>
+ <span class="token keyword">fun</span> <span class="token function">callLaunchCoroutine</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">launchCoroutine</span><span class="token punctuation">(</span>MainScope<span class="token operator">&lt;</span>Int<span class="token operator">></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"Start Coroutine."</span><span class="token punctuation">)</span>
+        <span class="token function">print</span><span class="token punctuation">(</span><span class="token number">1000</span><span class="token punctuation">)</span>
+        <span class="token function">delay</span><span class="token punctuation">(</span><span class="token number">1000L</span><span class="token punctuation">)</span>
+        <span class="token function">hashCode</span><span class="token punctuation">(</span><span class="token number">1000</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div>
 <p>可以看到我们可以直接使用作用域提供的函数，也可以调用作用域外部定义的挂起函数。</p>
 <p>除了可以提供函数支持外，作用域也可以用来增加限制，例如<strong>RestrictsSuspension</strong>注解，为作用域添加这个注解后，使用作用域构造的协程体将无法调用外部的挂起函数，例如上面代码中的<strong>delay</strong>将会报红。</p>
 <h3 id="可挂起的main函数"><a href="#可挂起的main函数" class="headerlink" title="可挂起的main函数"></a>可挂起的main函数</h3><p>从Kotlin Version 1.3开始，我们**main()**函数可以直接被声明为suspend：</p>
-<div class="code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-keyword">suspend</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span>&#123;
-    ... ...
-&#125;</code></pre></div>
+<div class="code-wrapper"><pre class="line-numbers language-kotlin" data-language="kotlin"><code class="language-kotlin"><span class="token keyword">suspend</span> <span class="token keyword">fun</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+    <span class="token operator">..</span><span class="token punctuation">.</span> <span class="token operator">..</span><span class="token punctuation">.</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></div>
 <p>这意味着我们可以在JVM启动的时候直接获得一个协程。首先可以确定的是这个可挂起的<strong>main</strong>函数肯定不会是真正的程序入口，因为JVM根本不会知道什么是协程，实际上我们反编译字节码后发现main方法是这样的：</p>
-<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] var0)</span> </span>&#123;
-   RunSuspendKt.runSuspend(<span class="hljs-keyword">new</span> CoroutineKt$$$main(var0));
-&#125;</code></pre></div>
+<div class="code-wrapper"><pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> var0<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+   <span class="token class-name">RunSuspendKt</span><span class="token punctuation">.</span><span class="token function">runSuspend</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">CoroutineKt</span>$$$<span class="token function">main</span><span class="token punctuation">(</span>var0<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></div>
 <p>我们在suspend main()中写的可挂起的代码实际上由<strong>RunSuspendKt#runSuspend</strong>来执行，来看看源码：</p>
-<div class="code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-keyword">internal</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">runSuspend</span><span class="hljs-params">(block: <span class="hljs-type">suspend</span> () -&gt; <span class="hljs-type">Unit</span>)</span></span> &#123;
-    <span class="hljs-keyword">val</span> run = RunSuspend()
-    block.startCoroutine(run)
-    run.await()
-&#125;</code></pre></div>
+<div class="code-wrapper"><pre class="line-numbers language-kotlin" data-language="kotlin"><code class="language-kotlin"><span class="token keyword">internal</span> <span class="token keyword">fun</span> <span class="token function">runSuspend</span><span class="token punctuation">(</span>block<span class="token operator">:</span> <span class="token keyword">suspend</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-></span> Unit<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">val</span> run <span class="token operator">=</span> <span class="token function">RunSuspend</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    block<span class="token punctuation">.</span><span class="token function">startCoroutine</span><span class="token punctuation">(</span>run<span class="token punctuation">)</span>
+    run<span class="token punctuation">.</span><span class="token function">await</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre></div>
 <p>可以看到这里用我们的suspend main()来启动一个协程。</p>
 <p>这里还有一个RunSuspend类，它也是一个Continuation，作为我们整个程序运行完成的回调，这里我们可以关注下<strong>await</strong>函数的实现：</p>
-<div class="code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">resumeWith</span><span class="hljs-params">(result: <span class="hljs-type">Result</span>&lt;<span class="hljs-type">Unit</span>&gt;)</span></span> = synchronized(<span class="hljs-keyword">this</span>) &#123;
-    <span class="hljs-keyword">this</span>.result = result
-    <span class="hljs-meta">@Suppress(<span class="hljs-meta-string">&quot;PLATFORM_CLASS_MAPPED_TO_KOTLIN&quot;</span>)</span> (<span class="hljs-keyword">this</span> <span class="hljs-keyword">as</span> Object).notifyAll()
-&#125;
+<div class="code-wrapper"><pre class="line-numbers language-kotlin" data-language="kotlin"><code class="language-kotlin"><span class="token keyword">override</span> <span class="token keyword">fun</span> <span class="token function">resumeWith</span><span class="token punctuation">(</span>result<span class="token operator">:</span> Result<span class="token operator">&lt;</span>Unit<span class="token operator">></span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token function">synchronized</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">this</span><span class="token punctuation">.</span>result <span class="token operator">=</span> result
+    <span class="token annotation builtin">@Suppress</span><span class="token punctuation">(</span><span class="token string">"PLATFORM_CLASS_MAPPED_TO_KOTLIN"</span><span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token keyword">this</span> <span class="token keyword">as</span> Object<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">notifyAll</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span>
 
-<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">await</span><span class="hljs-params">()</span></span> = synchronized(<span class="hljs-keyword">this</span>) &#123;
-    <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) &#123;
-        <span class="hljs-keyword">when</span> (<span class="hljs-keyword">val</span> result = <span class="hljs-keyword">this</span>.result) &#123;
-            <span class="hljs-literal">null</span> -&gt; <span class="hljs-meta">@Suppress(<span class="hljs-meta-string">&quot;PLATFORM_CLASS_MAPPED_TO_KOTLIN&quot;</span>)</span> (<span class="hljs-keyword">this</span> <span class="hljs-keyword">as</span> Object).wait()
-            <span class="hljs-keyword">else</span> -&gt; &#123;
-                result.getOrThrow() <span class="hljs-comment">// throw up failure</span>
-                <span class="hljs-keyword">return</span>
-            &#125;
-        &#125;
-    &#125;
-&#125;</code></pre></div>
+<span class="token keyword">fun</span> <span class="token function">await</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token function">synchronized</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">when</span> <span class="token punctuation">(</span><span class="token keyword">val</span> result <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>result<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">null</span> <span class="token operator">-></span> <span class="token annotation builtin">@Suppress</span><span class="token punctuation">(</span><span class="token string">"PLATFORM_CLASS_MAPPED_TO_KOTLIN"</span><span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token keyword">this</span> <span class="token keyword">as</span> Object<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">wait</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token keyword">else</span> <span class="token operator">-></span> <span class="token punctuation">&#123;</span>
+                result<span class="token punctuation">.</span><span class="token function">getOrThrow</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment">// throw up failure</span>
+                <span class="token keyword">return</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div>
 <p>可以看到当我们调用了block.startCoroutine(run)启动了协程之后，main()方法所在线程实际会进入阻塞状态，当协程执行完毕，run的<strong>resumeWith</strong>方法会被调用，main()方法所在线程从而被唤醒，使得JVM可以正常退出。</p>
 <p>参考：</p>
 <p><a target="_blank" rel="noopener" href="https://book.douban.com/subject/35094136/">《深入理解Kotlin协程》</a></p>
@@ -412,24 +420,31 @@ Coroutine End : Success(<span class="hljs-keyword">return</span> value.)</code><
               <article class="comments" id="comments">
                 
                 
-  <div class="disqus" style="width:100%">
-    <div id="disqus_thread"></div>
-    <script type="text/javascript">
-      var disqus_config = function() {
-        this.page.url = 'http://example.com/2021/02/01/595755ca/';
-        this.page.identifier = '/2021/02/01/595755ca/';
-      };
-      Fluid.utils.waitElementVisible('disqus_thread', function () {
-        var d = document, s = d.createElement('script');
-        s.src = '//' + 'sukaidev' + '.disqus.com/embed.js';
-        s.setAttribute('data-timestamp', new Date());
-        (d.head || d.body).appendChild(s);
-      });
-    </script>
-    <noscript>Please enable JavaScript to view the
-      <a target="_blank" href="https://disqus.com/?ref_noscript" rel="nofollow noopener noopener">comments powered by Disqus.</a>
-    </noscript>
-  </div>
+  <script type="text/javascript">
+    Fluid.utils.waitElementVisible('comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'sukaidev/sukaidev.github.io');
+      s.setAttribute('issue-term', 'pathname');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
 
 
               </article>
@@ -529,6 +544,8 @@ Coroutine End : Success(<span class="hljs-keyword">return</span> value.)</code><
 
 
   
+    
+  
 
 
 
@@ -539,8 +556,6 @@ Coroutine End : Success(<span class="hljs-keyword">return</span> value.)</code><
   <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
 
 
-
-  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.0/anchor.min.js" ></script>
 
 
 
