@@ -180,14 +180,14 @@
     
       <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2021/02/05/7963e723/" target="_self">
-          <img src="/img/cover_kotlin_coroutines.png" srcset="/img/loading.gif" alt="深入理解Kotlin协程（三）——协程拓展实践">
+          <img src="/img/cover_kotlin_coroutines.png" srcset="/img/loading.gif" alt="深入理解Kotlin协程（三）——复合协程">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2021/02/05/7963e723/">深入理解Kotlin协程（三）——协程拓展实践</a>
+        <a href="/2021/02/05/7963e723/">深入理解Kotlin协程（三）——复合协程</a>
       </h1>
 
       <p class="index-excerpt">
@@ -197,8 +197,8 @@
             
           
           本篇文章我们将介绍两种序列生成器，序列生成器包含“序列”和“生成器”两部分，我们先来仿写一个Python的Generator。
-仿Python的Generator实现Python中的Generator可以在函数中调用yield将当前函数挂起并返回yield的参数，效果如下：
-val nums: (Int) -> Generator&lt;Int> = generator &#123; start:
+序列生成器仿Python的Generator实现Python中的Generator可以在函数中调用yield将当前函数挂起并返回yield的参数，效果如下：
+12345678910111213141516171819val nums: (Int) -&gt; Genera
         </a>
       </p>
 
@@ -253,11 +253,7 @@ val nums: (Int) -> Generator&lt;Int> = generator &#123; start:
             
           
           函数的挂起挂起函数用suspend修饰的函数称为挂起函数。挂起函数只能在协程体内或者另一个挂起函数内部调用，这样kotlin的函数就分为了两种：普通函数和挂起函数。其中挂起函数可以调用任何函数，而普通函数只能调用普通函数。
-suspend fun suspendFunc01(a: Int) &#123;
-    return
-&#125;
-
-suspend fun suspendFunc02(a:
+123456789suspend fun suspendFunc01(a: Int) &#123;    return&#125;suspend fun suspendFunc
         </a>
       </p>
 
@@ -390,7 +386,7 @@ suspend fun suspendFunc02(a:
 
   <footer class="text-center mt-5 py-3">
   <div class="footer-content">
-     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+     Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> ，Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
   </div>
   
 
@@ -428,8 +424,6 @@ suspend fun suspendFunc02(a:
 
 
 
-  
-    
   
 
 
