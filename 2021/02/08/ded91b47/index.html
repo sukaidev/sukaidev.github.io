@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      3.2k 字
+      3.5k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      43
+      46
        分钟
     </span>
   
@@ -296,7 +296,16 @@
 <li>最终，在coroutine()中将调度权归还给Main协程，transferInner落入③处分支直接返回。</li>
 </ul>
 <p>至此，基于非对称协程API实现的对称协程API原理分析完毕。</p>
-
+<h2 id="复合协程的实现模式"><a href="#复合协程的实现模式" class="headerlink" title="复合协程的实现模式"></a>复合协程的实现模式</h2><p>结合本篇以及前面几篇文章几个案例的实现，我们可以把<strong>复合协程实现模式</strong>归纳如下。</p>
+<ul>
+<li><strong>协程的构造器</strong>。我们总是需要一套更好更简便的API来创建协程，例如async{ … }或者Coroutine.create{ … }。</li>
+<li><strong>协程的返回值</strong>。协程可以有返回值，这一点主要是由协程完成时对completion的调用来保证的。</li>
+<li><strong>协程的状态机</strong>。在Kotlin协程的基础设施中，协程本身已经存在创建、执行、挂起、完成等状态了，我们通常需要对这些状态进行管理以控制协程的执行逻辑。状态流转过程在并发环境下需要考虑并发安全问题，我们可以在状态流转时通过加锁来确保这一点，也可以采用更高效的CAS算法来确保状态流转的原子性。</li>
+<li><strong>协程的作用域</strong>。作用域主要用作协程体的Receiver，从而令协程体能够方便地获得协程自身的信息或者调用协程体专属的函数（例如yield）。</li>
+</ul>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span>Kotlin标准库1.4.21
+<a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/35094136/">《深入理解Kotlin协程》</a>
+<a href="#fnref:2" rev="footnote" class="footnote-backref"> ↩</a></span></span></li></ol></div></section>
             </div>
             <hr>
             <div>
