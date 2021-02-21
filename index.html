@@ -179,6 +179,63 @@
     
     
       <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2021/02/21/dd192d66/" target="_self">
+          <img src="/img/cover_kotlin_coroutines.png" srcset="/img/loading.gif" alt="深入理解Kotlin协程（六）——Kotlin协程框架初探（二）">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/02/21/dd192d66/">深入理解Kotlin协程（六）——Kotlin协程框架初探（二）</a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/02/21/dd192d66/">
+          
+          
+            
+          
+          本篇继续探讨协程的取消、异常处理以及作用域问题。
+协程的取消协程的取消本质是协作式的取消，这点跟线程的中断一致，除了自身状态置为取消外，也需要协程体的执行逻辑能够检查状态的变化来响应取消。
+完善协程的取消逻辑我们的Job目前还有两个函数空着没有实现，分别是cancle和invokeOnCancel。后者的实现与doOnCompleted类似，如下所示。
+1234567891011121314151
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-02-21 23:29" pubdate>
+              2021-02-21
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Kotlin/">Kotlin</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Coroutines/">Coroutines</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2021/02/16/b912c613/" target="_self">
           <img src="/img/cover_kotlin_coroutines.png" srcset="/img/loading.gif" alt="深入理解Kotlin协程（五）——Kotlin协程框架初探（一）">
         </a>
