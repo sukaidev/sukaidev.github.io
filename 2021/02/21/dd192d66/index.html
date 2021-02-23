@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      2.8k 字
+      3.5k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      37
+      44
        分钟
     </span>
   
@@ -304,7 +304,20 @@
 <h3 id="顶级作用域"><a href="#顶级作用域" class="headerlink" title="顶级作用域"></a>顶级作用域</h3><p>我们对launch函数进行改造之后，需要一个作用域来调用launch函数才能启动一个协程，但作用域又是在创建协程过程中产生的。针对这个问题，我们需要一个特殊的作用域，这个作用域不需要依赖父作用域来产生，这个作用域就叫做<strong>顶级作用域</strong>。</p>
 <figure class="highlight kotlin"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-keyword">object</span> GlobalScope : CoroutineScope &#123;<br>    <span class="hljs-keyword">override</span> <span class="hljs-keyword">val</span> scopeContext: CoroutineContext<br>        <span class="hljs-keyword">get</span>() = EmptyCoroutineContext<br>&#125;<br><br>GlobalScope.launch&#123;<br>  ··· ···<br>&#125;<br></code></pre></div></td></tr></table></figure>
 <p>由于协程描述类AbstractCoroutine本身实现了CoroutineScope，因此由GlobalScope.launch启动的协程体内部我们可以直接创建新的子协程。</p>
-<h3 id="协同作用域"><a href="#协同作用域" class="headerlink" title="协同作用域"></a>协同作用域</h3><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span>Kotlin标准库1.4.21
+<h3 id="实现异常传播"><a href="#实现异常传播" class="headerlink" title="实现异常传播"></a>实现异常传播</h3><p>接下来考虑一下子协程如何将异常向上传递。按照现有的实现，我们已经将该异常处理传递到tryHandleException中，对于非取消异常的情况都交给了handleJobException来处理。按照协同作用域的设计，协程遇到未捕获的异常时应当优先向上传播，如果没有父协程才自行处理。因此我们添加一个函数<strong>handleChildException</strong>用于接收子协程的异常，改造一下tryHandleException：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">open</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">handleChildException</span><span class="hljs-params">(e: <span class="hljs-type">Throwable</span>)</span></span>: <span class="hljs-built_in">Boolean</span> &#123;<br>    cancel()  <span class="hljs-comment">// 取消父协程</span><br>    <span class="hljs-keyword">return</span> tryHandleException(e) <span class="hljs-comment">// 继续向上传递或者自己处理</span><br>&#125;<br><br><span class="hljs-keyword">private</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">tryHandleException</span><span class="hljs-params">(e: <span class="hljs-type">Throwable</span>)</span></span> = <span class="hljs-keyword">when</span> (e) &#123;<br>    <span class="hljs-keyword">is</span> CancellationException -&gt; <span class="hljs-literal">false</span><br>    <span class="hljs-keyword">else</span> -&gt; (parentJob <span class="hljs-keyword">as</span>? AbstractCoroutine&lt;*&gt;)?.handleChildException(e) <span class="hljs-comment">// 交给父协程处理</span><br>        ?.takeIf &#123; it &#125;<br>        ?: handleJobException(e)  <span class="hljs-comment">// 没有父协程 自行处理</span><br>&#125;<br></code></pre></div></td></tr></table></figure>
+<p>注释已经很完善了，当出现未捕获异常时，先尝试调用父协程的handleChildException来处理，否则自行处理。父协程也优先调用父协程的父协程来处理。</p>
+<h3 id="主从作用域"><a href="#主从作用域" class="headerlink" title="主从作用域"></a>主从作用域</h3><p>协同作用域的效果就是父子协程绑定，父取消则子取消，子异常则父连坐。而主从作用域则可以避免子协程出现异常而导致父协程取消的情况。</p>
+<p>我们只需要将上面的<strong>handleChildException</strong>方法返回false即可避免子协程将异常传递给父协程，如下。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-keyword">private</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SupervisorCoroutine</span>&lt;<span class="hljs-type">T</span>&gt;</span>(context: CoroutineContext, continuation: Continuation&lt;T&gt;) :<br>    ScopeCoroutine&lt;T&gt;(context, continuation) &#123;<br>    <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">handleChildException</span><span class="hljs-params">(e: <span class="hljs-type">Throwable</span>)</span></span> = <span class="hljs-literal">false</span><br>&#125;<br></code></pre></div></td></tr></table></figure>
+<p>也很容易去创建这样一个作用域，如下。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-keyword">suspend</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;R&gt;</span> <span class="hljs-title">supervisorScope</span><span class="hljs-params">(</span></span><br><span class="hljs-function"><span class="hljs-params">    block: <span class="hljs-type">suspend</span> <span class="hljs-type">CoroutineScope</span>.() -&gt; <span class="hljs-type">R</span></span></span><br><span class="hljs-function"><span class="hljs-params">)</span></span>: R = suspendCoroutine &#123; continuation -&gt;<br>    <span class="hljs-keyword">val</span> coroutine = SupervisorCoroutine(continuation.context, continuation)<br>    block.startCoroutine(coroutine, coroutine)<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<p>主从作用域的应用场景多见于子协程为独立对等的任务实体的情况，例如Android平台的Jetpack开发包中ViewModel内置的viewModelScope就是主从作用域实现。</p>
+<h3 id="完整的异常处理流程"><a href="#完整的异常处理流程" class="headerlink" title="完整的异常处理流程"></a>完整的异常处理流程</h3><p>引入作用域后完整的异常处理流程如下如所示。</p>
+<p><img src="/img/complete_exception_handle.png" srcset="/img/loading.gif" alt="完整的异常处理流程"></p>
+<h3 id="父协程等待子协程完成"><a href="#父协程等待子协程完成" class="headerlink" title="父协程等待子协程完成"></a>父协程等待子协程完成</h3><p>作用域要求父协程必须等待子协程执行完才可以进入完成状态，因此父协程的resumeWith执行完成后需要检查子协程是否完成，未完成则需要注册完成回调，等待所有子协程状态流转为完成状态父协程才能触发完成回调并且流转为完成态。我们只需要新增一个等待的状态即可，状态流转如下所示。</p>
+<p><img src="/img/scope_state_transfer.png" srcset="/img/loading.gif" alt="完整的异常处理流程"></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span>Kotlin标准库1.4.21
 <a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/35094136/">《深入理解Kotlin协程》</a>
 <a href="#fnref:2" rev="footnote" class="footnote-backref"> ↩</a></span></span></li></ol></div></section>
             </div>
