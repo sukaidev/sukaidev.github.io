@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      2.8k 字
+      2.7k 字
     </span>
   
 
@@ -260,7 +260,7 @@
 <p>当然我们也可通过<strong>startCoroutine</strong>来直接创建和启动一个协程：</p>
 <figure class="highlight kotlin"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> <span class="hljs-params">(<span class="hljs-keyword">suspend</span> ()</span></span> -&gt; T).startCoroutine(<br>    completion: Continuation&lt;T&gt;<br>) &#123;<br> createCoroutineUnintercepted(completion).intercepted().resume(<span class="hljs-built_in">Unit</span>)<br>&#125;<br></code></pre></div></td></tr></table></figure>
 <p>上面有个非常令人疑惑的点是，为什么调用返回的Continuation对象就可以启动协程呢？按照我们上面的写的，continuation的resumeWith方法应该作为回调成功的方法才对。</p>
-<p>通过上面<strong>createCoroutine</strong>方法源码我们得知返回给我们的是一个<strong>SafeContinuation</strong>对象，这里就不贴源码了毕竟这篇只是个初识（笑），这里要说的是SafeContinuation其实只是个”马甲“，它的所有操作均交由其私有属性delegate来执行，当然delegate也是一个Continuation对象。当我们执行了</p>
+<p>通过上面<strong>createCoroutine</strong>方法源码我们得知返回给我们的是一个<strong>SafeContinuation</strong>对象，SafeContinuation其实只是个”马甲“，它的所有操作均交由其私有属性delegate来执行，当然delegate也是一个Continuation对象。当我们执行了</p>
 <figure class="highlight kotlin"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs kotlin">continuation.resume(<span class="hljs-built_in">Unit</span>)<br></code></pre></div></td></tr></table></figure>
 <p>这行代码时，实际上是执行了<strong>delegate.resumeWith</strong>方法。那么新问题来了，delegate对象又是哪来的呢？通过查阅字节码和反编译文件我们发现，我们写的协程体也就是suspend修饰的这个lambda编译后实际上变成了一个匿名内部类，而我们的协程体中的代码实际被包装在了其<strong>invokeSuspend</strong>方法中。而当我们调用Suspend Lambda的扩展方法<strong>createCoroutine</strong>创建一个协程时，我们的Suspend Lambda也就是协程体实际被传入<strong>SafeContinuation</strong>的构造方法中，也就是说SafeContinuation的delegate属性其实就是我们的协程体。</p>
 <p>这样看来就比较清晰了，创建协程返回的Continuation实例其实就是套了几层马甲的协程体，协程体先被编译器封装到一个匿名内部类内部的<strong>invokeSuspend</strong>方法中，再传入SafeContinuation充当其代理，当我们调用<strong>SafeContinuation#resume</strong>的时候，我们的协程体自然就得到了执行。</p>
