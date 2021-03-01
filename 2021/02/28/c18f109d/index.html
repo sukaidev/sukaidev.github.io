@@ -172,8 +172,8 @@
   
     <span class="post-meta">
       <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2021-02-26 22:51" pubdate>
-        2021年2月26日 晚上
+      <time datetime="2021-02-28 22:51" pubdate>
+        2021年2月28日 晚上
       </time>
     </span>
   
@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      4.6k 字
+      5.5k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      57
+      69
        分钟
     </span>
   
@@ -355,7 +355,45 @@
 <p>第二种是<strong>collectLasted</strong>，作用是只处理最新的数据。看起来似乎与conflate是一样的，其实不然，collectLasted不会进行数据的覆盖，而是在当前数据还未处理完而新的数据来的时候，当前数据的处理逻辑会被取消，转而处理新数据。</p>
 <p>除了collectLasted之外，还有<strong>mapLastest</strong>、<strong>flatMapLatest</strong>等。</p>
 <h3 id="Flow的变换"><a href="#Flow的变换" class="headerlink" title="Flow的变换"></a>Flow的变换</h3><p>Flow与RxJava的Observable一样，可以使用map、flattenConcat等函数来进行变换。</p>
-<h2 id="多路复用select"><a href="#多路复用select" class="headerlink" title="多路复用select"></a>多路复用select</h2><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span>Kotlin标准库1.4.21
+<h2 id="select表达式"><a href="#select表达式" class="headerlink" title="select表达式"></a>select表达式</h2><p>select在Java NIO里很常见，Kotlin协程中的select用于同时等待多个挂起函数，并可以选择第一个恢复的gaug挂起。</p>
+<h3 id="复用多个await"><a href="#复用多个await" class="headerlink" title="复用多个await"></a>复用多个await</h3><p>假设我们有个常见是分别从本地和网络获取数据，哪个先返回就用哪个，那么如何做到这一点呢？</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> CoroutineScope.<span class="hljs-title">getUserFromApi</span><span class="hljs-params">(login: <span class="hljs-type">String</span>)</span></span> = async(Dispatchers.IO)&#123;<br>    gitHubServiceApi.getUserSuspend(login)<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">fun</span> CoroutineScope.<span class="hljs-title">getUserFromLocal</span><span class="hljs-params">(login:<span class="hljs-type">String</span>)</span></span> = async(Dispatchers.IO)&#123;<br>    File(localDir, login).takeIf &#123; it.exists() &#125;?.readText()?.let &#123; gson.fromJson(it, User::<span class="hljs-keyword">class</span>.java) &#125;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<p>我们可以使用select来同时启动这两个挂起函数，并最终返回先恢复的那个挂起函数返回的数据，如下：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs kotlin">GlobalScope.launch &#123;<br>    <span class="hljs-keyword">val</span> localDeferred = getUserFromLocal(login)<br>    <span class="hljs-keyword">val</span> remoteDeferred = getUserFromApi(login)<br><br>    <span class="hljs-keyword">val</span> userResponse = select&lt;Response&lt;User?&gt;&gt; &#123;<br>        localDeferred.onAwait &#123; Response(it, <span class="hljs-literal">true</span>) &#125;<br>        remoteDeferred.onAwait &#123; Response(it, <span class="hljs-literal">false</span>) &#125;<br>    &#125;<br>    ...<br>&#125;.join()<br></code></pre></div></td></tr></table></figure>
+<p>我们没有直接调用await，而是使用<strong>Deferred#onAwait</strong>方法在select中注册了回调，select总是会立即调用最先返回的事件的回调。</p>
+<h3 id="复用多个Channel"><a href="#复用多个Channel" class="headerlink" title="复用多个Channel"></a>复用多个Channel</h3><p>对于多个Channel的情况，也比较类似：</p>
+<figure class="highlight dts"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs dts">val channels = List(<span class="hljs-number">10</span>) &#123; Channel<span class="hljs-params">&lt;Int&gt;</span>() &#125;<br><br>select<span class="hljs-params">&lt;Int?&gt;</span> &#123;<br>    channels.<span class="hljs-class">forEach </span>&#123; channel -&gt;<br>        channel.<span class="hljs-class">onReceive </span>&#123; it &#125;<br>        <span class="hljs-comment">// OR</span><br>        channel.<span class="hljs-class">onReceiveOrNull </span>&#123; it &#125;<br>    &#125;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<p>对于 onReceive，如果Channel被关闭，select会直接抛出异常；而对于 onReceiveOrNull如果遇到Channel被关闭的情况，it的值就是null。</p>
+<h3 id="SelectClause"><a href="#SelectClause" class="headerlink" title="SelectClause"></a>SelectClause</h3><p>如何知道哪些事件可以被select呢？实际上所有能够被select的事件都是SelectClauseN类型，包括：</p>
+<ul>
+<li><p>SelectClause0：对应事件没有返回值，例如join没有返回值，那么onJoin就是SelectClauseN类型。使用时，onJoin的参数是一个无惨函数。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs kotlin">select&lt;<span class="hljs-built_in">Unit</span>&gt; &#123;<br>    job.onJoin &#123; println(<span class="hljs-string">&quot;Join resumed!&quot;</span>) &#125;<br>&#125;<br></code></pre></div></td></tr></table></figure></li>
+<li><p>SelectClause1：对应事件有返回值，前面的onAwait和onReceive都是此类情况。</p>
+</li>
+<li><p>SelectClause2：对应事件有返回值，此外还需要一个额外的参数作为回调，例如Channel.onSend有两个参数，第一个表示即将发送的值，第二个是发送成功的回调。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs kotlin">List(<span class="hljs-number">100</span>) &#123; element -&gt;<br>    select&lt;<span class="hljs-built_in">Unit</span>&gt; &#123;<br>        channels.forEach &#123; channel -&gt;<br>            channel.onSend(element) &#123; sentChannel -&gt;<br>                println(<span class="hljs-string">&quot;send on  <span class="hljs-variable">$sentChannel</span>&quot;</span>)<br>            &#125;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+
+
+</li>
+</ul>
+<p>综上，如果想要确认挂起函数是否支持select，只需要查看其是否存在对应的SelectClauseN类型可回调即可。</p>
+<h3 id="使用Flow实现多路复用"><a href="#使用Flow实现多路复用" class="headerlink" title="使用Flow实现多路复用"></a>使用Flow实现多路复用</h3><p>多数情况下，我们可以通过构造何时的Flow来实现多路复用的效果。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs kotlin">coroutineScope &#123;<br>    <span class="hljs-keyword">val</span> login = <span class="hljs-string">&quot;...&quot;</span><br>    listOf(::getUserFromApi, ::getUserFromLocal)  <span class="hljs-comment">// list中存放函数引用</span><br>        .map &#123; function -&gt;<br>            function.call(login)  <span class="hljs-comment">// 调用函数，得到返回值</span><br>        &#125;<br>        .map &#123; deferred -&gt;<br>            flow &#123; emit(deferred.await()) &#125;  <span class="hljs-comment">// 创建Flow，发送deferred.await的返回结果</span><br>        &#125;<br>        .merge() <span class="hljs-comment">// 多个Flow合并成一个Flow</span><br>        .onEach &#123; user -&gt; <span class="hljs-comment">// 使用onEach来消费</span><br>            println(<span class="hljs-string">&quot;Result: <span class="hljs-variable">$user</span>&quot;</span>)<br>        &#125;.launchIn(<span class="hljs-keyword">this</span>)<br><br>&#125;<br></code></pre></div></td></tr></table></figure>
+<p>上面代码的关键之处在于，我们为每一个deferred都创建了一个单独的Flow，并在Flow内部发送了deferred.await()返回的结果，最后再通过<strong>merge</strong>函数合并成一个Flow来进行处理。</p>
+<p><img src="/img/flow_merge.png" srcset="/img/loading.gif" alt="使用merge合并Flow"></p>
+<h2 id="协程的并发工具"><a href="#协程的并发工具" class="headerlink" title="协程的并发工具"></a>协程的并发工具</h2><p>协程框架提供了一些并发安全的工具，包括：</p>
+<ul>
+<li><p><strong>Channel</strong>：并发安全的消息通道。</p>
+</li>
+<li><p><strong>Mutex</strong>：轻量级锁，在获取不到锁时不会阻塞线程而是挂起等待锁的释放。代码如下所示。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-keyword">var</span> count = <span class="hljs-number">0</span><br><span class="hljs-keyword">val</span> mutex = Mutex()<br>List(<span class="hljs-number">1000</span>) &#123;<br>    GlobalScope.launch &#123;<br>        mutex.withLock &#123;<br>            count++<br>        &#125;<br>    &#125;<br>&#125;.joinAll()<br></code></pre></div></td></tr></table></figure></li>
+<li><p>Semaphore：轻量级信号量，信号量可以有多个，协程在获取到信号量后即可执行并发操作。当Semaphore的参数为1时，效果等价于Mutex，代码示例如下。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-keyword">var</span> count = <span class="hljs-number">0</span><br><span class="hljs-keyword">val</span> semaphore = Semaphore(<span class="hljs-number">1</span>)<br>List(<span class="hljs-number">1000</span>) &#123;<br>    GlobalScope.launch &#123;<br>        semaphore.withPermit &#123;<br>            count++<br>        &#125;<br>    &#125;<br>&#125;.joinAll()<br></code></pre></div></td></tr></table></figure>
+
+
+</li>
+</ul>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span>Kotlin标准库1.4.21
 <a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/35094136/">《深入理解Kotlin协程》</a>
 <a href="#fnref:2" rev="footnote" class="footnote-backref"> ↩</a></span></span></li></ol></div></section>
             </div>
