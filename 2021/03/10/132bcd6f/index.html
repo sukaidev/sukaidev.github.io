@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      3.8k 字
+      4.1k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      39
+      43
        分钟
     </span>
   
@@ -273,7 +273,47 @@
 <p>分配完内存之后，虚拟机必须将分配到的内存空间(但不包括对象头)都初始化为零值，如果使用了TLAB的话，这一项工作也可以提前至TLAB分配时顺便进行。</p>
 <p>接下来JVM需要对对象进行必要的设置，例如接下来，Java虚拟机还要对对象进行必要的设置，例如这个对象是哪个类的实例、如何才能找到类的元数据信息、对象的哈希码（实际上对象的哈希码会延后到真正调用Object::hashCode()方法时才 计算）、对象的GC分代年龄等信息。这些信息存放在对象的<strong>对象头(Object Header)之中</strong>。</p>
 <p>完成上面的工作之后，在虚拟机看来实际上一个新的对象已经产生了。不过从程序角度来看，还需要调用构造函数来初始化对象的资源和状态。因此new指令之后接着会执行Class文件中的<init>()方法，按照程序员的意愿对对象进行初始化，这样一个真正可用的对象才算完全被构造出来。</p>
-<h3 id="对象的内存布局"><a href="#对象的内存布局" class="headerlink" title="对象的内存布局"></a>对象的内存布局</h3>
+<h3 id="对象的内存布局"><a href="#对象的内存布局" class="headerlink" title="对象的内存布局"></a>对象的内存布局</h3><p>在HotSpot虚拟机里，对象在堆内存中的存储布局可以划分为三个部分：<strong>对象头（Header）</strong>、<strong>实例数据（Instance Data）</strong>和<strong>对齐填充（Padding）</strong>。如下图所示。</p>
+<p><img src="/img/jvm/HotSpot_object_storage_distribution.png" srcset="/img/loading.gif" alt="HotSpot虚拟机对象存储分布"></p>
+<p>其中MarkWord是一个有着动态定义的数据结构，在未开启指针压缩的情况，在32位和64位虚拟机上的长度分别为32个比特和64个比特。</p>
+<p>例如在32位的HotSpot虚拟机中，如对象未被同步锁锁定的状态下，Mark Word的32个比特存储空间中的25个比特用于存储对象哈希码，4个比特用于存储对象分代年龄，2个比特用于存储锁标志位，1个比特固定为0，在其他状态（轻量级锁定、重量级锁定、GC标记、可偏向）下对象的存储内容如下表所示。</p>
+<table>
+<thead>
+<tr>
+<th align="center">存储内容</th>
+<th align="center">标志位</th>
+<th align="center">状态</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">对象哈希码、分代年龄</td>
+<td align="center">01</td>
+<td align="center">未锁定</td>
+</tr>
+<tr>
+<td align="center">指向锁记录的指针</td>
+<td align="center">00</td>
+<td align="center">轻量级锁定</td>
+</tr>
+<tr>
+<td align="center">指向重量级锁的指针</td>
+<td align="center">10</td>
+<td align="center">膨胀（重量级锁定）</td>
+</tr>
+<tr>
+<td align="center">空，不需要记录信息</td>
+<td align="center">11</td>
+<td align="center">GC标记</td>
+</tr>
+<tr>
+<td align="center">偏向线程ID、偏向时间戳、对象分代年龄</td>
+<td align="center">01</td>
+<td align="center">可偏向</td>
+</tr>
+</tbody></table>
+<h3 id="对象的访问定位"><a href="#对象的访问定位" class="headerlink" title="对象的访问定位"></a>对象的访问定位</h3><p>创建对象后需要使用该对象，主流的访问方式有使用<strong>句柄</strong>和<strong>直接指针</strong>两种：</p>
+<p><img src="/img/jvm/access_objects_through_handles.png" srcset="/img/loading.gif" alt="通过句柄访问对象"></p>
+
             </div>
             <hr>
             <div>
