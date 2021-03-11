@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      4.1k 字
+      4.4k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      43
+      45
        分钟
     </span>
   
@@ -311,8 +311,15 @@
 <td align="center">可偏向</td>
 </tr>
 </tbody></table>
-<h3 id="对象的访问定位"><a href="#对象的访问定位" class="headerlink" title="对象的访问定位"></a>对象的访问定位</h3><p>创建对象后需要使用该对象，主流的访问方式有使用<strong>句柄</strong>和<strong>直接指针</strong>两种：</p>
+<h3 id="对象的访问定位"><a href="#对象的访问定位" class="headerlink" title="对象的访问定位"></a>对象的访问定位</h3><p>创建对象自然是为了后续使用该对象，我们的Java程序会通过栈上的reference数据来操作堆上的具体对象。由于reference类型在《Java虚拟机规范》里面只规定了它是一个指向对象的引用，并没有定义这个引用应该通过什么方式去定位、访问到堆中对象的具体位置，所以对象访问方式也是由虚拟机实现而定的，主流的访问方式有使用<strong>句柄</strong>和<strong>直接指针</strong>两种：</p>
+<ul>
+<li>使用句柄访问时，Java堆中会划分出一块内存来作为句柄池，reference中存储的就是对象的句柄地址。句柄中包含了对象实例数据与类型数据各自具体的地址信息，如下图所示。</li>
+</ul>
 <p><img src="/img/jvm/access_objects_through_handles.png" srcset="/img/loading.gif" alt="通过句柄访问对象"></p>
+<ul>
+<li>使用直接指针访问时，Java堆中对象的内存布局就必须考虑如何放置访问数据类型的相关信息，reference中存储的直接就是对象地址。如果只是访问对象本身的话，就不需要额外的间接访问开销了，如下图所示。</li>
+</ul>
+<p><img src="/img/jvm/access_objects_through_pointer.png" srcset="/img/loading.gif" alt="通过直接指针访问对象"></p>
 
             </div>
             <hr>
