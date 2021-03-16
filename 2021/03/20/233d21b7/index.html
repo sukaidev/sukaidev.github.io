@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      1.1k 字
+      1.2k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      12
+      13
        分钟
     </span>
   
@@ -352,10 +352,11 @@
 <p>我们通过javac编译下列代码生成Test.class字节码文件，然后使用16进制编辑器打开class文件查看内容：</p>
 <p><img src="/img/jvm/class_file_content.png" srcset="/img/loading.gif" alt="class文件内容"></p>
 <p>上图中都是一些 16 进制数字，每两个字符代表一个字节。</p>
-<h2 id="魔数与Class文件的版本"><a href="#魔数与Class文件的版本" class="headerlink" title="魔数与Class文件的版本"></a>魔数与Class文件的版本</h2><p>每个Class文件的头4个字节被称为<strong>魔数（Magic Number）</strong>，它的唯一作用是确定这个文件是否为一个能被虚拟机接受的Class文件。魔数被用作格式标准校验是很常见的行为，Class文件中的魔数值为0xCAFEBABE，跟Java的”咖啡豆“含义相互呼应。</p>
+<h3 id="魔数与Class文件的版本"><a href="#魔数与Class文件的版本" class="headerlink" title="魔数与Class文件的版本"></a>魔数与Class文件的版本</h3><p>每个Class文件的头4个字节被称为<strong>魔数（Magic Number）</strong>，它的唯一作用是确定这个文件是否为一个能被虚拟机接受的Class文件。魔数被用作格式标准校验是很常见的行为，Class文件中的魔数值为0xCAFEBABE，跟Java的”咖啡豆“含义相互呼应。</p>
 <p><img src="/img/jvm/class_file_magic_number.png" srcset="/img/loading.gif" alt="魔数"></p>
 <p>紧接着魔数的4个字节存储的是Class文件的版本号：第5和第6个字节（<strong>0000</strong>）是次版本号，第7和第8个字节（<strong>0034</strong>）是主版本号。0034对应的十进制是52，也就是 <strong>jdk1.8.0</strong>。</p>
 <p><img src="/img/jvm/class_file_version.png" srcset="/img/loading.gif" alt="版本号"></p>
+<h3 id="常量池"><a href="#常量池" class="headerlink" title="常量池"></a>常量池</h3><p>紧跟在版本号之后的是一个叫作<strong>常量池</strong>的表（cp_info）。在常量池中保存了类的各种相关信息，比如类的名称、父类的名称、类中的方法名、参数名称、参数类型等，这些信息都是以各种表的形式保存在常量池中的。</p>
 <h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/34907497">《深入理解Java虚拟机》</a>
 <a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://kaiwu.lagou.com/course/courseInfo.htm?courseId=67">Android 工程师进阶 34 讲</a>
 <a href="#fnref:2" rev="footnote" class="footnote-backref"> ↩</a></span></span></li></ol></div></section>
