@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      2.1k 字
+      2.6k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      23
+      28
        分钟
     </span>
   
@@ -357,7 +357,7 @@
 <p>紧接着魔数的4个字节存储的是Class文件的版本号：第5和第6个字节（<strong>0000</strong>）是次版本号，第7和第8个字节（<strong>0034</strong>）是主版本号。0034对应的十进制是52，也就是 <strong>jdk1.8.0</strong>。</p>
 <p><img src="/img/jvm/class_file_version.png" srcset="/img/loading.gif" alt="版本号"></p>
 <h3 id="常量池"><a href="#常量池" class="headerlink" title="常量池"></a>常量池</h3><p>紧跟在版本号之后的是一个叫作<strong>常量池</strong>的表（cp_info）。在常量池中保存了类的各种相关信息，比如类的名称、父类的名称、类中的方法名、参数名称、参数类型等，这些信息都是以各种表的形式保存在常量池中的。</p>
-<p>由于常量池中常量的数量是不固定的，所以在常量池的入口需要放置一项u2类型的数据，代表<strong>常量池容量计数值（constant_pool_count）</strong>。例如本例中常量池大小为0x001D，即29，表示常量池中有28项常量，索引值范围为1~28。这里将0空出来是为了后面有表的索引值为0时，可以表达<strong>“不引用任何一个常量池项目”的含义。</strong></p>
+<p>由于常量池中常量的数量是不固定的，所以在常量池的入口需要放置一项u2类型的数据，代表<strong>常量池容量计数值（constant_pool_count）</strong>。例如本例中常量池大小为<strong>0x001D</strong>，即<strong>29</strong>，表示常量池中有<strong>28</strong>项常量，索引值范围为<strong>1~28</strong>。这里将0空出来是为了后面有表的索引值为0时，可以表达<strong>“不引用任何一个常量池项目”的含义。</strong></p>
 <p><img src="/img/jvm/class_file_constant_pool_size.png" srcset="/img/loading.gif" alt="常量池大小"></p>
 <p>常量池中主要存放两大类常量：<strong>字面量（Literal）</strong>和<strong>符号引用（Symbolic -References）</strong>。字面量比较接近于Java语言层面的常量概念，如文本字符串、被声明为final的常量值等。而符号引用则属于编译原理方面的概念，主要包括下面几类常量：</p>
 <ul>
@@ -481,7 +481,23 @@
 <p>而我们在java代码中声明的String字符串最终在class文件中的存储格式就是CONSTANT_utf8_info。因此一个字符串最大长度也就是u2所能代表的最大值65536个，但是需要使用2个字节来保存null值，因此<strong>一个字符串的最大长度为 65536 - 2 = 65534</strong>。</p>
 <p>不难看出，在常量池内部的表中也有相互之间的引用。用一张图来理解CONSTANT_Class_info和CONSTANT_utf8_info表格之间的关系，如下图所示：</p>
 <p><img src="/img/jvm/class_file_relationship_of_constant.png" srcset="/img/loading.gif" alt="常量表相互引用关系"></p>
-<p><img src="/Users/sukaidev/HexoBlog/source/_posts/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM%EF%BC%88%E4%BA%8C%EF%BC%89.assets/class_file_relationship_of_constant.png" srcset="/img/loading.gif" alt="class_file_relationship_of_constant"></p>
+<p>接下来我们继续基于上面的例子分析。上面说到版本号之后就是常量池大小，为0x001D即29，表示常量计数器为28。紧接着就是第一个常量，如下所示：</p>
+<p><img src="/img/jvm/class_file_first_constant.png" srcset="/img/loading.gif" alt="第一个常量tag"></p>
+<p>第一个字节表示tag，<strong>0x0a</strong>转化为十进制后为10，通过上面的表格我们知道tag=10时的表类型为<strong>CONSTANT_Methodref_info</strong>，因此第一个常量表结构为方法引用表。其结构如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java">CONSTANT_Methodref_info &#123;<br>    u1 tag = <span class="hljs-number">10</span>;<br>    u2 class_index;        <span class="hljs-comment">// 指向此方法的所属类</span><br>    u2 name_type_index;    <span class="hljs-comment">// 指向此方法的名称和类型</span><br>&#125;<br></code></pre></div></td></tr></table></figure>
+<p>在“0a”之后的2个字节指向这个方法是属于哪个类，紧接的2个字节指向这个方法的名称和类型。它们的值分别是：</p>
+<ul>
+<li>0006：十进制6，表示指向常量池中的第6个常量。</li>
+<li>0015：十进制21，表示指向常量池中的第21个常量。</li>
+</ul>
+<p>由于每个常量表占用字节的长度是不一定的，所以我们必须顺序解析到第6个常量才能知道第6个常量是什么类型，不过这里我们可以利用javap命令来帮助我们查看常量池的内容：</p>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java">javap -v Test.class<br></code></pre></div></td></tr></table></figure>
+<p>命令执行后结果如下：</p>
+<p><img src="/img/jvm/class_file_javap.png" srcset="/img/loading.gif" alt="使用javap命令查看常量池"></p>
+<p>正如我们刚才分析的一样，常量池中第一个常量是Methodref类型，指向下标6和下标21的常量。其中下标21的常量类型为<strong>NameAndType</strong>，它对应的数据结构如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java">CONSTANT_NameAndType_info&#123;<br>    u1 tag;<br>    u2 name_index;    <span class="hljs-comment">// 指向某字段或方法的名称字符串</span><br>    u2 type_index;    <span class="hljs-comment">// 指向某字段或方法的类型字符串</span><br>&#125;<br></code></pre></div></td></tr></table></figure>
+<p>而下标在21的NameAndType的name_index和type_index分别指向了13和14，也就是<strong>“<init>”</strong>和<strong>“()V”</strong>。因此最终解析下来常量池中第1个常量的解析过程以及最终值如下图所示：</p>
+<p><img src="/img/jvm/class_file_first_constant_reference.png" srcset="/img/loading.gif" alt="第1个常量引用链"></p>
 <h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/34907497">《深入理解Java虚拟机》</a>
 <a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://kaiwu.lagou.com/course/courseInfo.htm?courseId=67">Android 工程师进阶 34 讲</a>
 <a href="#fnref:2" rev="footnote" class="footnote-backref"> ↩</a></span></span></li></ol></div></section>
@@ -509,23 +525,6 @@
               
                 <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
               
-              
-                <div class="post-prevnext">
-                  <article class="post-prev col-6">
-                    
-                    
-                  </article>
-                  <article class="post-next col-6">
-                    
-                    
-                      <a href="/2021/03/12/132bcd6f/">
-                        <span class="hidden-mobile">深入理解JVM（一）——自动内存管理</span>
-                        <span class="visible-mobile">下一篇</span>
-                        <i class="iconfont icon-arrowright"></i>
-                      </a>
-                    
-                  </article>
-                </div>
               
             </div>
 
