@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      2.6k 字
+      4.5k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      28
+      51
        分钟
     </span>
   
@@ -498,6 +498,203 @@
 <figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java">CONSTANT_NameAndType_info&#123;<br>    u1 tag;<br>    u2 name_index;    <span class="hljs-comment">// 指向某字段或方法的名称字符串</span><br>    u2 type_index;    <span class="hljs-comment">// 指向某字段或方法的类型字符串</span><br>&#125;<br></code></pre></div></td></tr></table></figure>
 <p>而下标在21的NameAndType的name_index和type_index分别指向了13和14，也就是<strong>“<init>”</strong>和<strong>“()V”</strong>。因此最终解析下来常量池中第1个常量的解析过程以及最终值如下图所示：</p>
 <p><img src="/img/jvm/class_file_first_constant_reference.png" srcset="/img/loading.gif" alt="第1个常量引用链"></p>
+<p>仔细解析层层引用，最后我们可以看出，Test.class文件中常量池的第1个常量保存的是Object中的默认构造器方法。</p>
+<h3 id="访问标志"><a href="#访问标志" class="headerlink" title="访问标志"></a>访问标志</h3><p>在常量池结束之后，紧接着的2个字节代表<strong>访问标志（access_flags）</strong>，如下图所示：</p>
+<p><img src="/img/jvm/class_file_access_flag.png" srcset="/img/loading.gif" alt="访问标志"></p>
+<p>这个标志用于识别一些类或者接口层次的访问信息，包括：这个Class是类还是接口；是否定义为public类型；是否定义为abstract类型；如果是类的话，是否被声明为final等等。具体的标志位以及标志的含义见下表：</p>
+<table>
+<thead>
+<tr>
+<th align="center">标  志  名  称</th>
+<th align="center">标  志  值</th>
+<th align="center">含   义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">ACC_PUBLIC</td>
+<td align="center">0x0001</td>
+<td align="center">是否为public类型</td>
+</tr>
+<tr>
+<td align="center">ACC_FINAL</td>
+<td align="center">0x0010</td>
+<td align="center">是否被声明为final，只有类可设置</td>
+</tr>
+<tr>
+<td align="center">ACC_SUPER</td>
+<td align="center">0x0020</td>
+<td align="center">是否允许使用invokespecial字节码指令的新语义，JDK 1.0.2 之后默认为真</td>
+</tr>
+<tr>
+<td align="center">ACC_INTERFACE</td>
+<td align="center">0x0200</td>
+<td align="center">标识这是一个接口</td>
+</tr>
+<tr>
+<td align="center">ACC_ABSTRACT</td>
+<td align="center">0x0400</td>
+<td align="center">是否为abstract类型，对于接口或抽象类来说为真</td>
+</tr>
+<tr>
+<td align="center">ACC_SYNTHETIC</td>
+<td align="center">0x1000</td>
+<td align="center">标识这个类并非由用户代码产生</td>
+</tr>
+<tr>
+<td align="center">ACC_ANNOTATION</td>
+<td align="center">0x2000</td>
+<td align="center">标识这是一个注解</td>
+</tr>
+<tr>
+<td align="center">ACC_ENUM</td>
+<td align="center">0x4000</td>
+<td align="center">标识这是一个枚举</td>
+</tr>
+<tr>
+<td align="center">ACC_MODULE</td>
+<td align="center">0x8000</td>
+<td align="center">标识这是一个模块</td>
+</tr>
+</tbody></table>
+<p>我们定义的Test.java是一个普通Java类，不是接口、枚举或注解。并且被public修饰但没有被声明为final和abstract，并且它使用了JDK 1.2之后的编译器进行编译，因此它所对应的access_flags为<strong>0021</strong>（0X0001和0X0020相结合）。</p>
+<h3 id="类索引、父类索引与接口索引集合"><a href="#类索引、父类索引与接口索引集合" class="headerlink" title="类索引、父类索引与接口索引集合"></a>类索引、父类索引与接口索引集合</h3><p>在访问标志后的 2 个字节就是<strong>类索引（this_class）</strong>，类索引后的 2 个字节就是<strong>父类索引（super_class）</strong>，父类索引后的 2 个字节则是<strong>接口索引计数器（interfaces）</strong>。<strong>类索引用于确定这个类的全限定名，父类索引用于确定这个类的父类的全限定名。</strong>由于Java语言不允许多重继承，所以父类索引只有一个，除了java.lang.Object之外，所有的Java类都有父类，因此除了java.lang.Object外，所有Java类的父类索引都不为0。接口索引集合就用来描述这个类实现了哪些接口，这些被实现的接口将按implements关键字（如果这个Class文件表示的是一个接口，则应当是extends关键字）后的接口顺序从左到右排列在接口索引集合中。</p>
+<p>在我们的例子中如下图所示：</p>
+<p><img src="/img/jvm/class_file_this_super_class.png" srcset="/img/loading.gif" alt="类索引、父类索引、接口索引计数器"></p>
+<p>可以看出类索引指向常量池中的第 5 个常量，父类索引指向常量池中的第 6 个常量，并且实现的接口个数为 2 个。再回顾下常量池中的数据：</p>
+<p><img src="/img/jvm/class_file_interfaces.png" srcset="/img/loading.gif" alt="常量池中索引"></p>
+<p>从图中可以看出，第 5 个常量和第 6 个常量均为 CONSTANT_Class_info 表类型，并且代表的类分别是“Test”和“Object”。再看接口计数器，因为接口计数器的值是 2，代表这个类实现了 2 个接口。查看在接口计数器之后的 4 个字节分别为：</p>
+<ul>
+<li>0007：指向常量池中的第7个常量，从图中可以看出第7个常量值为“Serializable”。</li>
+<li>0008：指向常量池中的第8个常量，从图中可以看出第8个常量值为“Cloneable”。</li>
+</ul>
+<p>综上所述，可以得出如下结论：当前类为 Test 继承自 Object 类，并实现了“Serializable”和“Cloneable”这两个接口。</p>
+<h4 id="字段表集合"><a href="#字段表集合" class="headerlink" title="字段表集合"></a>字段表集合</h4><p>紧跟在接口索引集合后面的就是<strong>字段表（field_info）</strong>了，字段表用于描述接口或者类中声明的变量。Java语言中的“字段”（Field）包括类级变量以及实例级变量，但不包括在方法内部声明的局部变量。</p>
+<p>同样, 一个类中的变量个数是不固定的，因此在字段表集合之前还是使用一个计数器来表示变量的个数，如下所示：</p>
+<p><img src="/img/jvm/class_file_field_info_count.png" srcset="/img/loading.gif" alt="字段表计数器"></p>
+<p><strong>0002</strong> 表示类中声明了 2 个变量（在 class 文件中叫字段），字段计数器之后会紧跟着 2 个字段表的数据结构。</p>
+<p>字段表的具体结构如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java">CONSTANT_Fieldref_info&#123;<br>    u2  access_flags        <span class="hljs-comment">// 字段的访问标志</span><br>    u2  name_index          <span class="hljs-comment">// 字段的名称索引(也就是变量名)</span><br>    u2  descriptor_index    <span class="hljs-comment">// 字段的描述索引(也就是变量的类型)</span><br>    u2  attributes_count    <span class="hljs-comment">// 属性计数器</span><br>    attribute_info attributes <span class="hljs-comment">// 属性表集合</span><br>&#125;<br></code></pre></div></td></tr></table></figure>
+<p>字段访问标志放在access_flags项目中，它与类中的access_flags项目是非常类似的，都是一个u2的数据类型，其中可以设置的标志位和含义如下表所示。</p>
+<table>
+<thead>
+<tr>
+<th align="center">标 志 名 称</th>
+<th align="center">标 志 值</th>
+<th align="center">含  义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">ACC_PUBLIC</td>
+<td align="center">0x0001</td>
+<td align="center">字段是否为public</td>
+</tr>
+<tr>
+<td align="center">ACC_PRIVATE</td>
+<td align="center">0x0002</td>
+<td align="center">字段是否为private</td>
+</tr>
+<tr>
+<td align="center">ACC_PROTECTED</td>
+<td align="center">0x0004</td>
+<td align="center">字段是否为protected</td>
+</tr>
+<tr>
+<td align="center">ACC_STATIC</td>
+<td align="center">0x0008</td>
+<td align="center">字段是否static</td>
+</tr>
+<tr>
+<td align="center">ACC_FINAL</td>
+<td align="center">0x0010</td>
+<td align="center">字段是否final</td>
+</tr>
+<tr>
+<td align="center">ACC_VOLATILE</td>
+<td align="center">0x0040</td>
+<td align="center">字段是否volatile</td>
+</tr>
+<tr>
+<td align="center">ACC_TRANSIENT</td>
+<td align="center">0x0080</td>
+<td align="center">字段是否transient</td>
+</tr>
+<tr>
+<td align="center">ACC_SYNTHETIC</td>
+<td align="center">0x1000</td>
+<td align="center">字段是否synthetic</td>
+</tr>
+<tr>
+<td align="center">ACC_ENUM</td>
+<td align="center">0x4000</td>
+<td align="center">字段是否为enum</td>
+</tr>
+</tbody></table>
+<p>很明显，由于语法规则的约束，ACC_PUBLIC、ACC_PRIVATE、ACC_PROTECTED三个标志最 多只能选择其一，ACC_FINAL、ACC_VOLATILE不能同时选择。接口之中的字段必须有 ACC_PUBLIC、ACC_STATIC、ACC_FINAL标志，这些都是由Java本身的语言规则所导致的。</p>
+<p>跟随access_flags标志的是两项索引值：<strong>name_index</strong>和<strong>descriptor_index</strong>。它们都是对常量池项的引用，分别代表着字段的简单名称以及字段和方法的描述符。</p>
+<p>描述符的作用是用来描述字段的数据类型、方法的参数列表(包括数量、类型以及顺序)和返回值。根据描述符规则，基本数据类型（byte、char、double、float、int、long、short、boolean）以及代表无返回值的void类型都用一个大写字符来表示，而对象类型则用字符L加对象的全限定名来表示，如下表所示。</p>
+<table>
+<thead>
+<tr>
+<th align="center">标  识  字  符</th>
+<th align="center">含    义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">B</td>
+<td align="center">基本类型byte</td>
+</tr>
+<tr>
+<td align="center">C</td>
+<td align="center">基本类型char</td>
+</tr>
+<tr>
+<td align="center">D</td>
+<td align="center">基本类型double</td>
+</tr>
+<tr>
+<td align="center">F</td>
+<td align="center">基本类型float</td>
+</tr>
+<tr>
+<td align="center">I</td>
+<td align="center">基本类型int</td>
+</tr>
+<tr>
+<td align="center">J</td>
+<td align="center">基本类型long</td>
+</tr>
+<tr>
+<td align="center">S</td>
+<td align="center">基本类型short</td>
+</tr>
+<tr>
+<td align="center">Z</td>
+<td align="center">基本类型boolean</td>
+</tr>
+<tr>
+<td align="center">V</td>
+<td align="center">特殊类型void</td>
+</tr>
+<tr>
+<td align="center">L</td>
+<td align="center">对象类型，如Ljava/lang/Object;</td>
+</tr>
+</tbody></table>
+<p><strong>对于数组类型，每一维度将使用一个前置的“ [”字符来描述，如一个定义为“ jav-a.lang.String[][]”类型 的二维数组将被记录成“ [[Ljava/lang/String;”，一个整型数组“ int []”将被记录成“ [I”。</strong></p>
+<p>描述符来描述方法时，按照先参数列表、后返回值的顺序描述，参数列表按照参数的严格顺序放在一组小括号“()”之内。如方法void inc()的描述符为“()V”，方法java.l-ang.String toString()的描述符为“()Ljava/lang/String;”，方法int indexOf(char[]so-urce，int sourceOffset，int sourceCount，char[] target， int targetOffset，i-nt targetCount，int fromIndex)的描述符为“([CII[CIII)I”。</p>
+<p>继续解析 Text.class 中的字段表，其结构如下图所示：</p>
+<p><img src="/img/jvm/class_file_field_info.png" srcset="/img/loading.gif" alt="Text.class中的字段表"></p>
+<p>图中的访问标志的值为 <strong>0002</strong>，代表它是 private 类型。变量名索引指向常量池中的第 9 个常量，变量名类型索引指向常量池中第 10 个常量。第 9 和第 10 个常量分别为“num”和“I”，如下所示：</p>
+<p><img src="/img/jvm/class_file_field_info_name_index.png" srcset="/img/loading.gif" alt="字段名称和描述符"></p>
+<p>因此可以得知类中有一个名为 num，类型为 int 类型的变量。对于第 2 个变量的解析过程也是一样，就不再过多介绍。</p>
+<p>注意事项：</p>
+<ul>
+<li><p>字段表集合中不会列出从父类或者父接口中继承而来的字段。</p>
+</li>
+<li><p>内部类中为了保持对外部类的访问性，会自动添加指向外部类实例的字段。</p>
+</li>
+</ul>
+<h3 id="方法表集合"><a href="#方法表集合" class="headerlink" title="方法表集合"></a>方法表集合</h3><p>Class文件存储格式中对方法的描述与对字段的描述采用了几乎完全一致的方式，方法表的结构如同字段表一样，依次包括访问标志（access_flags）、名称索引）（name_index）、描述符索引（descrip tor_index）、属性表集合（attributes）几项，如下表所示。这些数据项目的含义也与字段表中的非常类似，仅在访问标志和属性表集合的可选项中有所区别。</p>
 <h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/34907497">《深入理解Java虚拟机》</a>
 <a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://kaiwu.lagou.com/course/courseInfo.htm?courseId=67">Android 工程师进阶 34 讲</a>
 <a href="#fnref:2" rev="footnote" class="footnote-backref"> ↩</a></span></span></li></ol></div></section>
@@ -525,6 +722,23 @@
               
                 <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
               
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/03/12/132bcd6f/">
+                        <span class="hidden-mobile">深入理解JVM（一）——自动内存管理</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
               
             </div>
 
