@@ -5,10 +5,10 @@
   
   <entry>
     <title>深入理解JVM（三）</title>
-    <link href="/2021/03/25/6e2382e5/"/>
-    <url>/2021/03/25/6e2382e5/</url>
+    <link href="/2021/03/20/6e2382e5/"/>
+    <url>/2021/03/20/6e2382e5/</url>
     
-    <content type="html"><![CDATA[<blockquote><p>占个位~</p></blockquote>]]></content>
+    <content type="html"><![CDATA[<blockquote><p>占个位，看完《深入理解Java字节码》再来更~</p></blockquote>]]></content>
     
     
     <categories>
@@ -20,7 +20,7 @@
     
     <tags>
       
-      <tag>Execution Subsystem</tag>
+      <tag>Bytecode</tag>
       
     </tags>
     
@@ -45,7 +45,7 @@
     
     <tags>
       
-      <tag>Execution Subsystem</tag>
+      <tag>Class File</tag>
       
     </tags>
     
