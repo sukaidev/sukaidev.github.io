@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      5.6k 字
+      5.7k 字
     </span>
   
 
@@ -227,7 +227,10 @@
             <h1 style="display: none">深入理解JVM（二）——类文件结构</h1>
             
             <div class="markdown-body">
-              <p>Java 能够实现”一次编译，到处运行”，这其中 class 文件要占大部分功劳。为了让 Java 语言具有良好的跨平台能力，Java 独具匠心的提供了一种可以在所有平台上都能使用的一种中间代码——字节码类文件（.class文件）。有了字节码，无论是哪种平台（如：Mac、Windows、Linux 等），只要安装了虚拟机都可以直接运行字节码。</p>
+              <blockquote>
+<p>“Class 文件”并非特指某个存在于具体磁盘中的问题，而应当是一串二进制字节流，无论其以何种形式存在，包括但不限于磁盘文件、网络、数据库、内存或者动态产生等。</p>
+</blockquote>
+<p>Java 能够实现”一次编译，到处运行”，这其中 class 文件要占大部分功劳。为了让 Java 语言具有良好的跨平台能力，Java 独具匠心的提供了一种可以在所有平台上都能使用的一种中间代码——字节码类文件（.class文件）。有了字节码，无论是哪种平台（如：Mac、Windows、Linux 等），只要安装了虚拟机都可以直接运行字节码。</p>
 <p>有了字节码，也解除了 Java 虚拟机和 Java 语言之间的耦合。Java虚拟机并不一定只能运行Java语言编写的程序，而是只认Class文件，其他语言如Kotlin、Groovy、Scala等都可以只需要编译成符合《Java虚拟机规范》的Class文件都可以运行在Java虚拟机中。如下图所示：</p>
 <p><img src="/img/jvm/language_independence.png" srcset="/img/loading.gif" alt="JVM的语言无关性"></p>
 <h2 id="Class文件结构"><a href="#Class文件结构" class="headerlink" title="Class文件结构"></a>Class文件结构</h2><p>Class文件是一组以 8 个字节为基础单位的二进制流，各个数据项目严格按照顺序紧凑地排列在文件之中，中间没有添加任何分隔符，这使得整个Class文件中存储的内容几乎全部是程运行的必要数据，没有空隙存在。当遇到需要占用 8 个字节以上空间的数据项时，则会按照<strong>高位在前（Big-Endian，大端）</strong>的方式分割成若干个 8 个字节进行存储。结构如下图所示。</p>

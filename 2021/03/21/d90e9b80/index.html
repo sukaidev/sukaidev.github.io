@@ -17,7 +17,7 @@
   <meta name="description" content="Android Developer">
   <meta name="author" content="sukaidev">
   <meta name="keywords" content="Android sukaidev 苏海鸿">
-  <title>深入理解JVM（四） - Sukai&#39;s Blog - Android Developer</title>
+  <title>深入理解JVM（四）——类加载机制 - Sukai&#39;s Blog - Android Developer</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
 
@@ -162,7 +162,7 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="深入理解JVM（四）">
+            <span class="h2" id="subtitle" title="深入理解JVM（四）——类加载机制">
               
             </span>
 
@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      0 字
+      658 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      1
+      6
        分钟
     </span>
   
@@ -224,10 +224,34 @@
         <div class="py-5" id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">深入理解JVM（四）</h1>
+            <h1 style="display: none">深入理解JVM（四）——类加载机制</h1>
             
             <div class="markdown-body">
-              
+              <blockquote>
+<p>Java虚拟机把描述类的数据从Class文件加载到内存，并对数据进行校验、转换解析和初始化，最终形成可以被虚拟机直接使用的Java类型，这个过程被称作虚拟机的类加载机制。——《深入理解Java虚拟机》</p>
+</blockquote>
+<h2 id="类加载的时机"><a href="#类加载的时机" class="headerlink" title="类加载的时机"></a>类加载的时机</h2><p>一个类型从被加载到虚拟机内存中开始，到卸载出内存为止，它的整个生命周期将会经历<strong>加载 （Loading）</strong>、<strong>验证（Verification）</strong>、<strong>准备（Preparation）</strong>、<strong>解析（Resolution）</strong>、<strong>初始化（Initializ ation）</strong>、<strong>使用（Using）</strong>和<strong>卸载（Unloading）</strong>七个阶段，其中验证、准备、解析三个部分统称为<strong>连接（Linking）</strong>。</p>
+<h2 id="类加载的过程"><a href="#类加载的过程" class="headerlink" title="类加载的过程"></a>类加载的过程</h2><p>接下来我们详细了解下Java虚拟机中类加载的全过程，即加载、验证、准备、解析和初始化这五个阶段所执行的具体动作。</p>
+<h3 id="加载"><a href="#加载" class="headerlink" title="加载"></a>加载</h3><p><strong>“加载”（Loading）</strong>阶段是整个<strong>“类加载”（Class Loading）</strong>过程中的第一个阶段。</p>
+<p>在加载阶段，Java虚拟机需要完成以下三件事：</p>
+<ol>
+<li>通过一个类的全限定名来获取定义此类的二进制字节流。</li>
+<li>将这个字节流所代表的静态存储结构转化为方法区的运行时数据结构。</li>
+<li>在内存中生成一个代表这个类的 java.lang.Class 对象，作为方法区这个类的各种数据的访问入口。</li>
+</ol>
+<p>《Java虚拟机规范》对这三点要求其实是很灵活的，例如第一条规则，它并没有规定二进制字节流必须得从某个Class文件中获取，确切地是说根本没有指明要从哪里获取、如何获取。仅仅这一点就能玩出很多花样，例如：</p>
+<ul>
+<li>从Zip包中获取，例如jar包、aar包、war包等。</li>
+<li>从网络中获取。</li>
+<li>运行时计算生成，这种场景使用的最多就是动态代理，这个我们Android开发者最熟悉的就是Retrofit通过动态代理来生成一个“*$Proxy”的代理类的二进制字节流，通过这个类来真正发起网络请求。</li>
+<li>由其他文件生成，典型场景是JSP应用，由JSP文件生成对应的Class文件。</li>
+<li>可以从加密文件中获取，这是典型的防Class文件被反编译的保护措施，通过加载时解密Class文件来保障程序运行逻辑不被窥探。</li>
+<li>… …</li>
+</ul>
+<h3 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h3><h3 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h3><h3 id="解析"><a href="#解析" class="headerlink" title="解析"></a>解析</h3><h3 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h3><h2 id="类加载器"><a href="#类加载器" class="headerlink" title="类加载器"></a>类加载器</h2><h2 id="自定义类加载器案例"><a href="#自定义类加载器案例" class="headerlink" title="自定义类加载器案例"></a>自定义类加载器案例</h2><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/34907497">《深入理解Java虚拟机》</a>
+<a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/35079283/">《深入理解JVM字节码》</a>
+<a href="#fnref:2" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:3" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://kaiwu.lagou.com/course/courseInfo.htm?courseId=67">Android 工程师进阶 34 讲</a>
+<a href="#fnref:3" rev="footnote" class="footnote-backref"> ↩</a></span></span></li></ol></div></section>
             </div>
             <hr>
             <div>
