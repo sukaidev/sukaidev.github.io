@@ -292,13 +292,13 @@
 </ul>
 <p>《Java虚拟机规范》之中并未规定解析阶段发生的具体时间，只要求了在执行anewarray 、checkcast、getfield、getstatic、instanceof、invokedynamic、invokeinterface、invoke-special、 invokestatic、invokevirtual、ldc、ldc_w、ldc2_w、multianewarray、new、putfield和putstatic这17个用于操作符号引用的字节码指令之前，先对它们所使用的符号引用进行解析。所以虚拟机实现可以根据需要来自行判断，到底是在类被加载器加载时就对常量池中的符号引用进行解析，还是等到一个符号引用将要被使用前才去解析它。</p>
 <p>解析动作主要针对类或接口、字段、类方法、接口方法、方法类型、方法句柄和调用点限定符这7类符号引用进行，分别对应于常量池的<strong>CONSTANT_Class_info</strong>、<strong>CONSTANT_Fieldref_info</strong>、 <strong>CONSTANT_Methodref_info</strong>、<strong>CONSTANT_InterfaceMethodref_info</strong>、 <strong>CONSTANT_MethodType_info</strong>、<strong>CONSTANT_MethodHandle_info</strong>、<strong>CONSTANT_Dynamic_info</strong>和<strong>CONSTANT_InvokeDynamic_info</strong> 8种常量类型。</p>
-<h5 id="1-类或接口的解析"><a href="#1-类或接口的解析" class="headerlink" title="1.类或接口的解析"></a>1.类或接口的解析</h5><p>假设当前代码所处的类为D，如果要把一个从未解析过的符号引用N解析为一个类或接口C的直接引用，那虚拟机完成整个解析的过程需要包括以下3个步骤：</p>
+<h4 id="1-类或接口的解析"><a href="#1-类或接口的解析" class="headerlink" title="1.类或接口的解析"></a>1.类或接口的解析</h4><p>假设当前代码所处的类为D，如果要把一个从未解析过的符号引用N解析为一个类或接口C的直接引用，那虚拟机完成整个解析的过程需要包括以下3个步骤：</p>
 <ol>
 <li>如果C不是一个数组类型，那虚拟机将会把代表N的全限定名传递给D的类加载器去加载这个 类C。在加载过程中，由于元数据验证、字节码验证的需要，又可能触发其他相关类的加载动作，例如加载这个类的父类或实现的接口。</li>
 <li>如果C是一个数组类型，并且数组的元素类型为对象，也就是N的描述符会是类<br>似“ [Ljava/lang/Integer”的形式，那将会按照第一点的规则加载数组元素类型。如果N的描述符如前面所假设的形式，需要加载的元素类型就是“java.lang.Integer”，接着由虚拟机生成一个代表该数组维度和元素的数组对象。</li>
 <li>如果上面两步没有出现任何异常，那么C在虚拟机中实际上已经成为一个有效的类或接口了， 但在解析完成前还要进行符号引用验证，确认D是否具备对C的访问权限。如果发现不具备访问权限，将抛出java.lang.IllegalAccessError异常。</li>
 </ol>
-<h5 id="2-字段解析"><a href="#2-字段解析" class="headerlink" title="2.字段解析"></a>2.字段解析</h5><p>要解析一个未被解析过的字段符号引用，首先将会对字段表内class_index项中索引的CONSTANT_Class_info符号引用进行解析，也就是字段所属的类或接口的符号引用。如果解析成功完成，那把这个字段所属的类或接口用C表示，《Java虚拟机规范》要求按照如下步骤对C进行后续字段的搜索：</p>
+<h4 id="2-字段解析"><a href="#2-字段解析" class="headerlink" title="2.字段解析"></a>2.字段解析</h4><p>要解析一个未被解析过的字段符号引用，首先将会对字段表内class_index项中索引的CONSTANT_Class_info符号引用进行解析，也就是字段所属的类或接口的符号引用。如果解析成功完成，那把这个字段所属的类或接口用C表示，《Java虚拟机规范》要求按照如下步骤对C进行后续字段的搜索：</p>
 <ol>
 <li>如果C本身就包含了简单名称和字段描述符都与目标相匹配的字段，则返回这个字段的直接引用，查找结束。</li>
 <li>否则，如果在C中实现了接口，将会按照继承关系从下往上递归搜索各个接口和它的父接口， 如果接口中包含了简单名称和字段描述符都与目标相匹配的字段，则返回这个字段的直接引用，查找结束。</li>
@@ -306,7 +306,7 @@
 <li>否则，查找失败，抛出java.lang.NoSuchFieldError异常。</li>
 </ol>
 <p>如果查找过程成功返回了引用，将会对这个字段进行权限验证，如果发现不具备对字段的访问权限，将抛出java.lang.IllegalAccessError异常。</p>
-<h5 id="3-方法解析"><a href="#3-方法解析" class="headerlink" title="3.方法解析"></a>3.方法解析</h5><p>方法解析的第一个步骤与字段解析一样，也是需要先解析出方法表的class_index项中索引的方法所属的类或接口的符号引用，如果解析成功，那么我们依然用C表示这个类，接下来虚拟机将会按照如下步骤进行后续的方法搜索：</p>
+<h4 id="3-方法解析"><a href="#3-方法解析" class="headerlink" title="3.方法解析"></a>3.方法解析</h4><p>方法解析的第一个步骤与字段解析一样，也是需要先解析出方法表的class_index项中索引的方法所属的类或接口的符号引用，如果解析成功，那么我们依然用C表示这个类，接下来虚拟机将会按照如下步骤进行后续的方法搜索：</p>
 <ol>
 <li>由于Class文件格式中类的方法和接口的方法符号引用的常量类型定义是分开的，如果在类的 方法表中发现class_index中索引的C是个接口的话，那就直接抛出java.lang.Incomp atibleClassChangeError 异常。</li>
 <li>如果通过了第一步，在类C中查找是否有简单名称和描述符都与目标相匹配的方法，如果有则 返回这个方法的直接引用，查找结束。</li>
@@ -315,7 +315,7 @@
 <li>否则，宣告方法查找失败，抛出java.lang.NoSuchMethodError。</li>
 </ol>
 <p>最后，如果查找过程成功返回了直接引用，将会对这个方法进行权限验证，如果发现不具备对此方法的访问权限，将抛出java.lang.IllegalAccessError异常。</p>
-<h5 id="4-接口方法解析"><a href="#4-接口方法解析" class="headerlink" title="4.接口方法解析"></a>4.接口方法解析</h5><p>接口方法也是需要先解析出接口方法表的class_index项中索引的方法所属的类或接口的符号引用，如果解析成功，依然用C表示这个接口，接下来虚拟机将会按照如下步骤进行后续的接口方法搜索:</p>
+<h4 id="4-接口方法解析"><a href="#4-接口方法解析" class="headerlink" title="4.接口方法解析"></a>4.接口方法解析</h4><p>接口方法也是需要先解析出接口方法表的class_index项中索引的方法所属的类或接口的符号引用，如果解析成功，依然用C表示这个接口，接下来虚拟机将会按照如下步骤进行后续的接口方法搜索:</p>
 <ol>
 <li>与类的方法解析相反，如果在接口方法表中发现class_index中的索引C是个类而不是接口，那 么就直接抛出java.lang.IncompatibleClassChangeError异常。</li>
 <li>否则，在接口C中查找是否有简单名称和描述符都与目标相匹配的方法，如果有则返回这个方法的直接引用，查找结束。</li>
