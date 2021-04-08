@@ -179,15 +179,73 @@
     
     
       <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2021/03/30/d90e9b80/" target="_self">
-          <img src="/img/cover_jvm_class_loader.png" srcset="/img/loading.gif" alt="深入理解JVM（四）——类加载机制">
+        <a href="/2021/04/10/6e2382e5/" target="_self">
+          <img src="/img/cover_jvm_byte-code.png" srcset="/img/loading.gif" alt="深入理解JVM（四）——字节码基础">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2021/03/30/d90e9b80/">深入理解JVM（四）——类加载机制</a>
+        <a href="/2021/04/10/6e2382e5/">深入理解JVM（四）——字节码基础</a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/04/10/6e2382e5/">
+          
+          
+            
+          
+          
+Hotspot JVM是一个基于栈的虚拟机，每个线程都有一个虚拟机栈用来存储栈帧，每次方法调用都伴随着栈帧的创建、销毁。
+
+Java虚拟机栈和栈帧虚拟机常见的实现方式有两种：基于栈（Stack based）和基于寄存器（Register based）。Hotspot JVM是一种典型的基于栈的虚拟机，而Android开发者熟知的DalvikVM则是基于寄存器的虚拟机。
+这两种实现方式各有优缺点：
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-04-10 22:14" pubdate>
+              2021-04-10
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/JVM/">JVM</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Bytecode/">Bytecode</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2021/03/30/d90e9b80/" target="_self">
+          <img src="/img/cover_jvm_class_loader.png" srcset="/img/loading.gif" alt="深入理解JVM（三）——类加载机制">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/03/30/d90e9b80/">深入理解JVM（三）——类加载机制</a>
       </h1>
 
       <p class="index-excerpt">
@@ -225,63 +283,6 @@ Java虚拟机把描述类的数据从Class文件加载到内存，并对数据�
             <i class="iconfont icon-tags"></i>
             
               <a href="/tags/ClassLoader/">ClassLoader</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2021/03/20/6e2382e5/" target="_self">
-          <img src="/img/cover_jvm_byte-code.png" srcset="/img/loading.gif" alt="深入理解JVM（三）">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2021/03/20/6e2382e5/">深入理解JVM（三）</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/03/20/6e2382e5/">
-          
-          
-            
-          
-          
-占个位，看完《深入理解JVM字节码》再来更~
-
-
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2021-03-20 22:14" pubdate>
-              2021-03-20
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/JVM/">JVM</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Bytecode/">Bytecode</a>
             
           </div>
         

@@ -17,7 +17,7 @@
   <meta name="description" content="Android Developer">
   <meta name="author" content="sukaidev">
   <meta name="keywords" content="Android sukaidev 苏海鸿">
-  <title>深入理解JVM（四）——类加载机制 - Sukai&#39;s Blog - Android Developer</title>
+  <title>深入理解JVM（三）——类加载机制 - Sukai&#39;s Blog - Android Developer</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
 
@@ -162,7 +162,7 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="深入理解JVM（四）——类加载机制">
+            <span class="h2" id="subtitle" title="深入理解JVM（三）——类加载机制">
               
             </span>
 
@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      8.1k 字
+      8.2k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      90
+      91
        分钟
     </span>
   
@@ -224,7 +224,7 @@
         <div class="py-5" id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">深入理解JVM（四）——类加载机制</h1>
+            <h1 style="display: none">深入理解JVM（三）——类加载机制</h1>
             
             <div class="markdown-body">
               <blockquote>
@@ -351,14 +351,19 @@
 <p><strong>这里要注意的是，实际开发中如果我们需要破坏双亲委派模型，那么我们就需要重写loadClass方法，否则应该重写findClass方法</strong>。</p>
 <h3 id="Android中的类加载器"><a href="#Android中的类加载器" class="headerlink" title="Android中的类加载器"></a>Android中的类加载器</h3><p>Android 和传统的 JVM 是一样的，也需要通过 ClassLoader 将目标类加载到内存，类加载器之间也符合双亲委派模型。但是在 Android 中，ClassLoader 的加载细节有略微的差别。</p>
 <p>在 Android 虚拟机里是无法直接运行 .class 文件的，Android 会将所有的 .class 文件转换成一个 .dex 文件，并且 Android 将加载 .dex 文件的实现封装在 <strong>BaseDexClassLoader</strong> 中，而我们一般只使用它的两个子类：<strong>PathClassLoader</strong> 和 <strong>DexClassLoader</strong>。</p>
-<h4 id="PathClassLoader"><a href="#PathClassLoader" class="headerlink" title="PathClassLoader"></a>PathClassLoader</h4><p>PathClassLoader 用来加载系统 apk 和被安装到手机中的 apk 内的 dex 文件。它的源码中只有两个构造函数，如下：</p>
+<h4 id="PathClassLoader"><a href="#PathClassLoader" class="headerlink" title="PathClassLoader"></a>PathClassLoader</h4><p>PathClassLoader 的源码中只有两个构造函数，如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> dexPath  包含.dex文件的jar/apk文件路径</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">PathClassLoader</span><span class="hljs-params">(String dexPath, ClassLoader parent)</span> </span>&#123;<br>    <span class="hljs-keyword">super</span>(dexPath, <span class="hljs-keyword">null</span>, <span class="hljs-keyword">null</span>, parent);<br>&#125;<br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> dexPath  包含.dex文件的jar/apk文件路径</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> librarySearchPath C/C++ native库的路径</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">PathClassLoader</span><span class="hljs-params">(String dexPath, String librarySearchPath, ClassLoader parent)</span> </span>&#123;<br>    <span class="hljs-keyword">super</span>(dexPath, <span class="hljs-keyword">null</span>, librarySearchPath, parent);<br>&#125;<br></code></pre></div></td></tr></table></figure>
-<p>PathClassLoader继承自BaseDexClassLoader，BaseDexClassLoader中dexPath受到限制，一般只能是已经安装应用的apk路径。</p>
+<p>PathClassLoader继承自BaseDexClassLoader，BaseDexClassLoader中dexPath受到限制，一般只能是已经安装应用的apk路径。不过PathClassLoader情况比较特殊：</p>
+<ul>
+<li>在Android 4.4以下版本时，PathClassLoader只能加载已安装到系统中的apk/dex文件。</li>
+<li>Android 5.0~Android 8.0，PathClassLoader没有限制必须已安装的apk，并且PathClassLoader中optimizedDirectory固定为null，所以无法进行dex2oat操作，最后会直接加载原始dex，达到了禁用dex2oat以实现加载加速的效果。</li>
+<li>Android 8.1或更高，此时DexClassLoader中optimizedDirectory同样固定传递null，oat输出目录在dex目录/oat/下，此时DexClassLoader与PathClassLoader相同。</li>
+</ul>
 <p>当一个 App 被安装到手机后，apk 里面的 class.dex 中的 class 均是通过 PathClassLoader 来加载的，可以通过如下代码验证：</p>
 <figure class="highlight kotlin"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MainActivity</span> : <span class="hljs-type">AppCompatActivity</span></span>() &#123;<br><br>    <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onCreate</span><span class="hljs-params">(savedInstanceState: <span class="hljs-type">Bundle</span>?)</span></span> &#123;<br>        <span class="hljs-keyword">super</span>.onCreate(savedInstanceState)<br>        setContentView(R.layout.activity_main)<br>        <span class="hljs-keyword">val</span> loader = MainActivity::<span class="hljs-keyword">class</span>.java.classLoader<br>        println(loader.toString())<br>    &#125;<br>&#125;<br></code></pre></div></td></tr></table></figure>
 <p>打印结果如下：</p>
 <p><img src="/img/jvm/print_path_class_loader.png" srcset="/img/loading.gif" alt="打印结果"></p>
-<h4 id="DexClassLoader"><a href="#DexClassLoader" class="headerlink" title="DexClassLoader"></a>DexClassLoader</h4><p>对比 PathClassLoader 只能加载已经安装应用的 dex 或 apk 文件，<strong>DexClassLoader</strong> 则没有此限制，可以从 SD 卡上加载包含 class.dex 的 .jar 和 .apk 文件，这也是插件化和热修复的基础，在不需要安装应用的情况下，完成需要使用的 dex 的加载。</p>
+<h4 id="DexClassLoader"><a href="#DexClassLoader" class="headerlink" title="DexClassLoader"></a>DexClassLoader</h4><p>对比 PathClassLoader 在Android 4.4以下只能加载已经安装应用的 dex 或 apk 文件，<strong>DexClassLoader</strong> 则没有此限制，可以从 SD 卡上加载包含 class.dex 的 .jar 和 .apk 文件，这也是插件化和热修复的基础，在不需要安装应用的情况下，完成需要使用的 dex 的加载。</p>
 <p>DexClassLoader 的源码里面只有一个构造方法，代码如下：</p>
 <figure class="highlight kotlin"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> dexPath 包含 class.dex 的 apk、jar 文件路径 ，多个路径用文件分隔符（默认是“:”）分隔</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> optimizedDirectory 用来缓存优化的 dex 文件的路径，即从 apk 或 jar 文件中提取出来的 dex 文件。该路径不可以为空，且应该是应用私有的，有读写权限的路径。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> DexClassLoader(String dexPath, String optimizedDirectory,<br>        String librarySearchPath, ClassLoader parent) &#123;<br>    <span class="hljs-keyword">super</span>(dexPath, <span class="hljs-literal">null</span>, librarySearchPath, parent);<br>&#125;<br></code></pre></div></td></tr></table></figure>
 <p>接下来我们尝试使用DexClassLoader来自定义一个类加载器实现热修复。</p>
@@ -444,12 +449,18 @@
                   <article class="post-prev col-6">
                     
                     
+                      <a href="/2021/04/10/6e2382e5/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">深入理解JVM（四）——字节码基础</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2021/03/20/6e2382e5/">
-                        <span class="hidden-mobile">深入理解JVM（三）</span>
+                      <a href="/2021/03/19/233d21b7/">
+                        <span class="hidden-mobile">深入理解JVM（二）——类文件结构</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
