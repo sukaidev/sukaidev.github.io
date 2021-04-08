@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      989 字
+      1.5k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      11
+      16
        分钟
     </span>
   
@@ -246,7 +246,12 @@
 <p>可以看到Code属性中有<strong>stack</strong>、<strong>locals</strong>、<strong>args_size</strong>分别对应操作数栈的容量、<strong>局部变量表容量</strong>以及<strong>参数长度</strong>。<strong>LineNumberTable</strong>属性表存放方法的行号信息，<strong>LocalVariableTable</strong>属性表中存放方法的局部变量信息。</p>
 <p>foo方法中只有两个参数，但实际args_size的大小为3，这是因为foo作为实例方法（非静态方法）被调用时，第0个局部变量实际上固定为调用这个实例方法的对象的引用，也就是我们所说的this。</p>
 <p>局部变量表的容量以<strong>变量槽（Variable Slot）</strong>为最小单位，示例中局部变量表容量为4个slot。这里需要注意的是，局部变量表的容量并不等于实际局部变量的个数。这是因为有些局部变量占用的槽位在其作用域结束时可以被复用，例如if-else代码块中声明的变量在if-else执行完毕时占用槽位就可以被复用。另外并不是每一个变量都只会占用一个slot，例如double类型就会占用两个slot。</p>
-
+<h3 id="操作数栈"><a href="#操作数栈" class="headerlink" title="操作数栈"></a>操作数栈</h3><p><strong>操作数栈（Operand Stack）</strong>也常被称为操作栈，它是一个<strong>后入先出（Last In First Out，LIFO）</strong>栈。同局部变量表一样，操作数栈的最大深度也在编译的时候被写入到Code属性的<strong>max_stacks</strong>数据项之中。操作数栈的每一个元素都可以是包括long和double在内的任意Java数据类型。32位数据类型所占的栈容量为1，64位数据类型所占的栈容量为2。</p>
+<p>当一个方法刚刚开始执行的时候，这个方法的操作数栈是空的，在方法的执行过程中，会有各种字节码指令往操作数栈中写入和提取内容，也就是出栈和入栈操作。例如iadd指令，它要求操作数栈中已经存在两个int型整数，在iadd执行时，两个int数值从操作数栈中出栈，相加求和后将结果入栈，如下图所示。</p>
+<p><img src="/img/jvm/jvm_bytecode_1_plus_2.png" srcset="/img/loading.gif" alt="1+2指令执行过程"></p>
+<p>整个JVM指令执行的过程实际上就是局部变量表与操作数栈之间不断加载、存储的过程。</p>
+<h3 id="动态连接"><a href="#动态连接" class="headerlink" title="动态连接"></a>动态连接</h3><p>每个栈帧都包含一个指向运行时常量池中该栈帧所属方法的引用，持有这个引用是为了支持方 调用过程中的<strong>动态连接（Dynamic Linking）</strong>。通过上面文章对于Class文件的解析，我们知道Class文件的常量池中存有大量的符号引用，字节码中的方法调用指令就以常量池里指向方法的符号引用作为参数。<strong>这些符号引用一部分会在类加载阶段或者第一次使用的时候就被转化为直接引用，这种转化被称为静态解析。另外一部分将在每一次运行期间都转化为直接引用，这部分就称为动态连接。</strong></p>
+<h3 id="方法返回地址"><a href="#方法返回地址" class="headerlink" title="方法返回地址"></a>方法返回地址</h3>
             </div>
             <hr>
             <div>
