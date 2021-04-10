@@ -228,7 +228,7 @@
             
             <div class="markdown-body">
               <blockquote>
-<p>Hotspot JVM是一个基于栈的虚拟机，每个线程都有一个虚拟机栈用来存储栈帧，每次方法调用都伴随着栈帧的创建、销毁。</p>
+<p>Java 虚拟机的指令由一个操作码（opcode）和紧随其后的可选操作数（operand）组成，占一个字节长度，故称其为“字节码（bytecode）“。</p>
 </blockquote>
 <h2 id="Java虚拟机栈和栈帧"><a href="#Java虚拟机栈和栈帧" class="headerlink" title="Java虚拟机栈和栈帧"></a>Java虚拟机栈和栈帧</h2><p>虚拟机常见的实现方式有两种：<strong>基于栈（Stack based）</strong>和<strong>基于寄存器（Register based）</strong>。Hotspot JVM是一种典型的基于栈的虚拟机，而Android开发者熟知的DalvikVM则是基于寄存器的虚拟机。</p>
 <p>这两种实现方式各有优缺点：</p>
