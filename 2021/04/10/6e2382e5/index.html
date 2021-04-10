@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      4.1k 字
+      4.3k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      46
+      48
        分钟
     </span>
   
@@ -230,13 +230,13 @@
               <blockquote>
 <p>Hotspot JVM是一个基于栈的虚拟机，每个线程都有一个虚拟机栈用来存储栈帧，每次方法调用都伴随着栈帧的创建、销毁。</p>
 </blockquote>
-<h1 id="Java虚拟机栈和栈帧"><a href="#Java虚拟机栈和栈帧" class="headerlink" title="Java虚拟机栈和栈帧"></a>Java虚拟机栈和栈帧</h1><p>虚拟机常见的实现方式有两种：<strong>基于栈（Stack based）</strong>和<strong>基于寄存器（Register based）</strong>。Hotspot JVM是一种典型的基于栈的虚拟机，而Android开发者熟知的DalvikVM则是基于寄存器的虚拟机。</p>
+<h2 id="Java虚拟机栈和栈帧"><a href="#Java虚拟机栈和栈帧" class="headerlink" title="Java虚拟机栈和栈帧"></a>Java虚拟机栈和栈帧</h2><p>虚拟机常见的实现方式有两种：<strong>基于栈（Stack based）</strong>和<strong>基于寄存器（Register based）</strong>。Hotspot JVM是一种典型的基于栈的虚拟机，而Android开发者熟知的DalvikVM则是基于寄存器的虚拟机。</p>
 <p>这两种实现方式各有优缺点：</p>
 <ul>
 <li>基于栈的指令集架构的优点是移植性更好、指令更短、实现简单，但是不能随机访问堆栈中的元素，完成相同功能所需的指令数一般比寄存器架构多，需要频繁的入栈出栈，不利于代码优化。</li>
 <li>基于寄存器的指令集架构的优点是速度快，可以充分利用寄存器，有利于程序做运行速度优化，但操作数需要显式指定，指令较长。</li>
 </ul>
-<h2 id="运行时栈帧结构"><a href="#运行时栈帧结构" class="headerlink" title="运行时栈帧结构"></a>运行时栈帧结构</h2><p>Java虚拟机以方法作为最基本的执行单元，<strong>“栈帧”（Stack Frame）</strong>则是用于支持虚拟机进行方法调用和方法执行背后的数据结构，它也是虚拟机运行时数据区中的虚拟机栈（Virtual Machine Stack）的栈元素。</p>
+<h3 id="运行时栈帧结构"><a href="#运行时栈帧结构" class="headerlink" title="运行时栈帧结构"></a>运行时栈帧结构</h3><p>Java虚拟机以方法作为最基本的执行单元，<strong>“栈帧”（Stack Frame）</strong>则是用于支持虚拟机进行方法调用和方法执行背后的数据结构，它也是虚拟机运行时数据区中的虚拟机栈（Virtual Machine Stack）的栈元素。</p>
 <p>每一个栈帧中都包含了<strong>局部变量表</strong>、<strong>操作数栈</strong>、<strong>动态链接</strong>、<strong>方法返回地址</strong>和一些额外的<strong>附加信息</strong>。在编译Java程序源码的时候，栈帧中需要多大的局部变量表，需要多深的操作数栈就已经被分析计算出来，并且写入到方法表的Code属性之中。换言之，一个栈帧需要分配多少内存，并不会受到程序运行期变量数据的影响，而仅仅取决于程序源码和具体的虚拟机实现的栈内存布局形式。</p>
 <h3 id="局部变量表"><a href="#局部变量表" class="headerlink" title="局部变量表"></a>局部变量表</h3><p><strong>局部变量表（Local Variables Table）</strong>是一组变量值的存储空间，用于存放方法参数和方法内部定义的局部变量。在Java程序被编译为Class文件时，就在方法的Code属性的<strong>max_locals</strong>数据项中确定了该方法所需分配的局部变量表的最大容量。</p>
 <p>以下列代码为例：</p>
@@ -261,8 +261,8 @@
 <li>… …等等</li>
 </ul>
 <h3 id="附加信息"><a href="#附加信息" class="headerlink" title="附加信息"></a>附加信息</h3><p>《Java虚拟机规范》允许虚拟机实现增加一些规范里没有描述的信息到栈帧之中，例如与调试、性能收集相关的信息，这部分信息完全取决于具体的虚拟机实现，这里不再详述。<strong>在讨论概念时，一般会把动态连接、方法返回地址与其他附加信息全部归为一类，称为栈帧信息。</strong></p>
-<h1 id="字节码指令"><a href="#字节码指令" class="headerlink" title="字节码指令"></a>字节码指令</h1><p>字节码指令主要有<strong>加载和存储指令</strong>、<strong>操作数栈指令</strong>、<strong>运算和类型转换指令</strong>、<strong>控制转移指令</strong>等，这一部分是了解字节码的基础。</p>
-<h2 id="加载和存储指令"><a href="#加载和存储指令" class="headerlink" title="加载和存储指令"></a>加载和存储指令</h2><p><strong>加载（load）</strong>和<strong>存储（store）</strong>相关的指令是使用得最频繁的指令，分为load类、store类、常量加载这三种。</p>
+<h2 id="字节码指令"><a href="#字节码指令" class="headerlink" title="字节码指令"></a>字节码指令</h2><p>字节码指令主要有<strong>加载和存储指令</strong>、<strong>操作数栈指令</strong>、<strong>运算和类型转换指令</strong>、<strong>控制转移指令</strong>等，这一部分是了解字节码的基础。</p>
+<h3 id="加载和存储指令"><a href="#加载和存储指令" class="headerlink" title="加载和存储指令"></a>加载和存储指令</h3><p><strong>加载（load）</strong>和<strong>存储（store）</strong>相关的指令是使用得最频繁的指令，分为load类、store类、常量加载这三种。</p>
 <ul>
 <li>load类指令：将局部变量表中的变量加载到操作数栈，比如iload_0将局部变量表中下表为0的int型变量加载到操作数栈上，类似的还有lload、fload、dload、aload，分别表示加载局部变量表中long、float、double、引用类型的变量。</li>
 <li>store类指令：将操作数栈栈顶的数据存储到局部变量表中，比如istore_0将操作数栈顶的元素存储到局部变量表中下表为0的位置，类似的还有lstore、fstore、dstore、astore这些指令。</li>
@@ -285,19 +285,19 @@
 <td align="center">将int类型值-1压栈到栈顶</td>
 </tr>
 <tr>
-<td align="center">iconst_<n></td>
+<td align="center">iconst_&lt;n&gt;</td>
 <td align="center">将int类型值n（0~5）压栈到栈顶</td>
 </tr>
 <tr>
-<td align="center">lconst_<n></td>
+<td align="center">lconst_&lt;n&gt;</td>
 <td align="center">将long类型值n（0~1）压栈到栈顶</td>
 </tr>
 <tr>
-<td align="center">fconst_<n></td>
+<td align="center">fconst_&lt;n&gt;</td>
 <td align="center">将float类型值n（0~2）压栈到栈顶</td>
 </tr>
 <tr>
-<td align="center">dconst<n></td>
+<td align="center">dconst&lt;n&gt;</td>
 <td align="center">将double类型值n（0~1）压栈到栈顶</td>
 </tr>
 <tr>
@@ -321,31 +321,31 @@
 <td align="center">将long或double类型的常量值从常量池压栈到栈顶</td>
 </tr>
 <tr>
-<td align="center"><T>load</td>
+<td align="center">&lt;T&gt;load</td>
 <td align="center">将局部变量表中指定位置的int、long、float、double、引用类型、boolean、byte、char、short类型变量加载到栈上</td>
 </tr>
 <tr>
-<td align="center"><T>load_<n></td>
+<td align="center">&lt;T&gt;load_&lt;n&gt;</td>
 <td align="center">将局部变量表中下标为n（0~3）的变量加载到栈上，T可以为i、l、f、d、a</td>
 </tr>
 <tr>
-<td align="center"><T>aload</td>
+<td align="center">&lt;T&gt;aload</td>
 <td align="center">将指定数组中特定位置的数据加载到栈上，T可以为i、l、f、d、a、b、c、s</td>
 </tr>
 <tr>
-<td align="center"><T>store</td>
+<td align="center">&lt;T&gt;store</td>
 <td align="center">将栈顶数据存储到局部变量表中的特定位置，T可以为i、l、f、d、a</td>
 </tr>
 <tr>
-<td align="center"><T>store_<n></td>
+<td align="center">&lt;T&gt;store_&lt;n&gt;</td>
 <td align="center">将栈顶变量数据存储到局部变量表中下标为n（0~3）的位置，T可以为i、l、f、d、a</td>
 </tr>
 <tr>
-<td align="center"><T>astore</td>
+<td align="center">&lt;T&gt;astore</td>
 <td align="center">将栈顶数据存储到数组的指定位置，T可以为i、l、f、d、a、b、c、s</td>
 </tr>
 </tbody></table>
-<h2 id="操作数栈指令"><a href="#操作数栈指令" class="headerlink" title="操作数栈指令"></a>操作数栈指令</h2><p>常见的操作数栈指令有pop、dup和swap。pop指令用于将栈顶的值出栈，dup指令用来复制栈顶的元素并压入栈顶，swap用于交换栈顶的两个元素，如下图所示。</p>
+<h3 id="操作数栈指令"><a href="#操作数栈指令" class="headerlink" title="操作数栈指令"></a>操作数栈指令</h3><p>常见的操作数栈指令有pop、dup和swap。pop指令用于将栈顶的值出栈，dup指令用来复制栈顶的元素并压入栈顶，swap用于交换栈顶的两个元素，如下图所示。</p>
 <p><img src="/img/jvm/dup_pop_swap.png" srcset="/img/loading.gif" alt="dup、pop、swap指令"></p>
 <p>另外还有几个复杂一点的指令，如下操作数栈指令列表所示。</p>
 <table>
@@ -402,7 +402,7 @@
 <td align="center">交换栈顶两个元素</td>
 </tr>
 </tbody></table>
-<h2 id="运算和类型转换指令"><a href="#运算和类型转换指令" class="headerlink" title="运算和类型转换指令"></a>运算和类型转换指令</h2><p>针对Java中的加减乘除相关语法，字节码也有对应的运算指令，如下表示所示。</p>
+<h3 id="运算和类型转换指令"><a href="#运算和类型转换指令" class="headerlink" title="运算和类型转换指令"></a>运算和类型转换指令</h3><p>针对Java中的加减乘除相关语法，字节码也有对应的运算指令，如下表示所示。</p>
 <table>
 <thead>
 <tr>
@@ -480,7 +480,7 @@
 <p>这里需要注意的是，如果需要进行运算的数据类型不一样，会涉及到类型转换（cast），例如1.0 + 1 对应的字节码为：</p>
 <figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java">fconst_1 <span class="hljs-comment">// 将1.0入栈</span><br>iconst_1 <span class="hljs-comment">// 将1入栈</span><br>fadd  <span class="hljs-comment">// 栈顶两个元素相加</span><br></code></pre></div></td></tr></table></figure>
 <p>这里fadd指令只支持对两个float类型的数据做相加操作，为了支持这种运算，JVM会先把int类型的数据转为float类型然后再相加，这种类型转换称为<strong>宽化类型转换（widening）</strong>。</p>
-<h2 id="控制转移指令"><a href="#控制转移指令" class="headerlink" title="控制转移指令"></a>控制转移指令</h2><p>控制转移指令用于有条件和无条件的分支跳转，常见的if-then-else、三目表达式、for循环、异常处理等都属于这个范畴。对应的指令集包括：</p>
+<h3 id="控制转移指令"><a href="#控制转移指令" class="headerlink" title="控制转移指令"></a>控制转移指令</h3><p>控制转移指令用于有条件和无条件的分支跳转，常见的if-then-else、三目表达式、for循环、异常处理等都属于这个范畴。对应的指令集包括：</p>
 <ul>
 <li>条件转移：ifeq、iflt、ifle、ifne、ifgt、ifge、ifnull、ifnonnull、if_icmpeq、if_icmpne、if_icmplt、if_icmpgt、if_icmple、if_icmpge、if_acmpeq和if_acmpne。</li>
 <li>复合条件转移：tableswitch、lookupswitch。</li>
@@ -586,7 +586,7 @@
 <td align="center">switch条件跳转，case值稀疏的情况下使用</td>
 </tr>
 </tbody></table>
-<h2 id="for语句的字节码原理"><a href="#for语句的字节码原理" class="headerlink" title="for语句的字节码原理"></a>for语句的字节码原理</h2><p>纵观所有的字节码指令，并没有与for名字相关的指令，那么for循环的实现原理是怎样的呢？</p>
+<h3 id="for语句的字节码原理"><a href="#for语句的字节码原理" class="headerlink" title="for语句的字节码原理"></a>for语句的字节码原理</h3><p>纵观所有的字节码指令，并没有与for名字相关的指令，那么for循环的实现原理是怎样的呢？</p>
 <p>以下列为例，看看JVM是如何处理高级for循环的。</p>
 <figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">sum</span><span class="hljs-params">(<span class="hljs-keyword">int</span>[] numbers)</span> </span>&#123;<br>    <span class="hljs-keyword">int</span> sum = <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> num : numbers) &#123;<br>        sum += num;<br>    &#125;<br>    <span class="hljs-keyword">return</span> sum;<br>&#125;<br></code></pre></div></td></tr></table></figure>
 <p>同样的，使用 javac -p 命令编译后，通过javap -c -v -l 来查看字节码：</p>
@@ -601,7 +601,9 @@
 <p>第2~3行：aload_1指令的作用是加载局部变量表中下标为1的变量（参数numbers），astore_3指令的作用是将栈顶元素存储到局部变量表下标为3的位置上，这里记为$array，如下图所示。</p>
 <p><img src="/img/jvm/image-20210410111449022.png" srcset="/img/loading.gif" alt="for循环执行细节（2）"></p>
 <p>第4~6行：计算数据的长度，astore_3加载$array到栈顶，调用arrayLength指令获取数组长度存储到栈顶，随后调用istore 4将数组长度存储到局部变量表的第4个位置，这里记为$len，如下图所示。</p>
-<p><img src="/img/jvm/image-20210410122511158.png" srcset="/img/loading.gif" alt="for循环执行细节（3）"></p>
+<p><img src="/img/jvm/image-20210410123456070.png" srcset="/img/loading.gif" alt="for循环执行细节（3）"></p>
+<p>第8~9行：初始化数组遍历的下标初始值。iconst_0将0加载到操作数栈上，随后istore 5将栈顶的0存储到局部变量表中的第5个位置，这个局部变量是数据变量的下表初始值，这里记为$i，如下图所示。</p>
+<p><img src="/img/jvm/image-20210410123800666.png" srcset="/img/loading.gif" alt="for循环执行细节（4）"></p>
 
             </div>
             <hr>
