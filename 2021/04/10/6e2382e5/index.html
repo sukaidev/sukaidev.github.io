@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      4.3k 字
+      4.7k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      48
+      53
        分钟
     </span>
   
@@ -604,7 +604,23 @@
 <p><img src="/img/jvm/image-20210410123456070.png" srcset="/img/loading.gif" alt="for循环执行细节（3）"></p>
 <p>第8~9行：初始化数组遍历的下标初始值。iconst_0将0加载到操作数栈上，随后istore 5将栈顶的0存储到局部变量表中的第5个位置，这个局部变量是数据变量的下表初始值，这里记为$i，如下图所示。</p>
 <p><img src="/img/jvm/image-20210410123800666.png" srcset="/img/loading.gif" alt="for循环执行细节（4）"></p>
-
+<p>第11~32行是循环体执行过程。</p>
+<p>第11~15行的作用是判断循环能否继续：</p>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-number">11</span>: iload         <span class="hljs-number">5</span><br><span class="hljs-number">13</span>: iload         <span class="hljs-number">4</span><br><span class="hljs-number">15</span>: if_icmpge     <span class="hljs-number">35</span><br></code></pre></div></td></tr></table></figure>
+<p>首先通过iload 5和iload 4加载局部变量表中下标5和4的变量到栈顶，参照上图中的局部变量表我们知道下标5和下标4的变量分别是数组下标$i和数组长度$len。</p>
+<p>接着会调用if_icmpge进行条件判断，如果$i &gt;= $len，则直接跳转到第35行指令处，for循环结束，否则继续往下执行。过程如下图所示。</p>
+<p><img src="/img/jvm/image-20210410141322131.png" srcset="/img/loading.gif" alt="for循环执行细节（5）"></p>
+<p>第18~22行的作用是把$array[$i]赋值给number。aload_3加载$array到栈上，iload 5加载$i到栈上，然后iaload指令把下标为$i的数组元素加载到操作数栈上，随后istore 6将栈顶元素存储到局部变量表下标为6的位置上，如下图所示。</p>
+<p><img src="/img/jvm/image-20210410145943441.png" srcset="/img/loading.gif" alt="for循环执行细节（6）"></p>
+<p>第24~28行：iload_2 和 iload 6指令把sum和number值加载到操作数栈上，然后执行iadd指令进行整数相加，如下图所示。</p>
+<p><img src="/img/jvm/image-20210410164045262.png" srcset="/img/loading.gif" alt="for循环执行细节（7）"></p>
+<p>第29行：”iinc 5,1“指令对执行循环后的$i加一。iinc指令比较特殊，它并不依赖于操作数栈，而是直接对局部变量进行自增，再将结果出栈存储到局部变量表，因此效率非常高。</p>
+<p><img src="/img/jvm/image-20210410164642263.png" srcset="/img/loading.gif" alt="for循环执行细节（8）"></p>
+<p>第32行：goto 11指令无条件跳转到第11行继续进行循环条件判断。</p>
+<p>经过上述分析，很容易发现所谓”高级”for循环翻译成字节码后实际上与普通的for循环并无差别，只是个语法糖而已。</p>
+<h4 id="swtich-case底层实现原理"><a href="#swtich-case底层实现原理" class="headerlink" title="swtich-case底层实现原理"></a>swtich-case底层实现原理</h4><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/35079283/">《深入理解JVM字节码》</a>
+<a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/34907497">《深入理解Java虚拟机》</a>
+<a href="#fnref:2" rev="footnote" class="footnote-backref"> ↩</a></span></span></li></ol></div></section>
             </div>
             <hr>
             <div>
