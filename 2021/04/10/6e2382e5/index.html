@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      5.7k 字
+      6.3k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      66
+      73
        分钟
     </span>
   
@@ -645,6 +645,19 @@
 <p>如果把上面代码的i = i++替换成 i  = ++i，则可以正常输出打印50。替换后的字节码如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java">···<br><span class="hljs-number">10</span>: iinc          <span class="hljs-number">1</span>, <span class="hljs-number">1</span><br><span class="hljs-number">13</span>: iload_1<br><span class="hljs-number">14</span>: istore_1<br>···<br></code></pre></div></td></tr></table></figure>
 <p>与上面i++的字节码不同的是，这里先对局部变量表中第1位变量进行了加一，然后将其加载到操作数栈，随后重新存储到局部变量表中。</p>
+<h3 id="对象相关的字节码指令"><a href="#对象相关的字节码指令" class="headerlink" title="对象相关的字节码指令"></a>对象相关的字节码指令</h3><h4 id="1-lt-init-gt-方法"><a href="#1-lt-init-gt-方法" class="headerlink" title="1.&lt;init&gt;方法"></a>1.&lt;init&gt;方法</h4><p>&lt;init&gt;方法是对象初始化方法，类的构造方法、非静态变量的初始化、对象初始化代码块都会被编译进这个方法中。例如下面的代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Initializer</span> </span>&#123;<br>    <span class="hljs-comment">// 初始化变量</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> a = <span class="hljs-number">10</span>;<br><br>    <span class="hljs-comment">// 构造器方法</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Initializer</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-keyword">int</span> c = <span class="hljs-number">30</span>;<br>    &#125;<br><br>    <span class="hljs-comment">// 对象初始化代码块</span><br>    &#123;<br>        <span class="hljs-keyword">int</span> b = <span class="hljs-number">20</span>;<br>    &#125;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<p>对应字节码为：</p>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Initializer</span><span class="hljs-params">()</span></span>;<br>  descriptor: ()V<br>  flags: (<span class="hljs-number">0x0001</span>) ACC_PUBLIC<br>  Code:<br>    stack=<span class="hljs-number">2</span>, locals=<span class="hljs-number">2</span>, args_size=<span class="hljs-number">1</span><br>       <span class="hljs-number">0</span>: aload_0<br>       1: invokespecial #1                  // Method java/lang/Object.&quot;&lt;init&gt;&quot;:()V<br>       <span class="hljs-number">4</span>: aload_0<br>       <span class="hljs-number">5</span>: bipush        <span class="hljs-number">10</span><br>       7: putfield      #2                  // Field a:I<br>      <span class="hljs-number">10</span>: bipush        <span class="hljs-number">20</span><br>      <span class="hljs-number">12</span>: istore_1<br>      <span class="hljs-number">13</span>: bipush        <span class="hljs-number">30</span><br>      <span class="hljs-number">15</span>: istore_1<br>      <span class="hljs-number">16</span>: <span class="hljs-keyword">return</span><br></code></pre></div></td></tr></table></figure>
+<p>Initializer()方法对应&lt;init&gt;对象初始化方法，其中5<del>7行将成员变量a赋值为10，10</del>12行将b赋值为10，13~15行将c赋值为30。可以看到，虽然我们将变量a和变量b分别放在构造方法外和构造代码块中初始化，实际上也会统一编译到&lt;init&gt;方法里面。</p>
+<h4 id="2-new、dup、invokespecial对象创建三条指令"><a href="#2-new、dup、invokespecial对象创建三条指令" class="headerlink" title="2.new、dup、invokespecial对象创建三条指令"></a>2.new、dup、invokespecial对象创建三条指令</h4><p>Java 中通过 new 关键字来创建对象，字节码中也有一个叫 new 的指令，但两者不是一回事。以下面的代码为例：</p>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java">Initializer initializer = <span class="hljs-keyword">new</span> Initializer();<br></code></pre></div></td></tr></table></figure>
+<p>编译后对应字节码：</p>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java">0: new           #3                  // class Initializer<br><span class="hljs-number">3</span>: dup<br>4: invokespecial #4                  // Method &quot;&lt;init&gt;&quot;:()V<br><span class="hljs-number">7</span>: astore_1<br></code></pre></div></td></tr></table></figure>
+<p>出去第 7 行的存储指令，new 关键字经过编译后实际上生成了 new-dup-invokespecial 3行字节码。new指令很容易理解，invokespecial 则是用于调用对象&lt;init&gt;方法来初始化对象，那么中间这个dup指令的作用是什么呢？</p>
+<p>dup指令的含义是复制栈顶的数据并且插入到栈顶，在第0行时通过new指令创建了</p>
+<p>Initializer的一个实例然后加入到栈顶，接着如果直接通过invokespecial调用其构造方法，由于invokespecial会消耗栈顶的类实例引用，会导致操作数栈为空，使得刚刚创建的对象丢失。因此在invokespecial调用前需使用dup复制一份实例，随后就可以通过astore_1指令将其存入局部变量表了。</p>
+<h4 id="3-lt-clinit-gt-方法"><a href="#3-lt-clinit-gt-方法" class="headerlink" title="3.&lt;clinit&gt;方法"></a>3.&lt;clinit&gt;方法</h4><p>&lt;clinit&gt;是类的静态初始化方法，同样的，类静态初始化代码块、静态变量初始化都会被编译进这个方法中。javap输出字节码中的 static{} 表示&lt;cinit&gt;方法。</p>
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/35079283/">《深入理解JVM字节码》</a>
 <a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/34907497">《深入理解Java虚拟机》</a>
 <a href="#fnref:2" rev="footnote" class="footnote-backref"> ↩</a></span></span></li></ol></div></section>
