@@ -5,8 +5,8 @@
   
   <entry>
     <title>深入理解JVM（六）——字节码进阶</title>
-    <link href="/2021/04/22/d39e151e/"/>
-    <url>/2021/04/22/d39e151e/</url>
+    <link href="/2021/04/18/d39e151e/"/>
+    <url>/2021/04/18/d39e151e/</url>
     
     <content type="html"><![CDATA[<h2 id="Lambda表达式原理"><a href="#Lambda表达式原理" class="headerlink" title="Lambda表达式原理"></a>Lambda表达式原理</h2><h2 id="泛型与字节码"><a href="#泛型与字节码" class="headerlink" title="泛型与字节码"></a>泛型与字节码</h2><h2 id="Synchronized实现原理"><a href="#Synchronized实现原理" class="headerlink" title="Synchronized实现原理"></a>Synchronized实现原理</h2><h2 id="反射原理"><a href="#反射原理" class="headerlink" title="反射原理"></a>反射原理</h2>]]></content>
     
@@ -70,7 +70,7 @@
     
     <tags>
       
-      <tag>Bytecode</tag>
+      <tag>Execution Subsystem</tag>
       
     </tags>
     
