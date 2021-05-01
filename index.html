@@ -179,25 +179,25 @@
     
     
       <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2021/04/28/d39e151e/" target="_self">
-          <img src="/img/cover_jvm_byte-code.png" srcset="/img/loading.gif" alt="深入理解JVM（六）——字节码进阶">
+        <a href="/2021/04/30/40879c1f/" target="_self">
+          <img src="/img/cover_kotlin_coroutines.png" srcset="/img/loading.gif" alt="深入理解Kotlin协程（六）——从字节码角度理解协程">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2021/04/28/d39e151e/">深入理解JVM（六）——字节码进阶</a>
+        <a href="/2021/04/30/40879c1f/">深入理解Kotlin协程（六）——从字节码角度理解协程</a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2021/04/28/d39e151e/">
+        <a href="/2021/04/30/40879c1f/">
           
           
             
           
-          在上一篇文章熟悉了字节码的基础指令之后，一些以往难懂的、被编译器隐藏的“黑盒子”知识点就可以尝试通过字节码去分析了。下面尝试分析 Java 8 中 Lambda 表达式与 Kotlin 中 Lambda 表达式的区别、JDK 5 中引入的泛型以及 Kotlin 协程的原理来加深对 Java 、Kotlin 语言的理解。
-Lambda表达式原理Java 在 1.8 版本中引用了一个重要特性——Lam
+          之前的协程文章中并没有采用字节码来分析，原因一是当时对字节码不是很熟悉，二是不好用一个更难的概念来解释一个没那么难的概念。我们知道协程的关键实现都是由 kotlinc 即编译器来完成，而 IDE 反编译的代码阅读性很差，那么现在学习了字节码之后就可以通过 javap 来一探究竟了。
+suspend fuctionkotlin协程的”黑魔法“基础是 suspend 关键字，先来这个方法看看背后做了什
         </a>
       </p>
 
@@ -205,8 +205,65 @@ Lambda表达式原理Java 在 1.8 版本中引用了一个重要特性——Lam
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2021-04-28 22:12" pubdate>
-              2021-04-28
+            <time datetime="2021-04-30 22:23" pubdate>
+              2021-04-30
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/JVM/">JVM</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Coroutines/">Coroutines</a>
+            
+              <a href="/tags/Bytecode/">Bytecode</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2021/04/25/d39e151e/" target="_self">
+          <img src="/img/cover_jvm_byte-code.png" srcset="/img/loading.gif" alt="深入理解JVM（六）——字节码进阶">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/04/25/d39e151e/">深入理解JVM（六）——字节码进阶</a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/04/25/d39e151e/">
+          
+          
+            
+          
+          在上一篇文章熟悉了字节码的基础指令之后，一些以往难懂的、被编译器隐藏的“黑盒子”知识点就可以尝试通过字节码去分析了。下面尝试分析 Java 8 中 Lambda 表达式与 Kotlin 中 Lambda 表达式的区别、Java 和 Kotlin 中的泛型来加深对 Java 、Kotlin 语言的理解。
+Lambda表达式原理Java 在 1.8 版本中引用了一个重要特性——Lambda表达式。该特
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-04-25 22:12" pubdate>
+              2021-04-25
             </time>
           </div>
         
@@ -659,62 +716,6 @@ re
             <i class="iconfont icon-date"></i>
             <time datetime="2021-02-16 15:15" pubdate>
               2021-02-16
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/Kotlin/">Kotlin</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Coroutines/">Coroutines</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2021/02/05/7963e723/" target="_self">
-          <img src="/img/cover_kotlin_coroutines.png" srcset="/img/loading.gif" alt="深入理解Kotlin协程（二）——复合协程">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2021/02/05/7963e723/">深入理解Kotlin协程（二）——复合协程</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/02/05/7963e723/">
-          
-          
-            
-          
-          本篇文章我们将基于简单协程实现几种复合协程。
-序列生成器仿Python的Generator实现Python中的Generator可以在函数中调用yield将当前函数挂起并返回yield的参数，效果如下：
-12345678910111213141516171819val nums: (Int) -&gt; Generator&lt;Int&gt; = generator &#123; start: 
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2021-02-05 21:28" pubdate>
-              2021-02-05
             </time>
           </div>
         
