@@ -20,9 +20,9 @@
     
     <tags>
       
-      <tag>Coroutines</tag>
-      
       <tag>Bytecode</tag>
+      
+      <tag>Coroutines</tag>
       
     </tags>
     
@@ -48,6 +48,8 @@
     <tags>
       
       <tag>Bytecode</tag>
+      
+      <tag>Generic</tag>
       
     </tags>
     
