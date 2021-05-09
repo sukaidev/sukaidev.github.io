@@ -317,14 +317,14 @@
 <p>根据上面的分析，我们知道 CoroutineTestKt.main 方法（下文简称 main 方法）首次调用时传入的 Continuation 对象（即 completion ），下面我们就来手动跟踪协程的执行过程。</p>
 <ol>
 <li><ul>
-<li>首次进入 main 方法，此时 completion 不是 CoroutineTestKt$main$1 对象，因此跳过第一个if判断。接着会通过匿名内部类的方式创建一个 ContinuationImpl（即CoroutineTestKt$main$1）对象（下文简称 continuation），并将最终的回调 completion 传入。此时状态变量 label <strong>初始值为0</strong>，因此会进入 case 0 中执行 <strong>requestUserToken(userId,continuation)**，并将 **label 更新为 1</strong>。</li>
+<li>首次进入 main 方法，此时 completion 不是 CoroutineTestKt$main$1 对象，因此跳过第一个if判断。接着会通过匿名内部类的方式创建一个 ContinuationImpl（即CoroutineTestKt$main$1）对象（下文简称 continuation），并将最终的回调 completion 传入。此时状态变量 label <strong>初始值为0</strong>，因此会进入 case 0 中执行 <strong>requestUserToken(userId,continuation)，并将 label 更新为 1</strong>。</li>
 <li>requestUserToken 方法中创建了一个马甲 SafeContinuation，这个类在之前的文章讨论过，主要是用于保证 continuation 只会 resume 一次，处理线程安全问题，并且方便获取结果。由于 requestUserToken 挂起了外部协程，此时返回的并不是真正的结果，而是一个挂起标志 <strong>COROUTINE_SUSPENDED</strong>，main 方法中获取到这个挂起标志时将会直接返回这个标志，通知外部协程这里发生了挂起。</li>
 <li>requestUserToken 执行完毕后调用 <strong>continuation.resumeWith</strong> 恢复协程执行，继而调用到 <strong>continuation.invokeSuspend</strong> 方法。invokeSuspend 方法中更新了 requestUserToken 的执行结果，将 <strong>label 更新为 label |= Integer.MIN_VALUE（-2147483647）</strong>，并且重新执行了 CoroutineTestKt.main(this) 方法将自身传入。</li>
 </ul>
 </li>
 <li><ul>
 <li>重新进入 main 方法，此时的 completion 为 CoroutineTestKt$main$1 对象，因此会进入第一个 if 判断中，将 continuation 赋值为 completion，同时执行 continuation.label -= Integer.MIN_VALUE，<strong>label 被还原为1</strong>。</li>
-<li>进入 case 1 代码块中，获取到 requestUserToken 方法执行真正的结果 token的值，接着就会执行源码中后面一行非挂起的代码 ，即 println(“user token is : $token”)。然后<strong>更新状态变量 continuation.label 值为 2</strong>，执行 **fetchUserInfo(token，continuation)**。</li>
+<li>进入 case 1 代码块中，获取到 requestUserToken 方法执行真正的结果 token的值，接着就会执行源码中后面一行非挂起的代码 ，即 println(“user token is : $token”)。然后**更新状态变量 continuation.label 值为 2，执行 fetchUserInfo(token，continuation)**。</li>
 <li>fetchUserInfo 方法的执行与上面 requestUserToken 方法类似，同样的会先返回挂起标志，使得外部的 main 方法直接返回挂起标志。在 continuation.resumeWith 调用后更新 result 值，和label 的值，label |= Integer.MIN_VALUE（-2147483646），然后执行CoroutineTestKt.main(this) 方法。</li>
 </ul>
 </li>
@@ -339,7 +339,7 @@
 <p>如果我们使用伪代码去表示上面的流程就比较容易理解了：</p>
 <figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(Continuation&lt;Unit&gt; completion)</span> </span>&#123;<br>    CoroutineTestKt.requestUserToken(<span class="hljs-number">0</span>, <span class="hljs-keyword">new</span> Callback(completion) &#123;<br>        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onSuccess</span><span class="hljs-params">(Result&lt;String&gt; result)</span> </span>&#123;<br>            String token = result.getOrNull();<br>            System.out.println(<span class="hljs-string">&quot;user token is : &quot;</span> + token);<br><br>            CoroutineTestKt.fetchUserInfo(token, <span class="hljs-keyword">new</span> Callback(<span class="hljs-keyword">this</span>) &#123;<br>                <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onSuccess</span><span class="hljs-params">(Result&lt;UserInfo&gt; result)</span> </span>&#123;<br>                    String userInfo = result.getOrNull();<br>                    System.out.println(<span class="hljs-string">&quot;user info is : &quot;</span> + userInfo);<br>                &#125;<br>            &#125;);<br>        &#125;<br>    &#125;);<br>&#125;<br></code></pre></div></td></tr></table></figure>
 <p>可以看到整个协程的执行实际与我们平时写的回调方式其实是大同小异的。</p>
-<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>现在我们可以总结一下 Kotlin 协程为何可以解决回调地狱了，主要基于以下几点：</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>现在我们可以总结一下 Kotlin 协程为何可以解决回调地狱了，主要基于以下几点：</p>
 <ol>
 <li>挂起函数在编译后会有一个隐藏的 Continuation 类型参数，它对应我们平时写的 Callback。</li>
 <li>整个协程是采用了一种<strong>状态机（State Machine）模式</strong>，协程体中所有代码被编译到状态机中，由一个状态变量 label 来判断状态机此时的状态。</li>
