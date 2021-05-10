@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      5.5k 字
+      5.6k 字
     </span>
   
 
@@ -242,21 +242,21 @@
 <p>第59行调用 <strong>SafeContinuation.getOrThrow</strong> 方法来获取结果，如果结果为 <strong>COROUTINE_SUSPENDED</strong> 则表示发生了挂起，然后会调用 <strong>DebugProbesKt.probeCoroutineSuspended</strong> 方法将 completio传入，最后返回结果。</p>
 <p>DebugProbesKt.probeCoroutineSuspended  方法看不到源码，不过在 kotlinc 的源码中可以找到对应的 class 文件，其字节码较为复杂，总体工作就是更新协程的状态方便调试。另外 probeCoroutineSuspended 方法的注释中提到了比较关键的一点：</p>
 <blockquote>
-<figure class="highlight smali"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs smali">Coroutines machinery implementation guarantees that the actual [frame]<span class="hljs-built_in"> instance </span>extends [BaseContinuationImpl] class, despite the fact that the declared type of [frame] parameter in this function is `Continuation&lt;*&gt;`. See [probeCoroutineCreated] for details.<br></code></pre></div></td></tr></table></figure>
-<p>即编译器会保证传入的 Continuation 对象是继承自 BaseContinuationImpl 的，并且还提供了协程的状态流转图：</p>
+<p>Coroutines machinery implementation guarantees that the actual [frame] instance extends [BaseContinuationImpl] class, despite the fact that the declared type of [frame] parameter in this function is <code>Continuation&lt;*&gt;</code>. See [probeCoroutineCreated] for details.</p>
 </blockquote>
+<p>即编译器会保证传入的 Continuation 对象是继承自 BaseContinuationImpl 的，并且还提供了协程的状态流转图：</p>
 <p><img src="/img/jvm/image-20210501222228476.png" srcset="/img/loading.gif" alt="Kotlin协程的状态流转"></p>
 <h3 id="suspend-main"><a href="#suspend-main" class="headerlink" title="suspend main"></a>suspend main</h3><p>在<a href="https://sukaidev.github.io/2021/02/01/595755ca/#%E5%8F%AF%E6%8C%82%E8%B5%B7%E7%9A%84main%E5%87%BD%E6%95%B0">《深入理解Kotlin协程（一）——基本概念与原理》</a>一文中我们简单分析了可挂起的 main 函数的实现方式，下面就通过字节码来验证文中的分析过程。</p>
 <p>以下面代码为例：</p>
 <figure class="highlight kotlin"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs kotlin"><span class="hljs-keyword">suspend</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>    println(<span class="hljs-string">&quot;suspend main.&quot;</span>)<br>&#125;<br></code></pre></div></td></tr></table></figure>
 <p>编译后生成两个 class 文件，分别为 CoroutineTestKt.class 和 CoroutineTestKt$$$main.class。先来看看编译生成的 CoroutineTestKt$$$main.class 文件，这 class 文件的名字第一眼看过去觉得毫无头绪，为什么会有 3 个 $ 符号呢？</p>
-<p>在<a href="%22https://sukaidev.github.io/2021/04/25/d39e151e/#Kotlin-%E4%B8%AD%E7%9A%84-Lambda%22">上一篇文章</a>中我们讲过 Kotlin 中 Lambda 表达式的原理，其中说到了 kotlinc 生成的 实现 Lambda 表达式的类的命名规则为：<strong>OuterClassName$OuterFunctionName$LambdaExpressionName$n</strong>。我们把本例的 suspend man 方法带入会发现恰好符合这个规则。</p>
-<p>我们猜到了 CoroutineTestKt$$$main 实际由 Lambda 表达式生成，继续来看 CoroutineTestKt$$$main.class 的字节码，发现该类确实继承自 Lambda 类，并且实现了 Function1接口：</p>
+<p>在<a href="%22https://sukaidev.github.io/2021/04/25/d39e151e/#Kotlin-%E4%B8%AD%E7%9A%84-Lambda%22">上一篇文章</a>中我们讲过 Kotlin 中 Lambda 表达式的原理，其中说到了 kotlinc 生成的实现 Lambda 表达式的类的命名规则为：<strong>OuterClassName$OuterFunctionName$LambdaExpressionName$n</strong>。我们把本例的 suspend man 方法代入会发现恰好符合这个规则。</p>
+<p>我们猜到了 CoroutineTestKt$$$main 实际由 Lambda 表达式生成，继续来看 CoroutineTestKt$$$main.class 的字节码，发现该类确实继承自 Lambda 类，并且实现了 Function1 接口：</p>
 <figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">coroutine</span>.<span class="hljs-title">CoroutineTestKt</span>$$$<span class="hljs-title">main</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">kotlin</span>.<span class="hljs-title">jvm</span>.<span class="hljs-title">internal</span>.<span class="hljs-title">Lambda</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">kotlin</span>.<span class="hljs-title">jvm</span>.<span class="hljs-title">functions</span>.<span class="hljs-title">Function1</span></span><br></code></pre></div></td></tr></table></figure>
 <p>虽然验证了我们的猜想，但实际上我们并没有编写任何 Lambda 表达式，这显然编译器对 <strong>suspend main</strong> 做的特殊处理。既然实现了 Function1 接口，那么就来看下 invoke 方法是如何实现的：</p>
 <figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java">  <span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> java.lang.<span class="hljs-function">Object <span class="hljs-title">invoke</span><span class="hljs-params">(java.lang.Object)</span></span>;<br>    descriptor: (Ljava/lang/Object;)Ljava/lang/Object;<br>    flags: ACC_PUBLIC, ACC_FINAL, ACC_SYNTHETIC<br>    Code:<br>      stack=<span class="hljs-number">1</span>, locals=<span class="hljs-number">2</span>, args_size=<span class="hljs-number">2</span><br>         <span class="hljs-number">0</span>: aload_1<br>         1: checkcast     #19                 // class kotlin/coroutines/Continuation<br>         4: invokestatic  #25                 // Method coroutine/CoroutineTestKt.main:(Lkotlin/coroutines/Continuation;)Ljava/lang/Object;<br>         <span class="hljs-number">7</span>: areturn<br>&#125;<br></code></pre></div></td></tr></table></figure>
 <p>第 0~1 行将参数加载到栈中并强转为 <strong>Continuation</strong> 类型，然后调用了 CoroutineTestKt.main 方法将 Continuation 对象传入。</p>
-<p>这里需要注意的是，invoke 方法携带一个 Continuation 类型的参数，跟我们上一节讨论的被 <strong>suspend</strong> 关键字修饰的方法是相同的，那么它也能作为一个挂起函数来使用。</p>
+<p>这里需要注意的是，invoke 方法携带一个 Continuation 类型的参数，跟我们上一节讨论的被 <strong>suspend</strong> 关键字修饰的方法（即挂起函数）是相同的，那么它也能作为一个挂起函数来使用。</p>
 <p>CoroutineTestKt$$$main 中的字节码就只有 invoke 一个方法了，接下来就要去 CoroutineTestKt 中寻找哪个地方调用了 <strong>CoroutineTestKt$$$main.invoke</strong>。先来看 Java 入口 main 方法：</p>
 <figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java">  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(java.lang.String[])</span></span>;<br>    descriptor: ([Ljava/lang/String;)V<br>    flags: ACC_PUBLIC, ACC_STATIC, ACC_SYNTHETIC<br>    Code:<br>      stack=<span class="hljs-number">3</span>, locals=<span class="hljs-number">1</span>, args_size=<span class="hljs-number">1</span><br>         0: new           #10                 // class coroutine/CoroutineTestKt$$$main<br>         <span class="hljs-number">3</span>: dup<br>         <span class="hljs-number">4</span>: aload_0<br>         5: invokespecial #13                 // Method coroutine/CoroutineTestKt$$$main.&quot;&lt;init&gt;&quot;:([Ljava/lang/String;)V<br>         8: invokestatic  #19                 // Method kotlin/coroutines/jvm/internal/RunSuspendKt.runSuspend:(Lkotlin/jvm/functions/Function1;)V<br>        <span class="hljs-number">11</span>: <span class="hljs-keyword">return</span><br>&#125;<br></code></pre></div></td></tr></table></figure>
 <p>main 方法中创建了 CoroutineTestKt$$$main 对象并且将其传给了 <strong>RunSuspendKt.runSuspend</strong> 方法，来看看这个方法做了什么：</p>
@@ -341,8 +341,8 @@
 <p>可以看到整个协程的执行实际与我们平时写的回调方式其实是大同小异的。</p>
 <h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>现在我们可以总结一下 Kotlin 协程为何可以解决回调地狱了，主要基于以下几点：</p>
 <ol>
-<li>挂起函数在编译后会有一个隐藏的 Continuation 类型参数，它对应我们平时写的 Callback。</li>
 <li>整个协程是采用了一种<strong>状态机（State Machine）模式</strong>，协程体中所有代码被编译到状态机中，由一个状态变量 label 来判断状态机此时的状态。</li>
+<li>挂起函数在编译后会有一个隐藏的 Continuation 类型参数，它对应我们平时写的 Callback。这个参数中保存了状态变量以及每次执行挂起恢复的结果，当状态机发生状态流转时需要将此参数传递进去。</li>
 <li>每次挂起函数想要恢复协程的执行都需要重新执行状态机，通过更新 label 的值来进行状态机的状态转移，继而能够执行不同的代码块获取执行结果。</li>
 </ol>
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span>Kotlin标准库1.4.21
