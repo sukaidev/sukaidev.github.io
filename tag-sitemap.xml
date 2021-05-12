@@ -3,6 +3,20 @@
 
 
     <url>
+        <loc>https://sukaidev.github.io/tags/Activity/</loc>
+        <lastmod>2021-05-12T06:34:38.469Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://sukaidev.github.io/tags/AOSP/</loc>
+        <lastmod>2021-05-12T06:34:38.469Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
         <loc>https://sukaidev.github.io/tags/Lambda/</loc>
         <lastmod>2021-05-11T02:01:20.122Z</lastmod>
         <changefreq>weekly</changefreq>
