@@ -17,7 +17,7 @@
   <meta name="description" content="Android Developer">
   <meta name="author" content="sukaidev">
   <meta name="keywords" content="Android sukaidev 苏海鸿">
-  <title>Android Framework（一）——Root Activity启动流程 - Sukai&#39;s Blog - Android Developer</title>
+  <title>Android Framework（一）——Activity启动流程 - Sukai&#39;s Blog - Android Developer</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
 
@@ -162,7 +162,7 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="Android Framework（一）——Root Activity启动流程">
+            <span class="h2" id="subtitle" title="Android Framework（一）——Activity启动流程">
               
             </span>
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      65
+      66
        分钟
     </span>
   
@@ -224,7 +224,7 @@
         <div class="py-5" id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">Android Framework（一）——Root Activity启动流程</h1>
+            <h1 style="display: none">Android Framework（一）——Activity启动流程</h1>
             
             <div class="markdown-body">
               <blockquote>
@@ -232,7 +232,7 @@
 <p>本文所贴源码全部来自 Android API 29 Platform，即 Android 10.0。</p>
 </blockquote>
 <p>Android 中待启动的 Activity 分为两类，一种是 App 的Root Activity，也就是根Activity，另一种是普通的 Activity。两类 Activity 的启动过程有不少重叠的部分，根 Activity 特殊的点在于，启动它时涉及到整个应用进程的启动，因此更具有指导意义。本文将通过分析根Activity的启动过程来理解Android 10中Activity的启动流程。</p>
-<p>根 Activity 的启动过程分为三个部分，分别是 <strong>Launcher 请求 ATMS 过程</strong>、<strong>ATMS 调用 ApplicationThread 过程</strong>、<strong>ActivityThread 启动 Activity过程</strong>，另外还涉及到目标App进程的启动过程，不过本文主要讨论Activity的启动流程，不会涉及到进程启动。下面就以这三个部分为基础来分析根 Activity 的启动过程。</p>
+<p>根 Activity 的启动过程分为三个部分，分别是 <strong>Launcher 请求 ATMS 过程</strong>、<strong>ATMS 调用 ApplicationThread 过程</strong>、<strong>ActivityThread启动Activity过程</strong>，另外还涉及到目标App进程的启动过程，不过本文主要讨论Activity的启动流程，不会涉及到进程启动。下面就以这三个部分为基础来分析根 Activity 的启动过程。</p>
 <h2 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h2><p>为了避免阅读源码过程中出现不适，这里先简单介绍一些后面会出现的相关类。</p>
 <h3 id="相关类介绍"><a href="#相关类介绍" class="headerlink" title="相关类介绍"></a>相关类介绍</h3><ul>
 <li><strong>ActivityThread</strong>：整个 App main 方法所在的类，所谓主线程就是指它所执行的线程，所以通常会称其为主线程。它负责管理应用程序进程的主线程的执行，处理 ATMS 的调度和执行Activity，Broadcast及相关操作。</li>
@@ -291,7 +291,7 @@
 <p>注释 1 处通过 ServiceManager 获取对应的系统服务，也就是 IBinder 类型的 ATMS 引用。注释 2 处将它转换成 ActivityTaskManager 类型的对象，这段代码采用的是 AIDL，IActivityTaskManager.java 类是由 AIDL 工具在编译时自动生成的，IActivityTaskManager.aidl 的文件路径为 frameworks/base/core/java/android/app/IActivityTaskManager.aidl。 要实现进程间通信，服务端也就是 ATMS 只需要继承 IActivityTaskManager.Stub 类并实现相应的方法也就可以了。</p>
 <h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>我们回顾一下 Launcher 所做工作，startActivity 最终都会调用到 startActivityForResult，而启动一个 Activity 必须通过系统服务来执行，因此会使用 Launcher 的 ApplicationThread 来发起一次 RPC 调用，最终在 Instrumentation#execStartActivitiesAsUser 中请求 ATMS 来启动 Activity。</p>
 <p>这个过程的时序图如下所示。</p>
-<p><img src="/img/jvm/framework_launcher_start.png" srcset="/img/loading.gif" alt="Launcher请求 ATMS"></p>
+<p><img src="/img/framework_launcher_start.png" srcset="/img/loading.gif" alt="Launcher请求ATMS过程时序图"></p>
 <h2 id="ATMS-到-ApplicationThread-的调用过程"><a href="#ATMS-到-ApplicationThread-的调用过程" class="headerlink" title="ATMS 到 ApplicationThread 的调用过程"></a>ATMS 到 ApplicationThread 的调用过程</h2><p>Launcher 请求 AMS 后 ，代码逻辑已经进入 ATMS 中，接着是 ATMS 到 ApplicationThread 的调用流程。</p>
 <h3 id="ActivityTaskManagerService-startActivity"><a href="#ActivityTaskManagerService-startActivity" class="headerlink" title="ActivityTaskManagerService#startActivity"></a>ActivityTaskManagerService#startActivity</h3><blockquote>
 <p>frameworks/base/services/core/java/com/android/server/wm/ActivityTaskManagerService.java</p>
@@ -351,7 +351,7 @@
 </blockquote>
 <p>realStartActivityLocked方法中创建了一个启动Activity事务，并利用IApplicationThread发送到目标App中，精简后的代码如下。</p>
 <figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">realStartActivityLocked</span><span class="hljs-params">(ActivityRecord r, WindowProcessController proc,</span></span><br><span class="hljs-function"><span class="hljs-params">        <span class="hljs-keyword">boolean</span> andResume, <span class="hljs-keyword">boolean</span> checkConfig)</span> <span class="hljs-keyword">throws</span> RemoteException </span>&#123;<br>            ···<br>            <span class="hljs-comment">// 创建一个启动Activity事务.</span><br>            <span class="hljs-keyword">final</span> ClientTransaction clientTransaction = ClientTransaction.obtain(<br>                    proc.getThread(), r.appToken);<br><br>            <span class="hljs-keyword">final</span> DisplayContent dc = r.getDisplay().mDisplayContent;<br>            clientTransaction.addCallback(LaunchActivityItem.obtain(<span class="hljs-keyword">new</span> Intent(r.intent),<br>                    System.identityHashCode(r), r.info,<br>                    <span class="hljs-comment">// <span class="hljs-doctag">TODO:</span> Have this take the merged configuration instead of separate global</span><br>                    <span class="hljs-comment">// and override configs.</span><br>                    mergedConfiguration.getGlobalConfiguration(),<br>                    mergedConfiguration.getOverrideConfiguration(), r.compat,<br>                    r.launchedFromPackage, task.voiceInteractor, proc.getReportedProcState(),<br>                    r.icicle, r.persistentState, results, newIntents,<br>                    dc.isNextTransitionForward(), proc.createProfilerInfoIfNeeded(),<br>                            r.assistToken));<br><br>            <span class="hljs-comment">// 设置此次事务应该执行的最终状态</span><br>            <span class="hljs-comment">// 此次流程将会设置为resume，表示activity应该执行到onResume状态</span><br>            <span class="hljs-keyword">final</span> ActivityLifecycleItem lifecycleItem;<br>            <span class="hljs-keyword">if</span> (andResume) &#123;<br>                lifecycleItem = ResumeActivityItem.obtain(dc.isNextTransitionForward());<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                lifecycleItem = PauseActivityItem.obtain();<br>            &#125;<br>            clientTransaction.setLifecycleStateRequest(lifecycleItem);<br><br>            <span class="hljs-comment">// RPC执行事务</span><br>            mService.getLifecycleManager().scheduleTransaction(clientTransaction);<br>    ···<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;<br>&#125;<br></code></pre></div></td></tr></table></figure>
-<p>事务将会通过目标App的IApplicationThread远程发送到目标App中，至此ATMS中执行的逻辑就结束了，剩余工作交给目标App来执行。</p>
+<p>从Android 8.0开始Activity的启动将会通过事务来完成，事务将会通过目标App的IApplicationThread远程发送到目标App中，然后通过ClientLifecycleManager 来执行。至此ATMS中执行的逻辑就结束了，剩下的就是目标App的ApplicationThread来执行目标Activity的各个生命周期方法了。</p>
 <h3 id="小结-1"><a href="#小结-1" class="headerlink" title="小结"></a>小结</h3><p>同样的来回顾一下ATMS所做的工作。</p>
 <ul>
 <li>首先ATMS会判断权限信息，只有具有权限的调用进程才可以启动Activity。</li>
@@ -359,7 +359,9 @@
 <li>然后就会使前台Task的栈顶Activity可见，这个过程就会启动对应的Activity，必要情况会启动对应的进程。</li>
 <li>最后通过RPC调用将启动Activity的事务发送到对应进程中，交由对应App来处理。</li>
 </ul>
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://cs.android.com/android/platform/superproject/+/android-10.0.0_r30:">Android API 29 Platform</a>
+<p>这部分的时序图如下所示。</p>
+<p><img src="/img/framework_atms_start_activity.jpg" srcset="/img/loading.gif" alt="ATMS执行时序图"></p>
+<h2 id="ActivityThread启动Activity过程"><a href="#ActivityThread启动Activity过程" class="headerlink" title="ActivityThread启动Activity过程"></a>ActivityThread启动Activity过程</h2><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://cs.android.com/android/platform/superproject/+/android-10.0.0_r30:">Android API 29 Platform</a>
 <a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/30358046/">《Android进阶解密》</a>
 <a href="#fnref:2" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:3" class="footnote-text"><span><a target="_blank" rel="noopener" href="http://gityuan.com/2016/03/12/start-activity/">startActivity启动过程分析</a>
 <a href="#fnref:3" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:4" class="footnote-text"><span><a href="/Users/sukaidev/HexoBlog/source">四大组件之ActivityRecord</a>
