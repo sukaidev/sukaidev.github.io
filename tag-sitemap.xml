@@ -3,6 +3,20 @@
 
 
     <url>
+        <loc>https://sukaidev.github.io/tags/Activity/</loc>
+        <lastmod>2021-05-16T12:30:42.746Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://sukaidev.github.io/tags/AOSP/</loc>
+        <lastmod>2021-05-16T12:30:42.746Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
         <loc>https://sukaidev.github.io/tags/Coroutines/</loc>
         <lastmod>2021-05-16T12:20:49.050Z</lastmod>
         <changefreq>weekly</changefreq>
@@ -12,20 +26,6 @@
     <url>
         <loc>https://sukaidev.github.io/tags/Bytecode/</loc>
         <lastmod>2021-05-16T12:20:49.050Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.2</priority>
-    </url>
-
-    <url>
-        <loc>https://sukaidev.github.io/tags/Activity/</loc>
-        <lastmod>2021-05-15T10:09:10.967Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.2</priority>
-    </url>
-
-    <url>
-        <loc>https://sukaidev.github.io/tags/AOSP/</loc>
-        <lastmod>2021-05-15T10:09:10.967Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>
