@@ -291,7 +291,7 @@
 <p>注释 1 处通过 ServiceManager 获取对应的系统服务，也就是 IBinder 类型的 ATMS 引用。注释 2 处将它转换成 ActivityTaskManager 类型的对象，这段代码采用的是 AIDL，IActivityTaskManager.java 类是由 AIDL 工具在编译时自动生成的，IActivityTaskManager.aidl 的文件路径为 frameworks/base/core/java/android/app/IActivityTaskManager.aidl。 要实现进程间通信，服务端也就是 ATMS 只需要继承 IActivityTaskManager.Stub 类并实现相应的方法也就可以了。</p>
 <h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>我们回顾一下 Launcher 所做工作，startActivity 最终都会调用到 startActivityForResult，而启动一个 Activity 必须通过系统服务来执行，因此会使用 Launcher 的 ApplicationThread 来发起一次 RPC 调用，最终在 Instrumentation#execStartActivitiesAsUser 中请求 ATMS 来启动 Activity。</p>
 <p>这个过程的时序图如下所示。</p>
-<p><img src="/img/framework_launcher_start.png" srcset="/img/loading.gif" alt="Launcher请求ATMS过程时序图"></p>
+<p><img src="/img/framework_launcher_start_activity.jpg" srcset="/img/loading.gif" alt="Launcher请求ATMS过程时序图"></p>
 <h2 id="ATMS-到-ApplicationThread-的调用过程"><a href="#ATMS-到-ApplicationThread-的调用过程" class="headerlink" title="ATMS 到 ApplicationThread 的调用过程"></a>ATMS 到 ApplicationThread 的调用过程</h2><p>Launcher 请求 AMS 后 ，代码逻辑已经进入 ATMS 中，接着是 ATMS 到 ApplicationThread 的调用流程。</p>
 <h3 id="ActivityTaskManagerService-startActivity"><a href="#ActivityTaskManagerService-startActivity" class="headerlink" title="ActivityTaskManagerService#startActivity"></a>ActivityTaskManagerService#startActivity</h3><blockquote>
 <p>frameworks/base/services/core/java/com/android/server/wm/ActivityTaskManagerService.java</p>
