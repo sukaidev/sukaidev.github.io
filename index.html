@@ -239,6 +239,70 @@ Android 中待启动的 Activity 分为两类，一种是 App 的Root Activity�
     
     
       <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2021/05/14/7ca6484e/" target="_self">
+          <img src="/img/cover_framework_system_process_startup.png" srcset="/img/loading.gif" alt="Android Framework（一）——关键系统进程启动过程">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/05/14/7ca6484e/">Android Framework（一）——关键系统进程启动过程</a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/05/14/7ca6484e/">
+          
+          
+            
+          
+          
+注意（WARNING）：阅读本文需要有一定的C/C++基础。
+本文所贴源码全部来自 Android API 29 Platform，即 Android 10.0。
+
+Android系统架构当我们看到**”Android系统架构”**这几个字时，通常会联想到Google官方发布的五层系统架构图，如下所示。
+
+通过这张图我们可以理解Android系统如何分层以及各层功能职责，不过对于各层的运行细节、
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-05-14 20:20" pubdate>
+              2021-05-14
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Android-Framework/">Android Framework</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/AOSP/">AOSP</a>
+            
+              <a href="/tags/Zygote/">Zygote</a>
+            
+              <a href="/tags/SystemServer/">SystemServer</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2021/05/06/40879c1f/" target="_self">
           <img src="/img/cover_kotlin_coroutines.png" srcset="/img/loading.gif" alt="深入理解Kotlin协程（六）——从字节码角度理解协程">
         </a>
@@ -668,63 +732,6 @@ re
             <i class="iconfont icon-date"></i>
             <time datetime="2021-02-28 22:51" pubdate>
               2021-02-28
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/Kotlin/">Kotlin</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Coroutines/">Coroutines</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2021/02/21/dd192d66/" target="_self">
-          <img src="/img/cover_kotlin_coroutines.png" srcset="/img/loading.gif" alt="深入理解Kotlin协程（四）——Kotlin协程框架初探（二）">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2021/02/21/dd192d66/">深入理解Kotlin协程（四）——Kotlin协程框架初探（二）</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/02/21/dd192d66/">
-          
-          
-            
-          
-          本篇继续探讨协程的取消、异常处理以及作用域问题。
-协程的取消协程的取消本质是协作式的取消，这点跟线程的中断一致，除了自身状态置为取消外，也需要协程体的执行逻辑能够检查状态的变化来响应取消。
-完善协程的取消逻辑我们的Job目前还有两个函数空着没有实现，分别是cancle和invokeOnCancel。后者的实现与doOnCompleted类似，如下所示。
-1234567891011121314151
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2021-02-21 23:29" pubdate>
-              2021-02-21
             </time>
           </div>
         
