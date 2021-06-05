@@ -428,7 +428,7 @@
 <li>Launcher进程：通过点击图标生成Intent，通知ATMS启动对应Activity。</li>
 <li>SystemServer进程：<ul>
 <li>检查调用（Launcher）进程是否被隔离、是否有权限启动Activity，然后生成ActivityStarter来处理Activity启动事宜。</li>
-<li>解析Intent中的信息，通过这些信息解析出包含Activity信息的ActivityInfo对象。</li>
+<li>解析Intent中的信息，通过这些信息解析出包含Activity信息的ActivityInfo对象。判断Activity是否有在清单文件中注册、是否有权限等。</li>
 <li>计算Intent的Flags，处理LaunchMode问题，判断Activity的目标任务栈，将Activity添加到任务栈中。</li>
 <li>将任务栈移至前台，使栈顶的Activity可见，会创建一个事务并通过IPC发送到目标App进程。</li>
 <li>如果App进程不存在，启动App进程。</li>
@@ -480,6 +480,12 @@
                 <div class="post-prevnext">
                   <article class="post-prev col-6">
                     
+                    
+                      <a href="/2021/05/29/31b8eb1c/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Android Framework（三）——应用程序进程启动流程</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
                     
                   </article>
                   <article class="post-next col-6">
