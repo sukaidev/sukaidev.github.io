@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      104
+      103
        分钟
     </span>
   
@@ -462,7 +462,9 @@
 <li>Zygote进程：通过fork自身创建App进程。</li>
 <li>App进程：初始化Binder线程池、开启消息循环。</li>
 </ul>
-<p>每个部分所做工作在各节做了总结，这里不再赘述，下片文章将会探讨Activity从启动到显示的整个过程以及Activity与View、Window的关系。</p>
+<p>其中AMS执行到ZygoteProcess中的attemptZygoteSendArgsAndGetResult会阻塞AMS线程，直到socket返回新进程的pid才会返回。</p>
+<p>简化后的流程如下图所示。</p>
+<p><img src="/img/process_creation.jpg" srcset="/img/loading.gif" alt="process_creation"></p>
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://cs.android.com/android/platform/superproject/+/android-10.0.0_r30:">Android API 29 Platform</a>
 <a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/30358046/">《Android进阶解密》</a>
 <a href="#fnref:2" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:3" class="footnote-text"><span><a target="_blank" rel="noopener" href="http://gityuan.com/2016/10/09/app-process-create-2/">Android四大组件与进程启动的关系</a>
