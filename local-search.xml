@@ -391,6 +391,31 @@
   
   
   <entry>
+    <title>ViewBinding前瞻</title>
+    <link href="/2019/09/12/d497a59/"/>
+    <url>/2019/09/12/d497a59/</url>
+    
+    <content type="html"><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>今天Android Studio推特放出了<a href="https://androidstudio.googleblog.com/2019/09/android-studio-36-canary-11-available.html">Android Studio 3.6 Canary 11的更新日志</a>，终于是在IDE层面支持了<em>View Binding</em>。</p><p>View Binding大家肯定都用过，常用的有Data Binding、ButterKnife和Kotlinx，一般来说Java项目中ButterKnife用的多，kotlin项目的话kotlinx synthetic用起来更快、更方便。那这个IDE支持的<em>View Binding</em>有何优势呢？待会说，先看看它怎么使用吧。</p><h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><p>首先需要在模块中启用View Binding，这个跟Data Binding类似，毕竟都是官方支持的：</p><figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs groovy">android &#123;<br>    ...<br>    viewBinding &#123;<br>        enabled = <span class="hljs-literal">true</span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure><p>这样的话编译器就会为这个module中的每个xml文件生成一个<em>binding class</em>，例如<em>activity_main.xml文</em>件会自动生成<em>ActivityMainBinding.java</em>文件。每个<em>binding class</em>会持有根视图的引用，并且会为每个View生成一个ID（除非这个View没有设置ID）。</p><p>例如我写一个<em>result_profile.xml</em>：</p><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">LinearLayout</span> <span class="hljs-attr">...</span> &gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">TextView</span> <span class="hljs-attr">android:id</span>=<span class="hljs-string">&quot;@+id/name&quot;</span> /&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">ImageView</span> <span class="hljs-attr">android:cropToPadding</span>=<span class="hljs-string">&quot;true&quot;</span> /&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">Button</span> <span class="hljs-attr">android:id</span>=<span class="hljs-string">&quot;@+id/button&quot;</span></span><br><span class="hljs-tag">        <span class="hljs-attr">android:background</span>=<span class="hljs-string">&quot;@drawable/rounded_button&quot;</span> /&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">LinearLayout</span>&gt;</span><br></code></pre></td></tr></table></figure><p>IDE会自动生成一个叫<em>ResultProfileBinding.java</em>的文件，文件中有两个属性：名为name的TextView和名为button的Button，ImageView因为没有设置ID所以不会引用到文件中。除此之外还提供一个getRoot()方法，返回根视图，这里的话就返回LineaLayout对象。</p><p>有人说那我有的xml文件不需要用、不想用怎么办呢？也行，让tools：viewBindingIgnore = true就行。</p><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs xml">&lt;LinearLayout<br>        ...<br>        tools:viewBindingIgnore=&quot;true&quot; &gt;<br>    ...<br><span class="hljs-tag">&lt;/<span class="hljs-name">LinearLayout</span>&gt;</span><br></code></pre></td></tr></table></figure><p>接下来就是要到Activity中去使用它了，<em>setContentView</em>中肯定不能直接使用xml文件Id了，应该传入一个根视图。要获取这个根视图的话，首先要拿到<em>ResultProfileBinding</em>类的对象，我们可以通过其静态方法*inflate()*来获取对象。这样的话代码就应该这样写了：</p><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">private</span> <span class="hljs-keyword">lateinit</span> <span class="hljs-keyword">var</span> binding: ResultProfileBinding<br><br><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onCreate</span><span class="hljs-params">(savedInstanceState: <span class="hljs-type">Bundle</span>)</span></span> &#123;<br>    <span class="hljs-keyword">super</span>.onCreate(savedInstanceState)<br>    binding = ResultProfileBinding.inflate(layoutInflater)<br>    setContentView(binding.root)<br>&#125;<br></code></pre></td></tr></table></figure><p>接下来就可以这样访问视图控件了：</p><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs kotlin">binding.name.text = viewModel.name<br>binding.button.setOnClickListener &#123; viewModel.userClicked() &#125;<br></code></pre></td></tr></table></figure><h2 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h2><p>有人问：Java我有ButterKnife，Kotlin我有Kotlin Synthetic，这东西现在放出来有啥用？</p><p>这东西对比findViewById，优势肯定是很明显的，首先控件都是从自动生成的java文件中取出的，不会因为写错了R文件ID而出现空指针问题。其次类型也是确定的不会有类型转换异常。</p><p>但对于ButterKnife和kotlinx用习惯的人来说，看起来这新功能并不如前两者。但事实呢？来看一张图：</p><p><img src="/img/2019092000250621-1024x576.jpeg" alt="如何优雅的访问视图控件"></p><p>上图列出了访问视图控件的五种方式的对比。除了最后一个，其他四种方式或多或少都有自己的劣势。例如ButterKnife是基于注解和注解处理器来实现视图绑定的，它的劣势就在于无法保证编译期安全，写错一个视图控件的R文件Id就可能导致程序崩溃，一旦项目大了注解写的多了，就会极大的影响项目构建速度。而kotlinx虽然不会影响项目构建，但也无法保证编译期安全，有时候相同ID的控件多了导包都要看半天，生怕导错了包然后运行报错。</p><p>对于 why kotlin doesn’t better 这个问题，Jake Wharton是这么回答的：</p><p><img src="/img/2019091308523152.png" alt="Jake Wharton推特截图"></p><p>看来巨佬跟我一样烦kotlinx的导包问题，嗯，总算找到点共识。</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>Android Basics</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>View Binding</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>Fragment进阶使用技巧</title>
     <link href="/2018/09/28/ad641d8b/"/>
     <url>/2018/09/28/ad641d8b/</url>
