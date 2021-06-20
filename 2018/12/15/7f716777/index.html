@@ -1,0 +1,617 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" type="image/png" href="/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="Android Developer">
+  <meta name="author" content="sukaidev">
+  <meta name="keywords" content="Android sukaidev 苏海鸿">
+  <title>Android触摸事件分发机制 - Sukai&#39;s Blog - Android Developer</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/atom-one-light.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"sukaidev.github.io","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Sukai's Blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Android触摸事件分发机制">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2018-12-15 12:40" pubdate>
+        2018年12月15日 下午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      3.1k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      36
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Android触摸事件分发机制</h1>
+            
+            <div class="markdown-body">
+              <h2 id="为什么要进行事件分发"><a href="#为什么要进行事件分发" class="headerlink" title="为什么要进行事件分发"></a>为什么要进行事件分发</h2><p>android中View是树形结构的，view可能会重叠，当我们点击某个区域时，如下图中的View，由于Activity、ViewGroupA、ViewGroupB和View都能对触摸事件进行响应，系统无法确定该事件交由谁处理，这就需要事件分发机制来帮忙。</p>
+<center>
+  <img src="/img/Screenshot_1547291939-576x1024.png" srcset="/img/loading.gif" style="zoom:50%;" />
+</center>
+
+<h2 id="什么是触摸事件"><a href="#什么是触摸事件" class="headerlink" title="什么是触摸事件"></a>什么是触摸事件</h2><p>官方文档中的描述：</p>
+<blockquote>
+<p>Motion events describe movements in terms of an action code and a set of axis values. The action code specifies the state change that occurred such as a pointer going down or up. The axis values describe the position and other movement properties. </p>
+</blockquote>
+<p>动作事件根据操作代码和一套坐标轴值来描述动作/运动。操作代码指定发生的状态更改，例如指针向下或向上。坐标轴值描述位置和其他动作属性。</p>
+<p>事件通常被封装成MotionEvent对象。</p>
+<h3 id="常用事件"><a href="#常用事件" class="headerlink" title="常用事件"></a>常用事件</h3><table>
+<thead>
+<tr>
+<th><strong>事件</strong></th>
+<th><strong>简介</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ACTION_DOWN</td>
+<td>手指 <strong>初次接触到屏幕</strong> 时触发。</td>
+</tr>
+<tr>
+<td>ACTION_MOVE</td>
+<td>手指 <strong>在屏幕上滑动</strong> 时触发，会会多次触发。</td>
+</tr>
+<tr>
+<td>ACTION_UP</td>
+<td>手指 <strong>离开屏幕</strong> 时触发。</td>
+</tr>
+<tr>
+<td>ACTION_CANCEL</td>
+<td>事件 <strong>被上层拦截</strong> 时触发。</td>
+</tr>
+</tbody></table>
+<p>对于单指触控来说，一次简单的交互流程是这样的:</p>
+<p><strong>手指落下(ACTION_DOWN) －&gt; 移动(ACTION_MOVE) －&gt; 离开(ACTION_UP)</strong></p>
+<blockquote>
+<p>本次事例中 ACTION_MOVE 有多次触发。<br>如果仅仅是单击(手指按下再抬起)，不会触发 ACTION_MOVE。 </p>
+</blockquote>
+<h2 id="事件分发、拦截与消费"><a href="#事件分发、拦截与消费" class="headerlink" title="事件分发、拦截与消费"></a>事件分发、拦截与消费</h2><p>主要涉及三个方法：</p>
+<table>
+<thead>
+<tr>
+<th><strong>类型</strong></th>
+<th><strong>相关方法</strong></th>
+<th><strong>Activity</strong></th>
+<th><strong>ViewGroup</strong></th>
+<th><strong>View</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>事件分发</td>
+<td>dispatchTouchEvent</td>
+<td>有</td>
+<td>有</td>
+<td>有</td>
+</tr>
+<tr>
+<td>事件拦截</td>
+<td>onInterceptTouchEvent</td>
+<td>无</td>
+<td>有</td>
+<td>无</td>
+</tr>
+<tr>
+<td>事件消费</td>
+<td>onTouchEvent</td>
+<td>有</td>
+<td>有</td>
+<td>有</td>
+</tr>
+</tbody></table>
+<p>Activity和View中都是没有事件拦截，这是因为：</p>
+<blockquote>
+<p>Activity 作为原始的事件分发者，如果 Activity 拦截了事件会导致整个屏幕都无法响应事件，这肯定不是我们想要的效果。<br>View最为事件传递的最末端，要么消费掉事件，要么不处理进行回传，根本没必要进行事件拦截。 </p>
+</blockquote>
+<p><strong>public boolean dispatchTouchEvent(MotionEvent ev)</strong> </p>
+<p>用来进行事件的分发。如果事件能够传递给当前View，那么首先就会调用此方法，返回结果受当前View的onTouchEvent和下级View的dispatchTouchEvent方法的影响，表示是否消费该事件。</p>
+<p><strong>public boolean onInterceptTouchEvent(MotionEvent ev)</strong></p>
+<p>在 <strong>dispatchTouchEvent</strong>方法中调用，用来判断是否拦截某个事件，如果当前View拦截了某个事件，那么该事件不会再继续传递，此方法不会被再次调用，返回结果表示是否拦截某事件。</p>
+<p><strong>public boolean onTouchEvent(MotionEvent event)</strong></p>
+<p>在<strong>dispatchTouchEvent</strong>方法中调用，用来处理点击事件，返回结果表示是否消耗当前事件，如果不消耗，则在同一个事件序列中，当前View无法再次接收到事件。</p>
+<p>上述三个方法有何区别？又有何联系？可以用如下伪代码表示：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">dispatchTouchEvent</span><span class="hljs-params">(MotionEvent ev)</span> </span>&#123;<br>    <span class="hljs-keyword">boolean</span> consume = <span class="hljs-keyword">false</span>;<br>    <span class="hljs-keyword">if</span> (onInterceptTouchEvent(ev)) &#123;<br>        consume = onTouchEvent(ev);<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        consume = child.dispatchTouchEvent(ev);<br>    &#125;<br>    <span class="hljs-keyword">return</span> consume;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>稍微解释一下上述伪代码，对于ViewGroupA来说，点击事件产生后，首先会传递给它（Activity -&gt; (PhoneWindow -&gt; DecorView) -&gt; ViewGroupA），这时它的dispatchTouchEvent()方法就会被调用。若ViewGroupA的onInterceptTouchEvent()返回true就表示它要拦截当前事件，接着事件就会被传递到ViewGroupA的onTouchEvent()方法中；若ViewGroupA的onInterceptTouchEvent()返回false则表示不拦截当前事件，这个事件就会传递给子视图ViewGroupB，接着ViewGroupB的dispatchTouchEvent()方法就会被调用。</p>
+<center>
+  <img src="/img/Screenshot_1547291939-576x1024 (1)-4193421.png" srcset="/img/loading.gif"  style="zoom:50%;" />
+</center>
+
+ <br>
+
+
+<p>下面我们简单地用几种特殊情况来理解事件分发。</p>
+<h3 id="点击View区域但没有任何View消费事件"><a href="#点击View区域但没有任何View消费事件" class="headerlink" title="点击View区域但没有任何View消费事件"></a>点击View区域但没有任何View消费事件</h3><p><img src="/img/%E6%97%A0%E4%BB%BB%E4%BD%95%E4%BA%8B%E4%BB%B6%E6%B6%88%E8%B4%B9.png" srcset="/img/loading.gif" alt="无任何事件消费（简化）"></p>
+<p><strong>注意：</strong>上图中onInterceptTouchEvent方法返回false后直接调用了子View的dispatchTouchEvent，实际上是ViewGroup的dispatchTouchEvent方法根据onInterceptTouchEvent方法的返回值调用的子View的dispatchTouchEvent方法。后面的图中也是一样的。</p>
+<h3 id="点击View区域且事件被View消费"><a href="#点击View区域且事件被View消费" class="headerlink" title="点击View区域且事件被View消费"></a>点击View区域且事件被View消费</h3><p><img src="/img/View%E6%B6%88%E8%B4%B9.png" srcset="/img/loading.gif" alt="View消费了事件（简化）"></p>
+<h3 id="点击View区域但事件被ViewGroupB拦截"><a href="#点击View区域但事件被ViewGroupB拦截" class="headerlink" title="点击View区域但事件被ViewGroupB拦截"></a>点击View区域但事件被ViewGroupB拦截</h3><p><img src="/img/ViewGroupB%E6%8B%A6%E6%88%AA%E4%BA%86%E4%BA%8B%E4%BB%B6.png" srcset="/img/loading.gif" alt="ViewGroupB拦截了事件"></p>
+<p><strong>注意：</strong>上图中ViewGroupB的onInterceptTouchEvent方法返回true后，应该是由dispatchTouchEvent来调用onTouchEvent方法。这里分两种情况：如果拦截的事件是初始事件，也就是ACTION_DOWN事件的话，那么ViewGroupB就会调用自己的onTouchEvent方法自己来处理事件；如果拦截的事件不是初始事件的话，它就会把事件交还给Activity来处理，如果Activity.onTouchEvent也不处理的话就抛弃。</p>
+<p>事件分发机制设计到到情形非常多，这里就不一一列举了，记住以下几条原则就行了。 </p>
+<ol>
+<li>如果事件被消费，就意味着事件信息传递终止。</li>
+<li>如果事件一直没有被消费，最后会传给Activity，如果Activity也不需要就被抛弃。</li>
+<li>判断事件是否被消费是根据返回值，而不是根据你是否使用了事件。</li>
+</ol>
+<h2 id="事件相关方法调用顺序"><a href="#事件相关方法调用顺序" class="headerlink" title="事件相关方法调用顺序"></a>事件相关方法调用顺序</h2><p>我们知道View可以注册很多监听器，例如单击事件onClick、长按事件onLongClick、触摸事件onTouch，并且View自身也有onTouchEvent()方法，那么这么多监听器到底哪个先执行呢？</p>
+<p>如果我们认真思考一下的话，不需要看源码也能猜出来。</p>
+<p>单击事件onClickListener需要两个事件ACTION_DOWN和ACTION_UP才能触发，如果先分配给它判断会导致其他事件阻塞，显然是不合理的，应该放到最后。</p>
+<p>长按事件onLongClickListener只需要一个事件ACTION_DOWN就能触发，它应该比单击事件更早处理，但是长按也需要长时间等待（相对来说）才能触发，所以应该靠后。</p>
+<p>触摸事件onTouchListener与onTouchEvent方法的区别是触摸事件是交由用户自己处理的，所以应该在最前面，同时会覆盖掉onTouchEvent。</p>
+<p>View自身处理onTouchEvent是默认的一种处理方式，如果用户决定自己处理，也就不需要View自身来处理了，所以顺序应该在触摸事件后面。</p>
+<p><strong>这样的话我们得出了事件方法调用顺序：onTouchListener &gt; onTouchEvent（可能不执行） &gt; onLongClickListener &gt; onClickListener</strong></p>
+<p>查看View中的dispatchTouchEvent()方法源码也能找到结果：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">dispatchTouchEvent</span><span class="hljs-params">(MotionEvent event)</span> </span>&#123;<br>    ...<br>    <span class="hljs-keyword">boolean</span> result = <span class="hljs-keyword">false</span>;	<span class="hljs-comment">// result 为返回值，主要作用是告诉调用者事件是否已经被消费。</span><br>    <span class="hljs-keyword">if</span> (onFilterTouchEventForSecurity(event)) &#123;<br>        ListenerInfo li = mListenerInfo;<br>        <span class="hljs-comment">/** </span><br><span class="hljs-comment">         * 如果设置了OnTouchListener，并且当前 View 可点击，就调用监听器的 onTouch 方法，</span><br><span class="hljs-comment">         * 如果 onTouch 方法返回值为 true，就设置 result 为 true。</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">if</span> (li != <span class="hljs-keyword">null</span> &amp;&amp; li.mOnTouchListener != <span class="hljs-keyword">null</span><br>                &amp;&amp; (mViewFlags &amp; ENABLED_MASK) == ENABLED<br>                &amp;&amp; li.mOnTouchListener.onTouch(<span class="hljs-keyword">this</span>, event)) &#123;<br>            result = <span class="hljs-keyword">true</span>;<br>        &#125;<br>      <br>        <span class="hljs-comment">/** </span><br><span class="hljs-comment">         * 如果 result 为 false，则调用自身的 onTouchEvent。</span><br><span class="hljs-comment">         * 如果 onTouchEvent 返回值为 true，则设置 result 为 true。</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">if</span> (!result &amp;&amp; onTouchEvent(event)) &#123;<br>            result = <span class="hljs-keyword">true</span>;<br>        &#125;<br>    &#125;<br>    ...<br>    <span class="hljs-keyword">return</span> result;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>onClick和onLongClick在onTouchEvent()方法中执行：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">onTouchEvent</span><span class="hljs-params">(MotionEvent event)</span> </span>&#123;<br>    ...<br>    <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> action = event.getAction();<br>  	<span class="hljs-comment">// 检查各种 clickable</span><br>    <span class="hljs-keyword">if</span> (((viewFlags &amp; CLICKABLE) == CLICKABLE ||<br>            (viewFlags &amp; LONG_CLICKABLE) == LONG_CLICKABLE) ||<br>            (viewFlags &amp; CONTEXT_CLICKABLE) == CONTEXT_CLICKABLE) &#123;<br>        <span class="hljs-keyword">switch</span> (action) &#123;<br>            <span class="hljs-keyword">case</span> MotionEvent.ACTION_UP:<br>                ...<br>                removeLongPressCallback();  <span class="hljs-comment">// 移除长按</span><br>                ...<br>                performClickInternal();             <span class="hljs-comment">// 检查单击，返回performClick()方法的执行结果</span><br>                ...<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">case</span> MotionEvent.ACTION_DOWN:<br>                ...<br>                checkForLongClick(<span class="hljs-number">0</span>,x,y);       <span class="hljs-comment">// 检测长按</span><br>                ...<br>                <span class="hljs-keyword">break</span>;<br>            ...<br>        &#125;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;                        <span class="hljs-comment">// 表示事件被消费</span><br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h2 id="结论与分析"><a href="#结论与分析" class="headerlink" title="结论与分析"></a>结论与分析</h2><p><strong>（1）同一个事件序列（gesture）是指从手指接触屏幕的那一刻起，到手指离开屏幕的那一刻结束，在这个过程中所产生的一系列事件，这个事件序列以down事件开始，中间含有数量不定的move事件，最终以up事件结束。</strong></p>
+<p><strong>（2）正常情况下，一个事件序列只能被一个View拦截且消耗。</strong></p>
+<p><strong>（3）某个View一旦决定拦截，那么这个事件序列都只能由它来处理（如果事件序列能传递给它的话），并且它的onInterceptTouchEvent不会再被调用。</strong></p>
+<p>ViewGroup中dispatchTouchEvent()方法源码中有一段描述的是否进行拦截，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Check for interception.</span><br><span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> intercepted;<br><span class="hljs-comment">// 若当前事件为ACTION_DOWN或者子元素已经处理了事件，判断是否拦截</span><br><span class="hljs-keyword">if</span> (actionMasked == MotionEvent.ACTION_DOWN<br>        || mFirstTouchTarget != <span class="hljs-keyword">null</span>) &#123;<br>    <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> disallowIntercept = (mGroupFlags &amp; FLAG_DISALLOW_INTERCEPT) != <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">if</span> (!disallowIntercept) &#123;<br>        intercepted = onInterceptTouchEvent(ev);<br>        ev.setAction(action); <span class="hljs-comment">// restore action in case it was changed</span><br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        intercepted = <span class="hljs-keyword">false</span>;<br>    &#125;<br><span class="hljs-comment">// 若当前事件不为ACTION_DOWN，并且没有目标来处理该事件（子元素没有处理初始事件），直接拦截</span><br>&#125; <span class="hljs-keyword">else</span> &#123;<br>    <span class="hljs-comment">// There are no touch targets and this action is not an initial down</span><br>    <span class="hljs-comment">// so this view group continues to intercept touches.</span><br>    intercepted = <span class="hljs-keyword">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>从上述源码可以看出，ViewGroup在如下两种情况下会判断是否要拦截当前事件：事件类型为ACTION_DOWN或者mFirstTouchTarget不为null。前者我们知道，那mFirstTarget是什么呢？当事件由ViewGroup的子元素成功处理时，mFirstTarget会被指向子元素，也就是说当ViewGroup不拦截事件并且子元素成功处理时，mFirstTouchTarget != null成立。</p>
+<p>现在我们模拟一种情况，当手指点击在ViewGroup上时，产生一个ACTION_DOWN事件，而当前ViewGroup是允许拦截的（FLAG_DISALLOW_INTERCEPT标志位为false），那么就会调用onInterceptTouchEvent方法判断是否拦截，若返回false，则ViewGroup就不会拦截当前事件，并交给子View进行处理。子View处理完毕后，mFirstTouchTarget会被赋值指向子View。接着手指移动一段距离并松开，产生ACTION_MOVE和ACTION_UP事件，由于此时mFirstTouchEvent != null成立，所以继续判断是否拦截，若ViewGroup决定拦截ACTION_MOVE，那么mFirstTouchEvent会被重置为null，当ACTION_UP被分发的时候，两个条件都不满足则直接进入循环体的else代码语句中，不再调用onInterceptTouchEvent()方法，直接将拦截标志设为true。</p>
+<p>现在用代码来验证一下，在View中消费ACTION_DOWN事件，然后父ViewGroupB拦截ACTION_MOVE，打印日志如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java">D/Activity: dispatchTouchEvent    ACTION_DOWN<br>D/ViewGroupA: dispatchTouchEvent    ACTION_DOWN<br>D/ViewGroupA: onInterceptTouchEvent    ACTION_DOWN<br>D/ViewGroupB: dispatchTouchEvent    ACTION_DOWN<br>D/View: dispatchTouchEvent    ACTION_DOWN<br>D/View: onTouchEvent    消费事件（<span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>）<br>D/Activity: dispatchTouchEvent    ACTION_MOVE<br>D/ViewGroupA: dispatchTouchEvent    ACTION_MOVE<br>D/ViewGroupA: onInterceptTouchEvent    ACTION_MOVE<br>D/ViewGroupB: dispatchTouchEvent    ACTION_MOVE<br>D/ViewGroupB: onInterceptTouchEvent    拦截ACTION_MOVE<br>D/View: dispatchTouchEvent    ACTION_CANCEL<br>D/View: onTouchEvent    CANCEL<br>D/Activity: onTouchEvent    ACTION_MOVE<br>D/Activity: dispatchTouchEvent    ACTION_UP<br>D/ViewGroupA: dispatchTouchEvent    ACTION_UP<br>D/ViewGroupA: onInterceptTouchEvent    ACTION_UP<br>D/ViewGroupB: dispatchTouchEvent    ACTION_UP<br>D/Activity: onTouchEvent    ACTION_UP<br></code></pre></td></tr></table></figure>
+<p>可以看到当ACTION_DOWN被View消费之后就不会继续传递了，这时的mFirstTouchTarget指向View，而后续事件ACTION_MOVE被ViewGroupB拦截后，<strong>View会收到一个ACTION_CANCEL事件</strong>，表示这个事件序列的后续处理被取消。ACTION_MOVE事件被拦截后由于没有被消费，就不会再继续传递了，而是直接返回给Activity来处理，后续的ACTION_UP事件也会被ViewGroupB拦截，但这时onInterceptTouchEvent方法并没有被再次调用。</p>
+<p><strong>（4）某个View一旦开始处理事件，如果它不消耗ACTION_DOWN事件（onTouchEvent返回了false），那么同一事件序列中的其他事件都不会再交给它处理，并且事件将重新交给它的父元素去处理，即父元素的onTouchEvent会被调用。</strong></p>
+<p><strong>（5）如果View不消耗除ACTION_DOWN以外的其他事件，那么这个点击事件会消失，此时父元素的onTouchEvent并不会被调用，并且当前View可以持续收到后续事件，最终这些消失的点击事件会传递给Activity处理。</strong></p>
+<p><strong>（6）ViewGroup默认不拦截任何事件。Android源码中ViewGroup的onInterceptTouchEvent默认返回false。</strong></p>
+<p><strong>（7）如果ViewGroup拦截了初始事件（ACTION_DOWN），那么它就会调用自己onTouchEvent方法来处理事件，如果拦截的不是初始事件，那么它不会自己处理，而是将事件返回给Activity。</strong></p>
+<p><strong>（8）如果View当前处理的事件被上层ViewGroup拦截，View会收到一个ACTION_CANCEL事件，后续事件不会再传递过来。</strong></p>
+<p><strong>（9）View没有onInterceptTouchEvent方法，一旦有点击事件传递给它，那么它的onTouchEvent方法就会被调用。</strong></p>
+<p><strong>（10）View的onTouchEvent默认都会消耗事件（返回true），除非它是不可点击的（clickable和longClickable属性同时为false）。View的longClickable属性默认都为false，而clickable属性要看子类具体实现。</strong></p>
+<p><strong>（11）View的enable属性不影响onTouchEvent的默认返回值。</strong></p>
+<p><strong>（12）onClick会发生的前提是View是可点击的（clickable），并且它收到了down和up事件。</strong></p>
+<p><strong>（13）事件传递过程是由外向内的，即事件总是先传递给父元素，然后再由父元素分发给子View，通过requestDisallowInterceptTouchEvent方法可以在子元素中干预父元素的事件分发过程，但是ACTION_DOWN事件除外。</strong></p>
+<h2 id="参考："><a href="#参考：" class="headerlink" title="参考："></a>参考：</h2><p><a target="_blank" rel="noopener" href="https://developer.android.google.cn/reference/android/view/MotionEvent">MotionEvent</a></p>
+<p><a target="_blank" rel="noopener" href="https://book.douban.com/subject/26599538/">《Android开发艺术探索》</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.gcssloop.com/customview/dispatch-touchevent-source">安卓自定义View进阶-事件分发机制详解</a></p>
+<p><a target="_blank" rel="noopener" href="http://wuxiaolong.me/2015/12/19/MotionEvent/">Android事件传递机制分析</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/guolin_blog/article/details/9097463">Android事件分发机制完全解析，带你从源码的角度彻底理解(上)</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/guolin_blog/article/details/9153747">Android事件分发机制完全解析，带你从源码的角度彻底理解(下)</a></p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Android-Basics/">Android Basics</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Touch-Event/">Touch Event</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/02/04/48014e1e/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">HashMap详解</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2018/12/10/bfd836fe/">
+                        <span class="hidden-mobile">View的绘制流程</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                
+  <script type="text/javascript">
+    Fluid.utils.waitElementVisible('comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'sukaidev/sukaidev.github.io');
+      s.setAttribute('issue-term', 'pathname');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+<!-- SCRIPTS -->
+
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    (function () {
+      var path = "/local-search.xml";
+      var inputArea = document.querySelector("#local-search-input");
+      inputArea.onclick = function () {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+        this.onclick = null
+      }
+    })()
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+
+</body>
+</html>

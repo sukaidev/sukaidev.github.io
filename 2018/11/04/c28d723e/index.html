@@ -1,0 +1,536 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" type="image/png" href="/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="Android Developer">
+  <meta name="author" content="sukaidev">
+  <meta name="keywords" content="Android sukaidev 苏海鸿">
+  <title>AsyncTask源码详解 - Sukai&#39;s Blog - Android Developer</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/atom-one-light.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"sukaidev.github.io","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Sukai's Blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="AsyncTask源码详解">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2018-11-04 20:06" pubdate>
+        2018年11月4日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.7k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      35
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">AsyncTask源码详解</h1>
+            
+            <div class="markdown-body">
+              <h2 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h2><h3 id="Callable"><a href="#Callable" class="headerlink" title="Callable"></a>Callable</h3><p>Callable的接口定义如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">Callable</span> </span>&#123;   <br>       <span class="hljs-function">V   <span class="hljs-title">call</span><span class="hljs-params">()</span>   <span class="hljs-keyword">throws</span> Exception</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>Callable接口声明了一个名称为call()的方法，该方法可以有返回值V，也可以抛出异常。Callable也是一个线程接口，它与Runnable的主要区别就是Callable在线程执行完成后可以有返回值而Runnable没有返回值，Runnable接口声明如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">Runnable</span> </span>&#123;<br>     <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span></span>;<br> &#125;<br></code></pre></td></tr></table></figure>
+<p>那么Callable接口如何使用呢，Callable需要和ExcutorService结合使用，其中ExecutorService也是一个线程池对象继承自Executor接口，接着看看ExecutorService提供了那些方法供我们使用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java">&lt;T&gt; <span class="hljs-function">Future&lt;T&gt; <span class="hljs-title">submit</span><span class="hljs-params">(Callable&lt;T&gt; task)</span></span>;<br>&lt;T&gt; <span class="hljs-function">Future&lt;T&gt; <span class="hljs-title">submit</span><span class="hljs-params">(Runnable task, T result)</span></span>;<br>Future&lt;?&gt; submit(Runnable task);<br></code></pre></td></tr></table></figure>
+<ul>
+<li>submit(Callable task)，传递一个实现Callable接口的任务，并且返回封装了异步计算结果的Future。</li>
+<li> submit(Runnable task, T result)，传递一个实现Runnable接口的任务，并且指定了在调用Future的get方法时返回的result对象。</li>
+<li>submit(Runnable task)，传递一个实现Runnable接口的任务，并且返回封装了异步计算结果的Future。</li>
+</ul>
+<p>因此我们只要创建好我们的线程对象（实现Callable接口或者Runnable接口），然后通过上面3个方法提交给线程池去执行即可。Callable接口介绍就先到这，再来看看Future时什么鬼。</p>
+<h3 id="Future"><a href="#Future" class="headerlink" title="Future"></a>Future</h3><p>Future接口是用来获取异步计算结果的，说白了就是对具体的Runnable或者Callable对象任务执行的结果进行获取(get()),取消(cancel()),判断是否完成等操作。其方法如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">Future</span>&lt;<span class="hljs-title">V</span>&gt; </span>&#123;<br>    <span class="hljs-comment">//取消任务</span><br>    <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">cancel</span><span class="hljs-params">(<span class="hljs-keyword">boolean</span> mayInterruptIfRunning)</span></span>;<br><br>    <span class="hljs-comment">//如果任务完成前被取消，则返回true。</span><br>    <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">isCancelled</span><span class="hljs-params">()</span></span>;<br><br>    <span class="hljs-comment">//如果任务执行结束，无论是正常结束或是中途取消还是发生异常，都返回true。</span><br>    <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">isDone</span><span class="hljs-params">()</span></span>;<br><br>    <span class="hljs-comment">//获取异步执行的结果，如果没有结果可用，此方法会阻塞直到异步计算完成。</span><br>    <span class="hljs-function">V <span class="hljs-title">get</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> InterruptedException, ExecutionException</span>;<br><br>    <span class="hljs-comment">// 获取异步执行结果，如果没有结果可用，此方法会阻塞，但是会有时间限制，</span><br>    <span class="hljs-comment">//如果阻塞时间超过设定的timeout时间，该方法将返回null。</span><br>    <span class="hljs-function">V <span class="hljs-title">get</span><span class="hljs-params">(<span class="hljs-keyword">long</span> timeout, TimeUnit unit)</span> <span class="hljs-keyword">throws</span> InterruptedException, ExecutionException, TimeoutException</span>;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>总得来说Future有以下3点作用：</p>
+<ul>
+<li>能够中断执行中的任务</li>
+<li>判断任务是否执行完成</li>
+<li>获取任务执行完成后额结果。</li>
+</ul>
+<p>但是Future只是接口，我们根本无法将其创建为对象，于官方又给我们提供了其实现类FutureTask，这里我们要知道前面两个接口的介绍都只为此类做铺垫，毕竟AsncyTask中使用到的对象是FutureTask。</p>
+<h3 id="FutureTask"><a href="#FutureTask" class="headerlink" title="FutureTask"></a>FutureTask</h3><p>先来看看FutureTask的实现：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs angelscript"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-symbol">FutureTask</span> <span class="hljs-symbol">implements</span> <span class="hljs-symbol">RunnableFuture</span> &#123; <br>&#125;<br></code></pre></td></tr></table></figure>
+<p>RunnableFuture接口的实现：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs angelscript"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-symbol">RunnableFuture</span> <span class="hljs-symbol">extends</span> <span class="hljs-symbol">Runnable</span>, <span class="hljs-symbol">Future</span> &#123;<br>     <span class="hljs-built_in">void</span> run();<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>从接口实现可以看出，FutureTask除了实现了Future接口外还实现了Runnable接口，因此FutureTask既可以当做Future对象也可是Runnable对象，当然FutureTask也就可以直接提交给线程池来执行。接着我们最关心的是如何创建FutureTask对象，实际上可以通过如下两个构造方法来构建FutureTask：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs typescript"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-title">FutureTask</span>(<span class="hljs-params">Callable&lt;V&gt; callable</span>)</span> &#123;  <br>&#125;<br><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-title">FutureTask</span>(<span class="hljs-params">Runnable runnable, V result</span>)</span> &#123;  <br>&#125;<br></code></pre></td></tr></table></figure>
+<p>从构造方法看出，我们可以把一个实现了Callable或者Runnable的接口的对象封装成一个FutureTask对象，然后通过线程池去执行。</p>
+<h2 id="从入口开始"><a href="#从入口开始" class="headerlink" title="从入口开始"></a>从入口开始</h2><p>通常我们使用AsyncTask时，会自定义一个IAsyncTask继承自AsyncTask，然后调用其execute()方法来执行任务，如下所示：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">new</span> IAsyncTask(<span class="hljs-string">&quot;IAsyncTask-1&quot;</span>).execute(<span class="hljs-string">&quot;&quot;</span>);<br></code></pre></td></tr></table></figure>
+<p>入口是execute()方法，查看它的源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@MainThread</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> AsyncTask&lt;Params, Progress, Result&gt; <span class="hljs-title">execute</span><span class="hljs-params">(Params... params)</span></span>&#123;<br>    <span class="hljs-keyword">return</span> executeOnExecutor(sDefaultExecutor, params);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>execute()方法没有做任何操作，而是直接调用了executeOnExecutor()方法，并传入了<em>sDefaultExecutor</em>和参数params，这个<em>sDefaultExecutor</em>是什么呢？看名字我们应该猜到它是一个线程池，看代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Executor SERIAL_EXECUTOR = <span class="hljs-keyword">new</span> SerialExecutor();<br><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">volatile</span> Executor sDefaultExecutor = SERIAL_EXECUTOR;<br></code></pre></td></tr></table></figure>
+<p>SerialExecutor是AsyncTask四个内部类中的一个，它实现了Executor接口：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SerialExecutor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Executor</span> </span>&#123;<br>    <span class="hljs-keyword">final</span> ArrayDeque&lt;Runnable&gt; mTasks = <span class="hljs-keyword">new</span> ArrayDeque&lt;Runnable&gt;();<br>    Runnable mActive;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> <span class="hljs-keyword">void</span> <span class="hljs-title">execute</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Runnable r)</span> </span>&#123;<br>        mTasks.offer(<span class="hljs-keyword">new</span> Runnable() &#123;<span class="hljs-comment">// 插入一个Runnable任务</span><br>            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;<br>                <span class="hljs-keyword">try</span> &#123;<br>                    r.run();<br>                &#125; <span class="hljs-keyword">finally</span> &#123;<br>                    scheduleNext();<br>                &#125;<br>            &#125;<br>        &#125;);<br>        <span class="hljs-comment">// 如果当前没有任务进行</span><br>        <span class="hljs-keyword">if</span> (mActive == <span class="hljs-keyword">null</span>) &#123;<br>            scheduleNext();<br>        &#125;<br>    &#125;<br>    <span class="hljs-comment">// </span><br>    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">synchronized</span> <span class="hljs-keyword">void</span> <span class="hljs-title">scheduleNext</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-keyword">if</span> ((mActive = mTasks.poll()) != <span class="hljs-keyword">null</span>) &#123;<br>            <span class="hljs-comment">//从任务队列mTasks中取出任务并放到THREAD_POOL_EXECUTOR线程池中执行.</span><br>            <span class="hljs-comment">//由此也可见任务默认是串行进行的。</span><br>            THREAD_POOL_EXECUTOR.execute(mActive);<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>从源码可以看出，SerialExecutor维护了一个存放任务队列的容器ArrayDeque和一个正在执行的任务Runnable，其工作就是当用户调用execute方法时将任务存放到任务队列中，并交给THREAD_POOL_EXECUTOR串行的处理。 </p>
+<p>由此可见SerialExecutor并不是真正的线程执行者，它只是是保证传递进来的任务Runnable（实例是一个FutureTask）串行执行，而真正执行任务的是THREAD_POOL_EXECUTOR线程池。接下来我们看看THREAD_POOL_EXECUTOR：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> CPU_COUNT = Runtime.getRuntime().availableProcessors();<br><span class="hljs-comment">// 核心线程数</span><br><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> CORE_POOL_SIZE = Math.max(<span class="hljs-number">2</span>, Math.min(CPU_COUNT - <span class="hljs-number">1</span>, <span class="hljs-number">4</span>));<br><span class="hljs-comment">// 线程池最大容量</span><br><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> MAXIMUM_POOL_SIZE = CPU_COUNT * <span class="hljs-number">2</span> + <span class="hljs-number">1</span>;<br><span class="hljs-comment">// 保活时间</span><br><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> KEEP_ALIVE_SECONDS = <span class="hljs-number">30</span>;<br><span class="hljs-comment">// 阻塞队列，默认容量128</span><br><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> BlockingQueue&lt;Runnable&gt; sPoolWorkQueue = <span class="hljs-keyword">new</span> LinkedBlockingQueue&lt;Runnable&gt;(<span class="hljs-number">128</span>);<br><span class="hljs-comment">// 线程工厂</span><br><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> ThreadFactory sThreadFactory = <span class="hljs-keyword">new</span> ThreadFactory() &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> AtomicInteger mCount = <span class="hljs-keyword">new</span> AtomicInteger(<span class="hljs-number">1</span>);<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> Thread <span class="hljs-title">newThread</span><span class="hljs-params">(Runnable r)</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Thread(r, <span class="hljs-string">&quot;AsyncTask #&quot;</span> + mCount.getAndIncrement());<br>    &#125;<br>&#125;;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Executor THREAD_POOL_EXECUTOR;<br><br><span class="hljs-keyword">static</span> &#123;<br>    ThreadPoolExecutor threadPoolExecutor = <span class="hljs-keyword">new</span> ThreadPoolExecutor(<br>            CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE_SECONDS, TimeUnit.SECONDS,<br>            sPoolWorkQueue, sThreadFactory);<br>    threadPoolExecutor.allowCoreThreadTimeOut(<span class="hljs-keyword">true</span>);<br>    THREAD_POOL_EXECUTOR = threadPoolExecutor;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>关于线程池先看到这，我们之前讲到用户调用execute()方法实际是调用了executeOnExecutor()方法，看看它做了什么：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@MainThread</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> AsyncTask&lt;Params, Progress, Result&gt; <span class="hljs-title">executeOnExecutor</span><span class="hljs-params">(Executor exec,</span></span><br><span class="hljs-function"><span class="hljs-params">        Params... params)</span> </span>&#123;<br>    <span class="hljs-comment">// 判断当前状态</span><br>    <span class="hljs-keyword">if</span> (mStatus != Status.PENDING) &#123;<br>        <span class="hljs-keyword">switch</span> (mStatus) &#123;<br>            <span class="hljs-comment">// 同一任务只被执行一次</span><br>            <span class="hljs-keyword">case</span> RUNNING:<br>                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalStateException(<span class="hljs-string">&quot;Cannot execute task:&quot;</span><br>                        + <span class="hljs-string">&quot; the task is already running.&quot;</span>);<br>            <span class="hljs-keyword">case</span> FINISHED:<br>                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalStateException(<span class="hljs-string">&quot;Cannot execute task:&quot;</span><br>                        + <span class="hljs-string">&quot; the task has already been executed &quot;</span><br>                        + <span class="hljs-string">&quot;(a task can be executed only once)&quot;</span>);<br>        &#125;<br>    &#125;<br><br>    mStatus = Status.RUNNING;<br>    <span class="hljs-comment">// 这里调用了我们自己实现的onPreExecute方法</span><br>    onPreExecute();<br>    <span class="hljs-comment">//参数传递给了mWorker.mParams</span><br>    mWorker.mParams = params;<br>    <span class="hljs-comment">// 执行了线程池THREAD_POOL_EXECUTOR的execute方法</span><br>    exec.execute(mFuture);<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>从executeOnExecutor方法的源码分析得知，执行任务前先会去判断当前AsyncTask的状态，如果处于RUNNING和FINISHED状态就不可再执行，直接抛出异常，只有处于Status.PENDING时，AsyncTask才会去执行。然后onPreExecute()被执行的，该方法可以用于线程开始前做一些准备工作。接着会把我们传递进来的参数赋值给 mWorker.mParams ，并执行开始执行mFuture任务，那么mWorker和mFuture到底是什么？先看看mWorker即WorkerRunnable的声明源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">WorkerRunnable</span>&lt;<span class="hljs-title">Params</span>, <span class="hljs-title">Result</span>&gt; <span class="hljs-keyword">implements</span> <span class="hljs-title">Callable</span>&lt;<span class="hljs-title">Result</span>&gt; </span>&#123;<br>    Params[] mParams;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>发现WorkerRunnable是个抽象类，存在一个参数数组，并且实现了Callable方法。既然WorkerRunnable是个抽象类，那么肯定会有具体的实现类来进行实例化，果然，在AsyncTask的构造方法中有如下代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">AsyncTask</span><span class="hljs-params">(<span class="hljs-meta">@Nullable</span> Looper callbackLooper)</span> </span>&#123;<br>    mHandler = callbackLooper == <span class="hljs-keyword">null</span> || callbackLooper == Looper.getMainLooper()<br>        ? getMainHandler()<br>        : <span class="hljs-keyword">new</span> Handler(callbackLooper);<br>    <span class="hljs-comment">// 创建WorkerRunnable mWorker，本质上就是一个实现了Callable接口对象</span><br>    mWorker = <span class="hljs-keyword">new</span> WorkerRunnable&lt;Params, Result&gt;() &#123;<br>        <span class="hljs-function"><span class="hljs-keyword">public</span> Result <span class="hljs-title">call</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;<br>            <span class="hljs-comment">// 设置标志</span><br>            mTaskInvoked.set(<span class="hljs-keyword">true</span>);<br>            Result result = <span class="hljs-keyword">null</span>;<br>            <span class="hljs-keyword">try</span> &#123;<br><br>Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);<br>                <span class="hljs-comment">// 执行DoInBackGround方法，取得结果</span><br>                result = doInBackground(mParams);<br>                Binder.flushPendingCommands();<br>            &#125; <span class="hljs-keyword">catch</span> (Throwable tr) &#123;<br>                mCancelled.set(<span class="hljs-keyword">true</span>);<br>                <span class="hljs-keyword">throw</span> tr;<br>            &#125; <span class="hljs-keyword">finally</span> &#123;<br>                <span class="hljs-comment">// 调用postResult方法更新结果</span><br>                postResult(result);<br>            &#125;<br>            <span class="hljs-keyword">return</span> result;<br>        &#125;<br>    &#125;;<br><br>    <span class="hljs-comment">// 把mWorker（即Callable实现类）封装成FutureTask实例</span><br>    <span class="hljs-comment">// 最终执行结果也就封装在FutureTask中</span><br>    mFuture = <span class="hljs-keyword">new</span> FutureTask&lt;Result&gt;(mWorker) &#123;<br>        <span class="hljs-comment">// 任务执行完成后被调用</span><br>        <span class="hljs-meta">@Override</span><br>        <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">done</span><span class="hljs-params">()</span> </span>&#123;<br>            <span class="hljs-keyword">try</span> &#123;<br>                <span class="hljs-comment">// 如果还没更新结果通知就执行postResultIfNotInvoked</span><br>                postResultIfNotInvoked(get());<br>            &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;<br>                android.util.Log.w(LOG_TAG, e);<br>            &#125; <span class="hljs-keyword">catch</span> (ExecutionException e) &#123;<br>                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> RuntimeException(<span class="hljs-string">&quot;An error occurred while executing doInBackground()&quot;</span>,<br>                        e.getCause());<br>            &#125; <span class="hljs-keyword">catch</span> (CancellationException e) &#123;<br>                postResultIfNotInvoked(<span class="hljs-keyword">null</span>);<br>            &#125;<br>        &#125;<br>    &#125;;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>可以看到在初始化AsyncTask时，不仅创建了mWorker（本质实现了Callable接口的实例类）而且也创建了FutureTask对象，并把mWorker对象封装在FutureTask对象中，最后FutureTask对象将在executeOnExecutor方法中通过线程池去执行。</p>
+<p>AsynTask在初始化时会创建mWorker实例对象和FutureTask实例对象，mWorker是一个实现了Callable线程接口并封装了传递参数的实例对象，然后mWorker实例会被封装成FutureTask实例中。在AsynTask创建后，我们调用execute方法去执行异步线程，其内部又直接调用了executeOnExecutor方法，并传递了线程池exec对象和执行参数，该方法内部通过线程池exec对象去执行mFuture实例，这时mWorker内部的call方法将被执行并调用doInBackground方法，最终通过postResult去通知更新结果。关于postResult方法,其源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> Result <span class="hljs-title">postResult</span><span class="hljs-params">(Result result)</span> </span>&#123;<br>    <span class="hljs-meta">@SuppressWarnings(&quot;unchecked&quot;)</span><br>    Message message = getHandler().obtainMessage(MESSAGE_POST_RESULT,<br>            <span class="hljs-keyword">new</span> AsyncTaskResult&lt;Result&gt;(<span class="hljs-keyword">this</span>, result));<br>    message.sendToTarget();<br>    <span class="hljs-keyword">return</span> result;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>显然是通过Handler去执行结果更新的，在执行结果成返回后，会把result封装到一个AsyncTaskResult对象中，最后把MESSAGE_POST_RESULT标示和AsyncTaskResult存放到Message中并发送给Handler去处理，这里我们先看看AsyncTaskResult的源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AsyncTaskResult</span>&lt;<span class="hljs-title">Data</span>&gt; </span>&#123;<br>    <span class="hljs-keyword">final</span> AsyncTask mTask;<br>    <span class="hljs-keyword">final</span> Data[] mData;<br><br>    AsyncTaskResult(AsyncTask task, Data... data) &#123;<br>        mTask = task;<br>        mData = data;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>显然AsyncTaskResult封装了执行结果的数组以及AsyncTask本身，这个没什么好说的，接着看看AsyncTaskResult被发送到handler后如何处理的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">InternalHandler</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Handler</span> </span>&#123;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">InternalHandler</span><span class="hljs-params">(Looper looper)</span> </span>&#123;<br>        <span class="hljs-keyword">super</span>(looper);<br>    &#125;<br><br>    <span class="hljs-meta">@SuppressWarnings(&#123;&quot;unchecked&quot;, &quot;RawUseOfParameterizedType&quot;&#125;)</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">handleMessage</span><span class="hljs-params">(Message msg)</span> </span>&#123;<br>        AsyncTaskResult&lt;?&gt; result = (AsyncTaskResult&lt;?&gt;) msg.obj;<br>        <span class="hljs-keyword">switch</span> (msg.what) &#123;<br>            <span class="hljs-keyword">case</span> MESSAGE_POST_RESULT:<br>                <span class="hljs-comment">// There is only one result</span><br>                result.mTask.finish(result.mData[<span class="hljs-number">0</span>]);<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">case</span> MESSAGE_POST_PROGRESS:<br>                result.mTask.onProgressUpdate(result.mData);<br>                <span class="hljs-keyword">break</span>;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>通过handler发送过来的不同标志去决定执行那种结果，如果标示为MESSAGE_POST_RESULT则执行AsyncTask的finish方法并传递执行结果给该方法，finish方法源码如下： </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">finish</span><span class="hljs-params">(Result result)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (isCancelled()) &#123;<span class="hljs-comment">// 判断任务是否被取消</span><br>        onCancelled(result);<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-comment">// 执行onPostExecute(result)并传递result结果</span><br>        onPostExecute(result);<br>    &#125;<br>    mStatus = Status.FINISHED;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>该方法先判断任务是否被取消，如果没有被取消则去执行onPostExecute(result)方法，外部通过onPostExecute方法去更新相关信息，如UI，消息通知等。最后更改AsyncTask的状态为已完成。到此AsyncTask的全部流程执行完。 </p>
+<p>这里还有另一种标志MESSAGE_POST_PROGRESS，该标志是我们在doInBackground方法中调用publishProgress方法时发出的，该方法原型如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">publishProgress</span><span class="hljs-params">(Progress... values)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (!isCancelled()) &#123;<br>        getHandler().obtainMessage(MESSAGE_POST_PROGRESS,<br>                <span class="hljs-keyword">new</span> AsyncTaskResult&lt;Progress&gt;(<span class="hljs-keyword">this</span>, values)).sendToTarget();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>方法执行流程：</p>
+<p><img src="/img/426077-20170220202059273-943906034-1024x715.png" srcset="/img/loading.gif" alt="时序图"></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://developer.android.google.cn/reference/android/os/AsyncTask">AsyncTask</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/javazejian/article/details/52464139">android多线程-AsyncTask之工作原理深入解析(下)</a></p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Android-Basics/">Android Basics</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/AsyncTask/">AsyncTask</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2018/12/10/bfd836fe/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">View的绘制流程</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2018/10/29/e7df41f4/">
+                        <span class="hidden-mobile">Handler机制基本原理</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                
+  <script type="text/javascript">
+    Fluid.utils.waitElementVisible('comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'sukaidev/sukaidev.github.io');
+      s.setAttribute('issue-term', 'pathname');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+<!-- SCRIPTS -->
+
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    (function () {
+      var path = "/local-search.xml";
+      var inputArea = document.querySelector("#local-search-input");
+      inputArea.onclick = function () {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+        this.onclick = null
+      }
+    })()
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+
+</body>
+</html>

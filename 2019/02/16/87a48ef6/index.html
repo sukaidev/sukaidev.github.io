@@ -1,0 +1,551 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" type="image/png" href="/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="Android Developer">
+  <meta name="author" content="sukaidev">
+  <meta name="keywords" content="Android sukaidev 苏海鸿">
+  <title>LinkedHashMap原理 - Sukai&#39;s Blog - Android Developer</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/atom-one-light.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"sukaidev.github.io","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Sukai's Blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="LinkedHashMap原理">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-02-16 19:20" pubdate>
+        2019年2月16日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.2k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      28
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">LinkedHashMap原理</h1>
+            
+            <div class="markdown-body">
+              <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>之前文章讲了HashMap。HashMap是一种非常常见、非常有用的集合，但在多线程情况下使用不当会有线程安全问题。</p>
+<p>大多数情况下，只要不涉及线程安全问题，Map基本都可以使用HashMap，不过HashMap有一个问题，就是<strong>迭代HashMap的顺序并不是HashMap放置的顺序</strong>，也就是无序。HashMap的这一缺点往往会带来困扰，因为有些场景，我们期待一个有序的Map。</p>
+<p>这个时候，LinkedHashMap就闪亮登场了，它虽然增加了时间和空间上的开销，但是<strong>通过维护一个运行于所有条目的双向链表，LinkedHashMap保证了元素迭代的顺序</strong>。<strong>该迭代顺序可以是插入顺序或者是访问顺序。</strong></p>
+<p>我们写一个简单的LinkedHashMap的程序演示一下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java">LinkedHashMap&lt;string, integer=<span class="hljs-string">&quot;&quot;</span>&gt; lmap = <span class="hljs-keyword">new</span> LinkedHashMap&lt;string, integer=<span class="hljs-string">&quot;&quot;</span>&gt;();<br>lmap.put(<span class="hljs-string">&quot;语文&quot;</span>, <span class="hljs-number">1</span>);<br>lmap.put(<span class="hljs-string">&quot;数学&quot;</span>, <span class="hljs-number">2</span>);<br>lmap.put(<span class="hljs-string">&quot;英语&quot;</span>, <span class="hljs-number">3</span>);<br>lmap.put(<span class="hljs-string">&quot;历史&quot;</span>, <span class="hljs-number">4</span>);<br>lmap.put(<span class="hljs-string">&quot;政治&quot;</span>, <span class="hljs-number">5</span>);<br>lmap.put(<span class="hljs-string">&quot;地理&quot;</span>, <span class="hljs-number">6</span>);<br>lmap.put(<span class="hljs-string">&quot;生物&quot;</span>, <span class="hljs-number">7</span>);<br>lmap.put(<span class="hljs-string">&quot;化学&quot;</span>, <span class="hljs-number">8</span>);<br><span class="hljs-keyword">for</span>(Entry&lt;string, integer=<span class="hljs-string">&quot;&quot;</span>&gt; entry : lmap.entrySet()) &#123;<br>			System.out.println(entry.getKey() + <span class="hljs-string">&quot;: &quot;</span> + entry.getValue());<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>运行结果是：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">语文: <span class="hljs-number">1</span> 数学: <span class="hljs-number">2</span> 英语: <span class="hljs-number">3</span> 历史: <span class="hljs-number">4</span> 政治: <span class="hljs-number">5</span> 地理: <span class="hljs-number">6</span> 生物: <span class="hljs-number">7</span> 化学: <span class="hljs-number">8</span><br></code></pre></td></tr></table></figure>
+<p>我们可以观察到，和HashMap的运行结果不同，LinkedHashMap的迭代输出的结果保持了插入顺序。是什么样的结构使得LinkedHashMap具有如此特性呢？我们还是一样的看看LinkedHashMap的内部结构，对它有一个感性的认识：</p>
+<p>可以看到LinkedHashMap内部结构其实跟HashMap是一样的，只不过比HashMap多了一个双向链表。</p>
+<p><img src="/img/03eb9014-da38-11e4-9cbf-03d9c21f05f2.png" srcset="/img/loading.gif" alt="LinkedHashMap数据结构"></p>
+<h2 id="四个关注点"><a href="#四个关注点" class="headerlink" title="四个关注点"></a>四个关注点</h2><table>
+<thead>
+<tr>
+<th><strong>关 注 点</strong></th>
+<th><strong>结 论</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>LinkedHashMap是否允许空</td>
+<td>Key和Value都允许空</td>
+</tr>
+<tr>
+<td>LinkedHashMap是否允许重复数据</td>
+<td>Key重复会覆盖、Value允许重复</td>
+</tr>
+<tr>
+<td>LinkedHashMap是否有序</td>
+<td><strong>有序</strong></td>
+</tr>
+<tr>
+<td>LinkedHashMap是否线程安全</td>
+<td>非线程安全</td>
+</tr>
+</tbody></table>
+<h2 id="LinkedHashMap基本结构"><a href="#LinkedHashMap基本结构" class="headerlink" title="LinkedHashMap基本结构"></a>LinkedHashMap基本结构</h2><p>LinkedHashMap可以认为是<strong>HashMap+LinkedList</strong>，即它既使用HashMap操作数据结构，又使用LinkedList维护插入元素的先后顺序。</p>
+<p>其实LinkedHashMap本身就继承自HashMap，也就是说它继承了HashMap中所有的非私有方法和属性：</p>
+<p><img src="/img/20190216144930.png" srcset="/img/loading.gif" alt="LinkedHashMap中的属性和方法"></p>
+<h3 id="重点属性和方法"><a href="#重点属性和方法" class="headerlink" title="重点属性和方法"></a>重点属性和方法</h3><p>我们可以看到LinkedHashMap中有几个特有的属性和方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * The head (eldest) of the doubly linked list.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">transient</span> LinkedHashMap.Entry&lt;K,V&gt; head;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * The tail (youngest) of the doubly linked list.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">transient</span> LinkedHashMap.Entry&lt;K,V&gt; tail;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * The iteration ordering method for this linked hash map: &lt;tt&gt;true&lt;/tt&gt;</span><br><span class="hljs-comment"> * for access-order, &lt;tt&gt;false&lt;/tt&gt; for insertion-order.</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@serial</span></span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> accessOrder;<br><br><span class="hljs-comment">// 这三个方法其实在HashMap已经定义了，但是空实现</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">afterNodeAccess</span><span class="hljs-params">(Node&lt;K,V&gt; p)</span> </span>&#123; &#125;<br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">afterNodeInsertion</span><span class="hljs-params">(<span class="hljs-keyword">boolean</span> evict)</span> </span>&#123; &#125;<br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">afterNodeRemoval</span><span class="hljs-params">(Node&lt;K,V&gt; p)</span> </span>&#123; &#125;<br></code></pre></td></tr></table></figure>
+<p>三个属性中，accessOrder表示是以访问排序还是以插入排序。</p>
+<p>head和tail表示双链表的头结点和尾结点，用来表示循环双向链表的入口和出口。它们都是LinkedHashMap.Entry，我们看看这个Entry和HashMap中的Entry(Node)有何不同：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Entry</span>&lt;<span class="hljs-title">K</span>,<span class="hljs-title">V</span>&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title">HashMap</span>.<span class="hljs-title">Node</span>&lt;<span class="hljs-title">K</span>,<span class="hljs-title">V</span>&gt; </span>&#123;<br>    Entry&lt;K,V&gt; before, after;<br>    Entry(<span class="hljs-keyword">int</span> hash, K key, V value, Node&lt;K,V&gt; next) &#123;<br>        <span class="hljs-keyword">super</span>(hash, key, value, next);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>可以看到Entry继承自HashMap.Node，它具有的完整属性如下所示：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 哈希码</span><br><span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> hash;<br><span class="hljs-comment">// Key</span><br><span class="hljs-keyword">final</span> K key;<br><span class="hljs-comment">// Value</span><br>V value;<br><span class="hljs-comment">// 指向下一个结点（哈希表）</span><br>Node&lt;K,V&gt; next;<br><span class="hljs-comment">// 前一个结点和后一个结点（双向链表）</span><br>Entry&lt;K,V&gt; before, after;<br></code></pre></td></tr></table></figure>
+<h3 id="构造方法"><a href="#构造方法" class="headerlink" title="构造方法"></a>构造方法</h3><p>LinkedHashMap中定义五个构造方法，都是交给父类HashMap来初始化的，不过都初始化了accessOrder为false，也就是说默认是按照插入顺序来排序的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">LinkedHashMap</span><span class="hljs-params">(<span class="hljs-keyword">int</span> initialCapacity, <span class="hljs-keyword">float</span> loadFactor)</span> </span>&#123;<br>    <span class="hljs-keyword">super</span>(initialCapacity, loadFactor);<br>    accessOrder = <span class="hljs-keyword">false</span>;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">LinkedHashMap</span><span class="hljs-params">(<span class="hljs-keyword">int</span> initialCapacity)</span> </span>&#123;<br>    <span class="hljs-keyword">super</span>(initialCapacity);<br>    accessOrder = <span class="hljs-keyword">false</span>;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">LinkedHashMap</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">super</span>();<br>    accessOrder = <span class="hljs-keyword">false</span>;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">LinkedHashMap</span><span class="hljs-params">(Map&lt;? extends K, ? extends V&gt; m)</span> </span>&#123;<br>    <span class="hljs-keyword">super</span>();<br>    accessOrder = <span class="hljs-keyword">false</span>;<br>    putMapEntries(m, <span class="hljs-keyword">false</span>);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">LinkedHashMap</span><span class="hljs-params">(<span class="hljs-keyword">int</span> initialCapacity,</span></span><br><span class="hljs-function"><span class="hljs-params">                     <span class="hljs-keyword">float</span> loadFactor,</span></span><br><span class="hljs-function"><span class="hljs-params">                     <span class="hljs-keyword">boolean</span> accessOrder)</span> </span>&#123;<br>    <span class="hljs-keyword">super</span>(initialCapacity, loadFactor);<br>    <span class="hljs-keyword">this</span>.accessOrder = accessOrder;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h2 id="三个重点函数分析"><a href="#三个重点函数分析" class="headerlink" title="三个重点函数分析"></a>三个重点函数分析</h2><p>上面我们提到了HashMap中定义下三个空实现的方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Callbacks to allow LinkedHashMap post-actions</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">afterNodeAccess</span><span class="hljs-params">(Node&lt;K,V&gt; p)</span> </span>&#123; &#125;<br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">afterNodeInsertion</span><span class="hljs-params">(<span class="hljs-keyword">boolean</span> evict)</span> </span>&#123; &#125;<br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">afterNodeRemoval</span><span class="hljs-params">(Node&lt;K,V&gt; p)</span> </span>&#123; &#125;<br></code></pre></td></tr></table></figure>
+<p>LinkedHashMap继承于HashMap，重新实现了这3个函数，通过函数名我们知道这三个函数的作用分别是：节点访问后、节点插入后、节点移除后做一些事情。</p>
+<h3 id="afterNodeAccess"><a href="#afterNodeAccess" class="headerlink" title="afterNodeAccess()"></a>afterNodeAccess()</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">afterNodeAccess</span><span class="hljs-params">(Node&lt;K,V&gt; e)</span> </span>&#123; <span class="hljs-comment">// 将结点移动到链表尾</span><br>    LinkedHashMap.Entry&lt;K,V&gt; last;<br>    <span class="hljs-comment">// 如果定义了accessOrder，那么就保证最近访问节点放到最后</span><br>    <span class="hljs-keyword">if</span> (accessOrder &amp;&amp; (last = tail) != e) &#123;<br>        LinkedHashMap.Entry&lt;K,V&gt; p =<br>            (LinkedHashMap.Entry&lt;K,V&gt;)e, b = p.before, a = p.after;<br>        p.after = <span class="hljs-keyword">null</span>;<br>        <span class="hljs-keyword">if</span> (b == <span class="hljs-keyword">null</span>)<br>            head = a;<br>        <span class="hljs-keyword">else</span><br>            b.after = a;<br>        <span class="hljs-keyword">if</span> (a != <span class="hljs-keyword">null</span>)<br>            a.before = b;<br>        <span class="hljs-keyword">else</span><br>            last = b;<br>        <span class="hljs-keyword">if</span> (last == <span class="hljs-keyword">null</span>)<br>            head = p;<br>        <span class="hljs-keyword">else</span> &#123;<br>            p.before = last;<br>            last.after = p;<br>        &#125;<br>        tail = p;<br>        ++modCount;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>就是说在进行get和put之后就算是对节点的访问了，那么这个时候就会更新链表，把最近访问的放到最后，保证链表。</p>
+<p>LinkedHashMap重写了get方法但使用的是HashMap的put方法，get方法源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> V <span class="hljs-title">get</span><span class="hljs-params">(Object key)</span> </span>&#123;<br>    Node&lt;K,V&gt; e;<br>    <span class="hljs-keyword">if</span> ((e = getNode(hash(key), key)) == <span class="hljs-keyword">null</span>)<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;<br>    <span class="hljs-keyword">if</span> (accessOrder)<br>        afterNodeAccess(e);<br>    <span class="hljs-keyword">return</span> e.value;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>可以看到确实调用了afterNodeAccess()方法调整链表相对位置。</p>
+<p>再来看看HashMap中的put方法有没有调用afterNodeAccess：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">final</span> V <span class="hljs-title">putVal</span><span class="hljs-params">(<span class="hljs-keyword">int</span> hash, K key, V value, <span class="hljs-keyword">boolean</span> onlyIfAbsent,</span></span><br><span class="hljs-function"><span class="hljs-params">               <span class="hljs-keyword">boolean</span> evict)</span> </span>&#123;<br>        ··· ···<br>        <span class="hljs-keyword">if</span> (e != <span class="hljs-keyword">null</span>) &#123; <span class="hljs-comment">// existing mapping for key</span><br>            V oldValue = e.value;<br>            <span class="hljs-keyword">if</span> (!onlyIfAbsent || oldValue == <span class="hljs-keyword">null</span>)<br>                e.value = value;<br>            afterNodeAccess(e);<br>            <span class="hljs-keyword">return</span> oldValue;<br>        &#125;<br>    &#125;<br>    ++modCount;<br>    <span class="hljs-keyword">if</span> (++size &gt; threshold)<br>        resize();<br>    afterNodeInsertion(evict);<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>我们发现HashMap中的put方法调用了afterNodeAccess方法同时也调用了afterNodeInsertion()方法。</p>
+<h3 id="afterNodeInsertion"><a href="#afterNodeInsertion" class="headerlink" title="afterNodeInsertion()"></a>afterNodeInsertion()</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">afterNodeInsertion</span><span class="hljs-params">(<span class="hljs-keyword">boolean</span> evict)</span> </span>&#123; <span class="hljs-comment">// possibly remove eldest</span><br>    LinkedHashMap.Entry&lt;K,V&gt; first;<br>    <span class="hljs-keyword">if</span> (evict &amp;&amp; (first = head) != <span class="hljs-keyword">null</span> &amp;&amp; removeEldestEntry(first)) &#123;<br>        K key = first.key;<br>        removeNode(hash(key), key, <span class="hljs-keyword">null</span>, <span class="hljs-keyword">false</span>, <span class="hljs-keyword">true</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>afterNodeInsertion()方法表示的是在put操作之后需要进行的操作，如果用户定义了removeEldestEntry的规则，那么就可以执行相应的移除操作。</p>
+<p>removeEldestEntry()方法在LinkedHashMap中默认实现是false，主要是交给用户去实现，以达到自动删除头结点（也就是访问最少结点，也叫eldest）的效果，这也是LinkedHashMap常用来作缓存的原因。</p>
+<h3 id="afterNodeRemoval"><a href="#afterNodeRemoval" class="headerlink" title="afterNodeRemoval()"></a><strong>afterNodeRemoval()</strong></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">afterNodeRemoval</span><span class="hljs-params">(Node&lt;K,V&gt; e)</span> </span>&#123; <span class="hljs-comment">// unlink</span><br>    LinkedHashMap.Entry&lt;K,V&gt; p =<br>        (LinkedHashMap.Entry&lt;K,V&gt;)e, b = p.before, a = p.after;<br>    p.before = p.after = <span class="hljs-keyword">null</span>;<br>    <span class="hljs-keyword">if</span> (b == <span class="hljs-keyword">null</span>)<br>        head = a;<br>    <span class="hljs-keyword">else</span><br>        b.after = a;<br>    <span class="hljs-keyword">if</span> (a == <span class="hljs-keyword">null</span>)<br>        tail = b;<br>    <span class="hljs-keyword">else</span><br>        a.before = b;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这个函数是在移除节点后调用的，就是将节点从双向链表中删除。</p>
+<p>我们从上面3个函数看出来，基本上都是为了<strong>保证双向链表中的节点次序或者双向链表容量</strong>所做的一些额外的事情，目的就是保持双向链表中节点的顺序要从eldest到youngest。</p>
+<h2 id="LinkedHashMap实现LRU算法缓存"><a href="#LinkedHashMap实现LRU算法缓存" class="headerlink" title="LinkedHashMap实现LRU算法缓存"></a>LinkedHashMap实现LRU算法缓存</h2><p>LinkedHashMap可以用来作缓存，比方说LRUCache，看一下这个类的代码，很简单，就十几行而已：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">LRUCache</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">LinkedHashMap</span></span><br><span class="hljs-class"></span>&#123;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">LRUCache</span><span class="hljs-params">(<span class="hljs-keyword">int</span> maxSize)</span></span><br><span class="hljs-function">    </span>&#123;<br>        <span class="hljs-keyword">super</span>(maxSize, <span class="hljs-number">0.75F</span>, <span class="hljs-keyword">true</span>);<br>        maxElements = maxSize;<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">removeEldestEntry</span><span class="hljs-params">(java.util.Map.Entry eldest)</span></span><br><span class="hljs-function">    </span>&#123;<br>        <span class="hljs-keyword">return</span> size() &gt; maxElements;<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> serialVersionUID = <span class="hljs-number">1L</span>;<br>    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">int</span> maxElements;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>顾名思义，LRUCache就是基于LRU算法的Cache，这个类继承自LinkedHashMap，而类中看到没有什么特别的方法，这说明LRUCache实现缓存LRU功能都是源自LinkedHashMap的。</p>
+<p>LinkedHashMap可以实现LRU算法的缓存基于两点：</p>
+<p>1、LinkedList首先它是一个Map，Map是基于K-V的，和缓存一致</p>
+<p>2、LinkedList提供了一个boolean值和一个方法可以让用户指定是否实现LRU</p>
+<p>第二点的意思就是，如果有1 2 3这3个Entry，那么访问了1，就把1移到尾部去，即2 3 1。每次访问都把访问的那个数据移到双向队列的尾部去，那么每次要淘汰数据的时候，双向队列最头的那个数据不就是最不常访问的那个数据了吗？换句话说，双向链表最头的那个数据就是要淘汰的数据。</p>
+<p>“访问”，这个词有两层意思：</p>
+<p>1、根据Key拿到Value，也就是get方法</p>
+<p>2、修改Key对应的Value，也就是put方法</p>
+<p>我们上面已经看过get和put方法的源码了，主要涉及afterNodeAccess和afterNodeInsertion两个方法，前者将链表的结点以访问的频繁度排列，后者通过自定义的removeEldestEntry规则实现何时清理缓存。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p>JDK1.8 LinkedHashMap源码</p>
+<p>Java集合之LinkedHashMap</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Data-Structure/">Data Structure</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/LinkedHashMap/">LinkedHashMap</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/03/06/c63415c3/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Android性能优化之Bitmap高效加载</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/02/10/af0ae3b4/">
+                        <span class="hidden-mobile">Java中的线程池</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                
+  <script type="text/javascript">
+    Fluid.utils.waitElementVisible('comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'sukaidev/sukaidev.github.io');
+      s.setAttribute('issue-term', 'pathname');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+<!-- SCRIPTS -->
+
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    (function () {
+      var path = "/local-search.xml";
+      var inputArea = document.querySelector("#local-search-input");
+      inputArea.onclick = function () {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+        this.onclick = null
+      }
+    })()
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+
+</body>
+</html>

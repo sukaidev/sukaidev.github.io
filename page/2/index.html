@@ -510,19 +510,17 @@ View Binding大家肯定都用过，常用的有Data Binding、ButterKnife和Kot
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2018/10/29/e7df41f4/">Handler机制基本原理</a>
+        <a href="/2019/03/20/f803055f/">Android性能优化之OOM</a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2018/10/29/e7df41f4/">
+        <a href="/2019/03/20/f803055f/">
           
           
             
           
-          定义由于Android本身是线程不安全的，为了解决多线程并发的问题，Android提供了一套原生异步消息处理机制——Handler机制。Handler机制主要涉及到四个类：Handler、Looper、Message和MessageQueue。
-
-使用方法创建Handler对象方式一：在主线程中创建Handler对象，并重写其handMessage方法。 
-123456789101112priva
+          前言OOM全称为Out Of Memory，内存溢出，指的是请求的内存超过了剩余内存的容量。在Android中，App中已经使用的内存加上新申请的内存大于Android系统分配给App进程的最大内存时，就会发生OOM，导致程序直接崩溃，使得我们的App的用户体验非常糟糕。因此如何避免OOM就成了Android内存优化中比较关键的一点， 这篇文章就是关于内存优化中如何避免OOM的总结性概要文章。
+5
         </a>
       </p>
 
@@ -530,8 +528,8 @@ View Binding大家肯定都用过，常用的有Data Binding、ButterKnife和Kot
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2018-10-29 22:36" pubdate>
-              2018-10-29
+            <time datetime="2019-03-20 22:36" pubdate>
+              2019-03-20
             </time>
           </div>
         
@@ -539,7 +537,7 @@ View Binding大家肯定都用过，常用的有Data Binding、ButterKnife和Kot
           <div class="post-meta mr-3">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/Android-Basics/">Android Basics</a>
+              <a href="/categories/Performance-Optimization/">Performance Optimization</a>
             
           </div>
         
@@ -547,7 +545,7 @@ View Binding大家肯定都用过，常用的有Data Binding、ButterKnife和Kot
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Handler/">Handler</a>
+              <a href="/tags/OOM/">OOM</a>
             
           </div>
         
@@ -561,17 +559,20 @@ View Binding大家肯定都用过，常用的有Data Binding、ButterKnife和Kot
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2018/10/12/47596334/">使用SurfaceView实现一个下雨天气效果</a>
+        <a href="/2019/03/06/c63415c3/">Android性能优化之Bitmap高效加载</a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2018/10/12/47596334/">
+        <a href="/2019/03/06/c63415c3/">
           
           
             
           
-          初识SurfaceViewSurfaceView继承自 View，不同于View 必须在 UI 线程中绘制，SurfaceView可以在非UI线程中绘制并显示在界面上，这意味着你可以自己新开一个线程，然后把绘制渲染的代码放在该线程中。
-Surface是Z轴排序的，SurfaceView的Z轴位置小于它的宿主Window，代表它总是在自己所在Window的后面，既然在后面，那么是怎么显示的呢？Sur
+          为什么Bitmap需要高效加载？现在的高清大图，动辄就要好几M，而Android对单个应用锁施加的内存限制，只有小十几M，如16M，这导致加载Bitmap的时候很容易出现内存溢出。如下异常信息，便是在开发中经常需要的：
+
+java.lang.OutofMemoryError:bitmap size exceeds VM budget 
+
+为了解决这个问题，就出现了Bitmap的高效加载策略。假设通
         </a>
       </p>
 
@@ -579,8 +580,8 @@ Surface是Z轴排序的，SurfaceView的Z轴位置小于它的宿主Window，代
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2018-10-12 19:21" pubdate>
-              2018-10-12
+            <time datetime="2019-03-06 16:32" pubdate>
+              2019-03-06
             </time>
           </div>
         
@@ -588,7 +589,7 @@ Surface是Z轴排序的，SurfaceView的Z轴位置小于它的宿主Window，代
           <div class="post-meta mr-3">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/Custom-View/">Custom View</a>
+              <a href="/categories/Performance-Optimization/">Performance Optimization</a>
             
           </div>
         
@@ -596,7 +597,7 @@ Surface是Z轴排序的，SurfaceView的Z轴位置小于它的宿主Window，代
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/SurfaceView/">SurfaceView</a>
+              <a href="/tags/Bitmap/">Bitmap</a>
             
           </div>
         
@@ -610,17 +611,18 @@ Surface是Z轴排序的，SurfaceView的Z轴位置小于它的宿主Window，代
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2018/09/28/ad641d8b/">Fragment进阶使用技巧</a>
+        <a href="/2019/02/16/87a48ef6/">LinkedHashMap原理</a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2018/09/28/ad641d8b/">
+        <a href="/2019/02/16/87a48ef6/">
           
           
             
           
-          内存重启当App运行在后台，系统由于资源紧张把App杀死回收，此时App从后台切回前台会产生重启现象，我们把这种情况称为“内存重启”。另外，屏幕旋转等配置变化也会造成当前Activity重启，本质与“内存重启”类似。
-在系统要把app回收之前，系统会把Activity的状态保存下来，Activity的FragmentManager负责把Activity中的Fragment保存起来。在“内存重启”后
+          概述之前文章讲了HashMap。HashMap是一种非常常见、非常有用的集合，但在多线程情况下使用不当会有线程安全问题。
+大多数情况下，只要不涉及线程安全问题，Map基本都可以使用HashMap，不过HashMap有一个问题，就是迭代HashMap的顺序并不是HashMap放置的顺序，也就是无序。HashMap的这一缺点往往会带来困扰，因为有些场景，我们期待一个有序的Map。
+这个时候，Linke
         </a>
       </p>
 
@@ -628,8 +630,8 @@ Surface是Z轴排序的，SurfaceView的Z轴位置小于它的宿主Window，代
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2018-09-28 15:31" pubdate>
-              2018-09-28
+            <time datetime="2019-02-16 19:20" pubdate>
+              2019-02-16
             </time>
           </div>
         
@@ -637,7 +639,7 @@ Surface是Z轴排序的，SurfaceView的Z轴位置小于它的宿主Window，代
           <div class="post-meta mr-3">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/Android-Basics/">Android Basics</a>
+              <a href="/categories/Data-Structure/">Data Structure</a>
             
           </div>
         
@@ -645,7 +647,55 @@ Surface是Z轴排序的，SurfaceView的Z轴位置小于它的宿主Window，代
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Fragment/">Fragment</a>
+              <a href="/tags/LinkedHashMap/">LinkedHashMap</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2019/02/10/af0ae3b4/">Java中的线程池</a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2019/02/10/af0ae3b4/">
+          
+          
+            
+          
+          前言Java中的线程池是运用场景最多的并发框架，几乎所有需要异步或并发执行任务的程序都可以使用线程池。在开发过程中，合理地使用线程池能够带来3个好处。第一：降低资源消耗。通过重复利用已创建的线程降低线程创建和销毁造成的消耗。第二：提高响应速度。当任务到达时，任务可以不需要等到线程创建就能立即执行。第三：提高线程的可管理性。线程是稀缺资源，如果无限制地创建，不仅会消耗系统资源，还会降低系统的稳定性，
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2019-02-10 17:15" pubdate>
+              2019-02-10
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Java-Basics/">Java Basics</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/ThreadPool/">ThreadPool</a>
             
           </div>
         
@@ -657,7 +707,7 @@ Surface是Z轴排序的，SurfaceView的Z轴位置小于它的宿主Window，代
 
   <nav aria-label="navigation">
     <span class="pagination" id="pagination">
-      <a class="extend prev" rel="prev" href="/"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span>
+      <a class="extend prev" rel="prev" href="/"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/3/"><i class="iconfont icon-arrowright"></i></a>
     </span>
   </nav>
   

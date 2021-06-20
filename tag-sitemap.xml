@@ -3,6 +3,62 @@
 
 
     <url>
+        <loc>https://sukaidev.github.io/tags/Touch-Event/</loc>
+        <lastmod>2021-06-20T14:46:18.872Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://sukaidev.github.io/tags/OOM/</loc>
+        <lastmod>2021-06-20T14:45:10.191Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://sukaidev.github.io/tags/Bitmap/</loc>
+        <lastmod>2021-06-20T14:35:02.160Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://sukaidev.github.io/tags/LinkedHashMap/</loc>
+        <lastmod>2021-06-20T14:29:45.561Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://sukaidev.github.io/tags/ThreadPool/</loc>
+        <lastmod>2021-06-20T14:19:54.229Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://sukaidev.github.io/tags/HashMap/</loc>
+        <lastmod>2021-06-20T14:12:35.804Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://sukaidev.github.io/tags/View/</loc>
+        <lastmod>2021-06-20T13:29:12.130Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://sukaidev.github.io/tags/AsyncTask/</loc>
+        <lastmod>2021-06-20T13:14:50.042Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
         <loc>https://sukaidev.github.io/tags/SurfaceView/</loc>
         <lastmod>2021-06-19T17:29:41.351Z</lastmod>
         <changefreq>weekly</changefreq>
