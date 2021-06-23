@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      2.1k 字
+      2.6k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      26
+      33
        分钟
     </span>
   
@@ -276,7 +276,7 @@
 <blockquote>
 <p>注意：在Android10以前获取服务不是通过直接通过AIDL接口的，而是通过ActivityManagerNative来转发，本质还是通过AIDL生成类Stub来获取。</p>
 </blockquote>
-<h2 id="AMS中重要的数据结构"><a href="#AMS中重要的数据结构" class="headerlink" title="AMS中重要的数据结构"></a>AMS中重要的数据结构</h2><p>之前写了一篇关于Activity启动的文章，其中简单介绍了关于Activity的几个重要的数据结构，包括<strong>ActivityRecord</strong>、<strong>TaskRecord</strong>、<strong>ActivityStack</strong>等。</p>
+<h2 id="AMS中重要的数据结构"><a href="#AMS中重要的数据结构" class="headerlink" title="AMS中重要的数据结构"></a>AMS中重要的数据结构</h2><p>之前写了一篇关于<a href="https://sukaidev.github.io/2021/05/22/4cb0a496/">Activity启动</a>的文章，其中简单介绍了关于Activity的几个重要的数据结构，包括<strong>ActivityRecord</strong>、<strong>TaskRecord</strong>、<strong>ActivityStack</strong>等。</p>
 <p>这一节我们来重点了解一下这几个数据结构。</p>
 <h3 id="解析ActivityRecord"><a href="#解析ActivityRecord" class="headerlink" title="解析ActivityRecord"></a>解析ActivityRecord</h3><p>我们之前提到ActivityRecord是SystemServer中用来描述Activity的数据类型，其中存储了Activity的所有信息。</p>
 <p>ActivityRecord对象在ActivityStarter中创建：</p>
@@ -404,7 +404,20 @@
 <p>可以看到，TaskRecord内部存储了任务栈的所有信息，包括任务栈的唯一标识符、任务栈的倾向性、任务栈中的ActivityRecord、ActivityStack和ATMS引用等。</p>
 <p>从mActivities集合我们知道TaskRecord与ActivityRecord是包含与被包含的关系。不过TaskRecord又持有一个ActivityStack的引用，我们接着来看ActivityStack。</p>
 <h3 id="解析ActivityStack"><a href="#解析ActivityStack" class="headerlink" title="解析ActivityStack"></a>解析ActivityStack</h3><p>ActivityStack从名字上看我们会认为它就是管理Activity的任务栈，实际上通过上节我们知道TaskRecord才是任务栈，而TaskRecord持有ActivityStack，这是否意味着任务栈之上还有一个“活动栈”？我们来看看源码。</p>
-<p>ActivityStack中有</p>
+<p>ActivityStack中有几个重要的属性：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs java">  <span class="hljs-comment">// 当前Stack位于栈顶且可见</span><br>  <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> STACK_VISIBILITY_VISIBLE = <span class="hljs-number">0</span>;<br><br>  <span class="hljs-comment">// 当前Stack可见但上面还有其他的透明Stack</span><br>  <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> STACK_VISIBILITY_VISIBLE_BEHIND_TRANSLUCENT = <span class="hljs-number">1</span>;<br><br>  <span class="hljs-comment">// 当前Stack完全不可见</span><br>  <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> STACK_VISIBILITY_INVISIBLE = <span class="hljs-number">2</span>;<br><br><span class="hljs-comment">// 当前stackId</span><br><span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> mStackId;<br>  <br>  <span class="hljs-comment">// 当前绑定的displayId</span><br>  <span class="hljs-keyword">int</span> mDisplayId;<br><br>  <span class="hljs-comment">// 所有的任务栈实例</span><br>  <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> ArrayList&lt;TaskRecord&gt; mTaskHistory = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();<br><br>  <span class="hljs-comment">// 此Stack中所有的Activity实例</span><br>  <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> ArrayList&lt;ActivityRecord&gt; mLRUActivities = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();<br><br>  <span class="hljs-comment">// 正在暂停的Activity</span><br>  ActivityRecord mPausingActivity = <span class="hljs-keyword">null</span>;<br><br>  <span class="hljs-comment">// 最近暂停的Activity</span><br>  ActivityRecord mLastPausedActivity = <span class="hljs-keyword">null</span>;<br><br>  <span class="hljs-comment">// 最近的不添加到“最近任务”的Activity</span><br>  ActivityRecord mLastNoHistoryActivity = <span class="hljs-keyword">null</span>;<br><br>  <span class="hljs-comment">// 当前Stack中栈顶可见的Activity</span><br>  ActivityRecord mResumedActivity = <span class="hljs-keyword">null</span>;<br><br>  <span class="hljs-comment">// ActivityStackSupervisor实例</span><br><span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> ActivityStackSupervisor mStackSupervisor;<br></code></pre></td></tr></table></figure>
+<p>可以看到ActivityStack实际上是作为Activity的管理类存在，其内部维护了Activity 的所有状态、特殊状态的Activity以及和Activity相关的列表等数据。</p>
+<p>而ActivityStack是由ActivityStackSupervisor来进行管理的，可以看到ActivityStack持有ActivityStackSupervisor的引用。</p>
+<p>ActivityStackSupervisor引用在ActivityStack的构造器中注入，经过代码搜索，发现ActivityStackSupervisor在<strong>ATMS</strong>中的initialize方法中创建：</p>
+<blockquote>
+<p>frameworks/base/services/core/java/com/android/server/wm/ActivityTaskManagerService.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">initialize</span><span class="hljs-params">(IntentFirewall intentFirewall, PendingIntentController intentController,</span></span><br><span class="hljs-function"><span class="hljs-params">        Looper looper)</span> </span>&#123;<br>  <br>    ···<br>      <br>    mStackSupervisor = createStackSupervisor();<br>  <br>    ···<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">protected</span> ActivityStackSupervisor <span class="hljs-title">createStackSupervisor</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">final</span> ActivityStackSupervisor supervisor = <span class="hljs-keyword">new</span> ActivityStackSupervisor(<span class="hljs-keyword">this</span>, mH.getLooper());<br>    supervisor.initialize();<br>    <span class="hljs-keyword">return</span> supervisor;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>initialize方法在<strong>AMS</strong>的构造方法中被调用，也就是说AMS实例与ActivityStackSupervisor实例是一一对应的，而系统中只会有一个AMS实例，自然也只会存在于一个ActivityStackSupervisor实例。</p>
+<h3 id="ActivityStackSupervisor"><a href="#ActivityStackSupervisor" class="headerlink" title="ActivityStackSupervisor"></a>ActivityStackSupervisor</h3><p><strong>ActivityStackSupervisor</strong>是Android系统中Activity的终极大管家，它本身不直接持有ActivityStack的引用，而是通过持有<strong>RootActivityContainer</strong>间接持有<strong>ActivityDisplay</strong>引用，进而间接管理<strong>ActivityStack</strong>。</p>
+<p>RootActivityContainer是Activity容器的根节点，其内部持有<strong>DisplayManager</strong>，通过DisplayManager我们可以获取到系统中所有的Display（屏幕），通过Display来创建ActivityDisplay对象。</p>
+<p>Launcher应用的解析、启动都由RootActivityContainer来完成，在<a href="https://sukaidev.github.io/2021/05/22/4cb0a496/">Activity启动</a>一文中我们还知道通过它可以获取当前持有焦点的ActivityStack和当前栈顶的ActivityRecord对象。</p>
+<p>Display是Android屏幕显示的抽象，大部分情况下我们的手机只会有一个屏幕，因而只会有一个Display对象。而ActivityDisplay与Display是一一对应关系，因此我们也可以认为它就是一个屏幕，它负责管理当前屏幕内的所有ActivityStack。</p>
 
             </div>
             <hr>

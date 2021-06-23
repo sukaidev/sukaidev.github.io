@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      6.4k 字
+      6.6k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      95
+      97
        分钟
     </span>
   
@@ -252,6 +252,8 @@
 <li><strong>ActivityClientRecord</strong>：App进程中用来描述Activity的数据类型。</li>
 <li><strong>TaskRecord</strong>：表示一个任务栈，记录了Activity启动的先后顺序，栈中严格按照先进后出的特性维护一系列ActivityRecord。</li>
 <li><strong>ActivityStack</strong>：负责维护TaskRecord，内部保存了当前Stack中所有的Task列表。</li>
+<li><strong>ActivityDisplay</strong>：负责维护ActivityStack，表示当前屏幕的抽象。</li>
+<li><strong>RootActivityContainer</strong>：Android10中新增的类，由ActivityStackSupervisor中抽离而来，其作为Activity容器的根节点，负责管理所有的ActivityDisplay。</li>
 <li><strong>ActivityStackSupervisor</strong>：管理所有Activity Stack，内部维护了mHomeStack、mFocusedStack和mLastFocusedStack三个ActivityStack。<ul>
 <li>mHomeStack管理的是Launcher相关的Activity栈，stackId为0。</li>
 <li>mFocusedStack管理的是当前显示在前台Activity的Activity栈。</li>
@@ -264,7 +266,7 @@
 <p><img src="/img/jvm/ams_relations.jpeg" srcset="/img/loading.gif" alt="图源gityuan.com"></p>
 <p>ActivityDisplay是ActivityStackSupervisor中的一个内部类，表示一个显示屏幕，一般情况下ActivityStackSupervisor和ActivityDisplay都是唯一。</p>
 <p>用关系链表来表示它们的关系：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java">ActivityStackSupervisor.mActivityDisplays<br>-&gt; ActivityDisplay.mStacks<br>-&gt; ActivityStack.mTaskHistory<br>-&gt; TaskRecord.mActivities<br>-&gt; ActivityRecord<br></code></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java">ActivityStackSupervisor.mRootActivityContainer<br>-&gt; RootActivityContainer.mActivityDisplays<br>-&gt; ActivityDisplay.mStacks<br>-&gt; ActivityStack.mTaskHistory<br>-&gt; TaskRecord.mActivities<br>-&gt; ActivityRecord<br></code></pre></td></tr></table></figure>
 <h2 id="Launcher-请求-AMS-过程"><a href="#Launcher-请求-AMS-过程" class="headerlink" title="Launcher 请求 AMS 过程"></a>Launcher 请求 AMS 过程</h2><p>当我们启动系统时首先启动的App就是 Launcher，通过 Launcher 我们可以点击图标启动任何一个App，继而启动它的 Main Activity。整个过程发生在Launcher#startActivitySafely方法中。</p>
 <h3 id="Launcher-startActivitySafely"><a href="#Launcher-startActivitySafely" class="headerlink" title="Launcher#startActivitySafely"></a>Launcher#startActivitySafely</h3><blockquote>
 <p>packages/apps/Launcher3/src/com/android/launcher3/Launcher.java</p>
@@ -371,6 +373,8 @@
 <p>这部分的时序图如下所示。</p>
 <p><img src="/img/framework_atms_start_activity.jpg" srcset="/img/loading.gif" alt="ATMS执行时序图"></p>
 <h2 id="ActivityThread启动Activity过程"><a href="#ActivityThread启动Activity过程" class="headerlink" title="ActivityThread启动Activity过程"></a>ActivityThread启动Activity过程</h2><p>经过ATMS的一系列调用后，Activity启动工作终于来到了目标App进程中。</p>
+<p>所谓的目标进程，是指目标Activity所在的进程。它与原Activity属于同一进程，也就是App内的Activity启动；也有可能属于另外一个App，这种情况属于跨App启动Activity。</p>
+<p>不管是在App内启动还是跨App启动，其流程是一致的，都是由ApplicationThread接收到Binder通信传递过来的事务开始执行。</p>
 <h3 id="ApplicationThread-scheduleTransaction"><a href="#ApplicationThread-scheduleTransaction" class="headerlink" title="ApplicationThread#scheduleTransaction"></a>ApplicationThread#scheduleTransaction</h3><blockquote>
 <p>frameworks/base/core/java/android/app/ActivityThread.java</p>
 </blockquote>
