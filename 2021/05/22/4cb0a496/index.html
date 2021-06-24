@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      6.6k 字
+      6.5k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      97
+      96
        分钟
     </span>
   
@@ -252,19 +252,13 @@
 <li><strong>ActivityClientRecord</strong>：App进程中用来描述Activity的数据类型。</li>
 <li><strong>TaskRecord</strong>：表示一个任务栈，记录了Activity启动的先后顺序，栈中严格按照先进后出的特性维护一系列ActivityRecord。</li>
 <li><strong>ActivityStack</strong>：负责维护TaskRecord，内部保存了当前Stack中所有的Task列表。</li>
-<li><strong>ActivityDisplay</strong>：负责维护ActivityStack，表示当前屏幕的抽象。</li>
+<li><strong>ActivityDisplay</strong>：管理所有ActivityStack，表示当前屏幕的抽象，内部维护了mHomeStack、mStacks、mPreferredToFocusableStack和mLastFocusedStack等ActivityStack。</li>
 <li><strong>RootActivityContainer</strong>：Android10中新增的类，由ActivityStackSupervisor中抽离而来，其作为Activity容器的根节点，负责管理所有的ActivityDisplay。</li>
-<li><strong>ActivityStackSupervisor</strong>：管理所有Activity Stack，内部维护了mHomeStack、mFocusedStack和mLastFocusedStack三个ActivityStack。<ul>
-<li>mHomeStack管理的是Launcher相关的Activity栈，stackId为0。</li>
-<li>mFocusedStack管理的是当前显示在前台Activity的Activity栈。</li>
-<li>mLastFocusedStack管理的是上一次显示在前台Activity的Activity栈。</li>
-</ul>
-</li>
+<li><strong>ActivityStackSupervisor</strong>：Android系统中Activity的最大管家，通过持有RootActivityContainer来间接管理所有的Activity。</li>
 <li><strong>ClientLifecycleManager</strong>：组合多个客户端生命周期转换和请求，作为单个事务来执行。</li>
 </ul>
-<h3 id="Activity栈关系"><a href="#Activity栈关系" class="headerlink" title="Activity栈关系"></a>Activity栈关系</h3><p>Activity栈结构如下图所示。</p>
-<p><img src="/img/jvm/ams_relations.jpeg" srcset="/img/loading.gif" alt="图源gityuan.com"></p>
-<p>ActivityDisplay是ActivityStackSupervisor中的一个内部类，表示一个显示屏幕，一般情况下ActivityStackSupervisor和ActivityDisplay都是唯一。</p>
+<h3 id="Activity栈管理机制"><a href="#Activity栈管理机制" class="headerlink" title="Activity栈管理机制"></a>Activity栈管理机制</h3><p>Activity栈结构如下图所示。</p>
+<p><img src="/img/activity_stack_model.jpg" srcset="/img/loading.gif" alt="Activity栈管理模型"></p>
 <p>用关系链表来表示它们的关系：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java">ActivityStackSupervisor.mRootActivityContainer<br>-&gt; RootActivityContainer.mActivityDisplays<br>-&gt; ActivityDisplay.mStacks<br>-&gt; ActivityStack.mTaskHistory<br>-&gt; TaskRecord.mActivities<br>-&gt; ActivityRecord<br></code></pre></td></tr></table></figure>
 <h2 id="Launcher-请求-AMS-过程"><a href="#Launcher-请求-AMS-过程" class="headerlink" title="Launcher 请求 AMS 过程"></a>Launcher 请求 AMS 过程</h2><p>当我们启动系统时首先启动的App就是 Launcher，通过 Launcher 我们可以点击图标启动任何一个App，继而启动它的 Main Activity。整个过程发生在Launcher#startActivitySafely方法中。</p>
