@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      3.6k 字
+      4.1k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      44
+      50
        分钟
     </span>
   
@@ -471,7 +471,7 @@
 <tr>
 <td align="center">mLastNoHistoryActivity</td>
 <td align="center">ActivityRecord</td>
-<td align="center">最近不添加到历史中的Activity</td>
+<td align="center">最近不添加到任务栈中的Activity</td>
 </tr>
 <tr>
 <td align="center">mResumedActivity</td>
@@ -667,7 +667,17 @@
 <p>其中ActivityRecord用来记录一个Activity的所有信息，TaskRecord用来管理栈中的ActivityRecord，它就是我们常说的任务栈，其中包含了多个ActivityRecord，一个App中会有多个任务栈。ActivityStack又包含了一个或者多个TaskRecord，它是TaskRecord的管理者。</p>
 <p>Activity栈管理是建立在Activity任务栈模型之上的，有了栈管理我们可以对Activity进行缓存复用，使得一个App可以有多个任务栈而不至于返回栈混乱，必要的时候我们还可以在启动其他Activity时将其任务栈置于当前App的顶部而达到跨进程的效果。</p>
 <p>举个例子，我们可以在App中通过隐式Intent的方式调起拨号界面，如下图所示。</p>
-<p><img src="/img//image-20210624222144931.png" srcset="/img/loading.gif" alt="调起系统拨号"></p>
+<p><img src="/img/image-20210624224157798.png" srcset="/img/loading.gif" alt="调起系统拨号"></p>
+<p>系统的拨号App的launchMode通常是singleInstance，使用singleInstance启动的Activity会有一个单独的任务栈，并且任务栈中只有一个Activity。当我们通过隐式Intent启动拨号Activity时，拨号界面对应的Task将会覆盖到当前App任务栈的栈顶，这使得我们可以进行跨任务栈的操作。</p>
+<p>为了更灵活的进行栈管理，Android系统中提供了很多配置，包括LaunchMode、Intent Flag、taskAffinity、allowTaskReparenting等，下面来重点了解一下这几个机制。</p>
+<h3 id="Launch-Mode"><a href="#Launch-Mode" class="headerlink" title="Launch Mode"></a>Launch Mode</h3><p>Launch Mode大家都不陌生，用于设定Activity的启动模式，无论是哪种启动模式所启动的Activity都会位于当前Activity栈的栈顶，Android中有4种LaunchMode。</p>
+<ul>
+<li>standard：默认启动模式，每次启动Activity都会创建一个新的Activity实例。</li>
+<li>singleTop：如果要启动的Activity已经存在栈顶，则不会重新创建此Activity实例，而是会回调其onNewIntent方法将新的Intent传递。如果不在栈顶则会重新创建Activity实例。</li>
+<li>singleTask：如果要启动的Activity已经存在并且位于其taskAffinity对应的Task中，则不会重新创建此Activity，而是将此Task中位于此Activity上方的所有Activity出栈使得要启动的Activity重新回到栈顶，并且回调其onNewIntent方法。如果Activity设置的taskAffinity对应的Task中没有此Activity实例或者此Task不存在的话，会创建Activity实例。此种模式下启动的Activity为全局单例。</li>
+<li>singleInstance：与singleTask类似，区别是singleInstance启动的Activity会独占一个任务栈，因为不会有清顶问题。此种模式下启动的Activity同样也是全局单例。</li>
+</ul>
+<p>关于启动模式这块其实都是老生常谈了，即时是刚入门的开发者也熟悉这些启动模式的特性，不过在本篇文章中我们希望能在Activity栈管理的角度来更加深入的了解启动模式。</p>
 
             </div>
             <hr>
@@ -695,6 +705,23 @@
               
                 <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
               
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/06/03/31b8eb1c/">
+                        <span class="hidden-mobile">Android Framework（三）——应用程序进程启动流程</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
               
             </div>
 
