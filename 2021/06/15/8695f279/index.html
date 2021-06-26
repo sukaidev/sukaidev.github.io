@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      4.1k 字
+      5.8k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      50
+      71
        分钟
     </span>
   
@@ -667,7 +667,7 @@
 <p>其中ActivityRecord用来记录一个Activity的所有信息，TaskRecord用来管理栈中的ActivityRecord，它就是我们常说的任务栈，其中包含了多个ActivityRecord，一个App中会有多个任务栈。ActivityStack又包含了一个或者多个TaskRecord，它是TaskRecord的管理者。</p>
 <p>Activity栈管理是建立在Activity任务栈模型之上的，有了栈管理我们可以对Activity进行缓存复用，使得一个App可以有多个任务栈而不至于返回栈混乱，必要的时候我们还可以在启动其他Activity时将其任务栈置于当前App的顶部而达到跨进程的效果。</p>
 <p>举个例子，我们可以在App中通过隐式Intent的方式调起拨号界面，如下图所示。</p>
-<p><img src="/img/image-20210624224157798.png" srcset="/img/loading.gif" alt="调起系统拨号"></p>
+<p><img src="/img/image-20210626091147254.png" srcset="/img/loading.gif" alt="调起系统拨号"></p>
 <p>系统的拨号App的launchMode通常是singleInstance，使用singleInstance启动的Activity会有一个单独的任务栈，并且任务栈中只有一个Activity。当我们通过隐式Intent启动拨号Activity时，拨号界面对应的Task将会覆盖到当前App任务栈的栈顶，这使得我们可以进行跨任务栈的操作。</p>
 <p>为了更灵活的进行栈管理，Android系统中提供了很多配置，包括LaunchMode、Intent Flag、taskAffinity、allowTaskReparenting等，下面来重点了解一下这几个机制。</p>
 <h3 id="Launch-Mode"><a href="#Launch-Mode" class="headerlink" title="Launch Mode"></a>Launch Mode</h3><p>Launch Mode大家都不陌生，用于设定Activity的启动模式，无论是哪种启动模式所启动的Activity都会位于当前Activity栈的栈顶，Android中有4种LaunchMode。</p>
@@ -678,6 +678,75 @@
 <li>singleInstance：与singleTask类似，区别是singleInstance启动的Activity会独占一个任务栈，因为不会有清顶问题。此种模式下启动的Activity同样也是全局单例。</li>
 </ul>
 <p>关于启动模式这块其实都是老生常谈了，即时是刚入门的开发者也熟悉这些启动模式的特性，不过在本篇文章中我们希望能在Activity栈管理的角度来更加深入的了解启动模式。</p>
+<h4 id="standard模式的多实例特性"><a href="#standard模式的多实例特性" class="headerlink" title="standard模式的多实例特性"></a>standard模式的多实例特性</h4><p>上面我们提到standard启动模式的特性是“每次启动Activity都会创建一个新的Activity实例”，对于这个启动模式，网络上大部分的文章都是局限于单一的任务栈来分析。实际上我们应该更着重于其在Task与Task之间的逻辑。</p>
+<p>举个例子，当我们在短信App中点击一个电话号码的超链接，选择新建联系人时，就会以standard模式启动新建联系人的Activity，此Activity由通信录App提供。</p>
+<p>由于我们是使用standard模式启动的Activity，因此会新建一个Activity实例，并添加到当前短信App栈顶的任务栈中，如下图所示。</p>
+<p><img src="/img/image-20210626231319725.png" srcset="/img/loading.gif" alt="standard模式"></p>
+<p>这种情况下启动的新建联系人Activity将会直接加入到当前任务栈的栈顶，此时该Activity只与短信App的任务栈Task具有相关性，并不会影响到原有的通讯录App任务栈。</p>
+<p>当我们点击返回按键时，新建联系人Activity出栈，回到短信详情页，我们依旧处于短信App任务栈中。</p>
+<h4 id="singleTask任务栈切换"><a href="#singleTask任务栈切换" class="headerlink" title="singleTask任务栈切换"></a>singleTask任务栈切换</h4><p>不同于standard模式启动的Activity会直接加入到当前任务栈栈顶，singleTask模式启动的Activity只会存在于特定任务栈中，这个任务栈与其设置的taskAffinity有关。</p>
+<p>这种模式下启动的Activity没有办法入栈的话，如何让它显示在栈顶呢？</p>
+<p>只需要把此Activity所在的任务栈整体移到前台即可。不过此任务栈的栈顶可能并不是我们启动的Activity，这种时候就会进行一次“清顶”操作，将要启动的Activity上方所有Activity出栈，并且不会重建当前Activity。</p>
+<p><img src="/img/image-20210626231520598.png" srcset="/img/loading.gif" alt="singleTask模式"></p>
+<p>上图展示了一次singleTask模式启动Activity导致的任务栈切换，实际操作中会有较为明显的<strong>Task切换动画</strong>，而不是Activity切换动画。</p>
+<p>图中展示的是目标Activity所属任务栈已经存在的情况，<strong>如果启动目标Activity时其归属的任务栈还未启动，那么会先创建对应的任务栈TaskRecord</strong>。</p>
+<p>另外需要注意的是，目标Activity的回退栈可能还存在其它Activity，例如图中的“邮件首页”，此时会随着任务栈的切换一并移动到当前任务栈的上方，并且当我们按返回键时不会立刻回到App中而是先回到邮件首页。</p>
+<p>使用singleInstance启动Activity时Task的表现与singleTask启动类似，唯一的区别是由于singleInstance的任务栈只会有其一个Activity，所以当我们返回时一定返回到原App Task中。</p>
+<h3 id="Intent-Flag"><a href="#Intent-Flag" class="headerlink" title="Intent Flag"></a>Intent Flag</h3><p>在Intent中定义了很多Flag，其中有几个Flag直接影响了Activity栈的管理，需要注意的是如果Launch Mode与Intent Flag有冲突的话<strong>以Intent Flag为准</strong>。</p>
+<p>下面介绍一些与栈管理有关的Flag。</p>
+<table>
+<thead>
+<tr>
+<th align="center">名   称</th>
+<th align="center">效    果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">FLAG_ACTIVITY_SINGLE_TOP</td>
+<td align="center">与Launch Mode中singleTop效果一致</td>
+</tr>
+<tr>
+<td align="center">FLAG_ACTIVITY_NEW_TASK</td>
+<td align="center">以目标Activity为根Activity，为目标Activity启动一个新的任务栈，如果目标任务栈存在，则复用。Launch Mode中singleTask和singleInstance都会添加这个Flag</td>
+</tr>
+<tr>
+<td align="center">FLAG_ACTIVITY_CLEAR_TOP</td>
+<td align="center">类似于singleTop中的“清顶”效果，启动时将会清除回退栈上方的Activity，使其位于栈顶可见</td>
+</tr>
+<tr>
+<td align="center">FLAG_ACTIVITY_NO_HISTORY</td>
+<td align="center">此Activity不会加入到回退栈中，这意味着一旦从这个Activity切走，这个Activity就会被finish，因此它没有办法响应onActivityResult回调</td>
+</tr>
+<tr>
+<td align="center">FLAG_ACTIVITY_MULTIPLE_TASK</td>
+<td align="center">为Activity创建新的任务栈，<strong>并且不会搜寻现有的任务栈</strong>，需要与FLAG_ACTIVITY_NEW_TASK或者FLAG_ACTIVITY_NEW_DOCUMENT一起使用才有效果</td>
+</tr>
+<tr>
+<td align="center">FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS</td>
+<td align="center">Activity不会加入到“最近启动的活动”列表中</td>
+</tr>
+<tr>
+<td align="center">FLAG_ACTIVITY_BROUGHT_TO_FRONT</td>
+<td align="center">当启动模式为singleTask时此Flag被系统设置，表示将Task转移到前台</td>
+</tr>
+<tr>
+<td align="center">FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY</td>
+<td align="center">表示Activity由“最近任务”中启动而来</td>
+</tr>
+<tr>
+<td align="center">FLAG_ACTIVITY_CLEAR_TASK</td>
+<td align="center">清除目标Activity对应Task中其它所有Activity，需要与FLAG_ACTIVITY_NEW_TASK配合使用</td>
+</tr>
+</tbody></table>
+<p>这些Flag在何时被解析呢？</p>
+<p>同样的在Framework系列的第二篇<a href="https://sukaidev.github.io/2021/05/22/4cb0a496/#ActivityStarter-startActivityUnchecked">Activity启动流程</a>一文中，ActivityStarter的startActivityUnchecked()中调用了computeLaunchingTaskFlags()方法来计算Intent Flag：</p>
+<blockquote>
+<p>frameworks/base/services/core/java/com/android/server/wm/ActivityStarter.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> <span class="hljs-title">startActivityUnchecked</span><span class="hljs-params">(<span class="hljs-keyword">final</span> ActivityRecord r, ActivityRecord sourceRecord,</span></span><br><span class="hljs-function"><span class="hljs-params">            IVoiceInteractionSession voiceSession, IVoiceInteractor voiceInteractor,</span></span><br><span class="hljs-function"><span class="hljs-params">            <span class="hljs-keyword">int</span> startFlags, <span class="hljs-keyword">boolean</span> doResume, ActivityOptions options, TaskRecord inTask)</span> </span>&#123;<br><br>        <span class="hljs-comment">// 设置初始状态</span><br>        setInitialState(r, options, inTask, doResume, startFlags, sourceRecord, voiceSession,<br>                voiceInteractor);<br>                <br>        <span class="hljs-comment">// 计算LaunchFlags</span><br>        computeLaunchingTaskFlags();<br>  <br>        computeSourceStack();<br>  <br>        <span class="hljs-comment">// 设置最终Flag</span><br>        mIntent.setFlags(mLaunchFlags);<br>        <br>        ···<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>首先在setInitialState()方法中会初始化启动Activity的各种配置，包括启动的来源ActivityRecord、Intent、ActivityOptions、目标Activity需要入栈的TaskRecord和LaunchFlags等。</p>
+<p>接着在computeLaunchingTaskFlags()方法会计算出Activity启动的LaunchFlags，计算后将其复制给成员变量mLaunchFlags，我们来重点关注这个方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">computeLaunchingTaskFlags</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-comment">// 如果启动来源SourceActivityRecord为空并且目标Task不为空</span><br>    <span class="hljs-comment">// 表示这次请求启动不是来自一个Activity</span><br>    <span class="hljs-keyword">if</span> (mSourceRecord == <span class="hljs-keyword">null</span> &amp;&amp; mInTask != <span class="hljs-keyword">null</span> &amp;&amp; mInTask.getStack() != <span class="hljs-keyword">null</span>) &#123;<br>        <span class="hljs-keyword">final</span> Intent baseIntent = mInTask.getBaseIntent();<br>        <span class="hljs-keyword">final</span> ActivityRecord root = mInTask.getRootActivity();<br>        <span class="hljs-keyword">if</span> (baseIntent == <span class="hljs-keyword">null</span>) &#123;<br>            ActivityOptions.abort(mOptions);<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">&quot;Launching into task without base intent: &quot;</span><br>                    + mInTask);<br>        &#125;<br><br>        <span class="hljs-comment">// 对于singleInstance或singleTask模式启动的Activity</span><br>        <span class="hljs-keyword">if</span> (isLaunchModeOneOf(LAUNCH_SINGLE_INSTANCE, LAUNCH_SINGLE_TASK)) &#123;<br>            <span class="hljs-comment">// 只能在特定的栈中启动（包名或者taskAffinity）</span><br>            <span class="hljs-keyword">if</span> (!baseIntent.getComponent().equals(mStartActivity.intent.getComponent())) &#123;<br>                ActivityOptions.abort(mOptions);<br>                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">&quot;Trying to launch singleInstance/Task &quot;</span><br>                        + mStartActivity + <span class="hljs-string">&quot; into different task &quot;</span> + mInTask);<br>            &#125;<br>            <span class="hljs-comment">// 目标Task不能有其它Activity</span><br>            <span class="hljs-keyword">if</span> (root != <span class="hljs-keyword">null</span>) &#123;<br>                ActivityOptions.abort(mOptions);<br>                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">&quot;Caller with mInTask &quot;</span> + mInTask<br>                        + <span class="hljs-string">&quot; has root &quot;</span> + root + <span class="hljs-string">&quot; but target is singleInstance/Task&quot;</span>);<br>            &#125;<br>        &#125;<br><br>        <span class="hljs-comment">// 如果目标任务栈为空，为其设置LaunchFlags</span><br>        <span class="hljs-keyword">if</span> (root == <span class="hljs-keyword">null</span>) &#123;<br>            <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> flagsOfInterest = FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_MULTIPLE_TASK<br>                    | FLAG_ACTIVITY_NEW_DOCUMENT | FLAG_ACTIVITY_RETAIN_IN_RECENTS;<br>            mLaunchFlags = (mLaunchFlags &amp; ~flagsOfInterest)<br>                    | (baseIntent.getFlags() &amp; flagsOfInterest);<br>            mIntent.setFlags(mLaunchFlags);<br>            mInTask.setIntent(mStartActivity);<br>            mAddingToTask = <span class="hljs-keyword">true</span>;<br><br>          <span class="hljs-comment">// 如果目标任务栈不为空，并且是设置了FLAG_ACTIVITY_NEW_TASK</span><br>          <span class="hljs-comment">// 这种情况表示Activity已经存在于其Task中，并不会重新启动该Activity</span><br>          <span class="hljs-comment">// 而是将目标任务栈转移到前台，并且回调目标Activity的onNewIntent</span><br>        &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ((mLaunchFlags &amp; FLAG_ACTIVITY_NEW_TASK) != <span class="hljs-number">0</span>) &#123;<br>            mAddingToTask = <span class="hljs-keyword">false</span>;<br><br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            mAddingToTask = <span class="hljs-keyword">true</span>;<br>        &#125;<br><br>        mReuseTask = mInTask;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        mInTask = <span class="hljs-keyword">null</span>;<br>        <span class="hljs-comment">// ResolverActivity是我们在启动过程中出现多个匹配的Activity的选择弹窗</span><br>        <span class="hljs-comment">// freeformWindowingMode表示多窗口编辑模式</span><br>        <span class="hljs-comment">// 这几种情况会在原有的Task中启动Activity</span><br>        <span class="hljs-keyword">if</span> ((mStartActivity.isResolverActivity() || mStartActivity.noDisplay) &amp;&amp; mSourceRecord != <span class="hljs-keyword">null</span><br>                &amp;&amp; mSourceRecord.inFreeformWindowingMode())  &#123;<br>            mAddingToTask = <span class="hljs-keyword">true</span>;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-comment">// 这种情况对应我们使用非Activity Context来启动一个Activity</span><br>    <span class="hljs-comment">// 此时SourceRecord为空  目标Task也为空</span><br>    <span class="hljs-comment">// 要么我们必须设置FLAG_ACTIVITY_NEW_TASK的Flag</span><br>    <span class="hljs-comment">// 或者目标Activity为singleTask/singleInstance模式</span><br>    <span class="hljs-keyword">if</span> (mInTask == <span class="hljs-keyword">null</span>) &#123;<br>        <span class="hljs-keyword">if</span> (mSourceRecord == <span class="hljs-keyword">null</span>) &#123;<br>            <span class="hljs-comment">// 没有设置FLAG_ACTIVITY_NEW_TASK  自动设置</span><br>            <span class="hljs-keyword">if</span> ((mLaunchFlags &amp; FLAG_ACTIVITY_NEW_TASK) == <span class="hljs-number">0</span> &amp;&amp; mInTask == <span class="hljs-keyword">null</span>) &#123;<br>                Slog.w(TAG, <span class="hljs-string">&quot;startActivity called from non-Activity context; forcing &quot;</span> +<br>                        <span class="hljs-string">&quot;Intent.FLAG_ACTIVITY_NEW_TASK for: &quot;</span> + mIntent);<br>                mLaunchFlags |= FLAG_ACTIVITY_NEW_TASK;<br>            &#125;<br>        &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (mSourceRecord.launchMode == LAUNCH_SINGLE_INSTANCE) &#123;<br>            <span class="hljs-comment">// The original activity who is starting us is running as a single</span><br>            <span class="hljs-comment">// instance...  this new activity it is starting must go on its</span><br>            <span class="hljs-comment">// own task.</span><br>            mLaunchFlags |= FLAG_ACTIVITY_NEW_TASK;<br>        &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (isLaunchModeOneOf(LAUNCH_SINGLE_INSTANCE, LAUNCH_SINGLE_TASK)) &#123;<br>            <span class="hljs-comment">// The activity being started is a single instance...  it always</span><br>            <span class="hljs-comment">// gets launched into its own task.</span><br>            mLaunchFlags |= FLAG_ACTIVITY_NEW_TASK;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 
             </div>
             <hr>
