@@ -477,11 +477,13 @@
 <p>其中AMS执行到ZygoteProcess中的attemptZygoteSendArgsAndGetResult会阻塞AMS线程，直到socket返回新进程的pid才会返回。</p>
 <p>简化后的流程如下图所示。</p>
 <p><img src="/img/process_creation.jpg" srcset="/img/loading.gif" alt="process_creation"></p>
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://cs.android.com/android/platform/superproject/+/android-10.0.0_r30:">Android API 29 Platform</a>
-<a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/30358046/">《Android进阶解密》</a>
-<a href="#fnref:2" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:3" class="footnote-text"><span><a target="_blank" rel="noopener" href="http://gityuan.com/2016/10/09/app-process-create-2/">Android四大组件与进程启动的关系</a>
-<a href="#fnref:3" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:4" class="footnote-text"><span><a target="_blank" rel="noopener" href="http://gityuan.com/2016/03/26/app-process-create/">理解Android进程创建流程</a>
-<a href="#fnref:4" rev="footnote" class="footnote-backref"> ↩</a></span></span></li></ol></div></section>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://cs.android.com/android/platform/superproject/+/android-10.0.0_r30:">Android API 29 Platform</a></li>
+<li><a target="_blank" rel="noopener" href="https://book.douban.com/subject/30358046/">《Android进阶解密》</a></li>
+<li><a target="_blank" rel="noopener" href="http://gityuan.com/2016/10/09/app-process-create-2/">Android四大组件与进程启动的关系</a></li>
+<li><a target="_blank" rel="noopener" href="http://gityuan.com/2016/03/26/app-process-create/">理解Android进程创建流程</a></li>
+</ol>
+
             </div>
             <hr>
             <div>
@@ -511,7 +513,7 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2021/06/15/8695f279/">
+                      <a href="/2021/06/16/8695f279/">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">Android Framework（四）——ActivityManagerService</span>
                         <span class="visible-mobile">上一篇</span>
