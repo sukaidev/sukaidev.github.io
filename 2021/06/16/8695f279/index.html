@@ -230,7 +230,6 @@
               <blockquote>
 <p>注意（WARNING）：本文含有大量AOSP源码，阅读过程中如出现头晕、目眩、恶心、犯困等症状属正常情况，作者本人亦无法避免症状产生，故不承担任何法律责任。</p>
 <p>本文所贴源码全部来自 Android API 29 Platform，即 Android 10.0。</p>
-<p>阅读本文需要有一定的C/C++基础。</p>
 </blockquote>
 <p>在前面的几篇文章中，<strong>AMS</strong>或者<strong>ATMS</strong>绝对是出现频率最高的缩写之一。关于ActivityManagerService（下文简称AMS），我们或多或少都知道它的一点职责，例如四大组件的启动和管理、管理ANR状态、发起应用程序进程启动请求等。</p>
 <p>AMS可以说是Android系统服务中最核心的一个服务，仅ActivityManagerService.java类中就有2万5千行代码，Android 10中对此类进行了拆解，其中Activity生命周期管理相关的代码都放到了一个新类ActivityTaskManager（下文简称ATMS）中。即便如此，Android 10中的AMS.java类依旧有1.9万行代码，可见AMS的重要性。</p>
