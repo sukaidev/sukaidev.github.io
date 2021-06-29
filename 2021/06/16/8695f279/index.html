@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      82
+      81
        分钟
     </span>
   
@@ -230,10 +230,10 @@
               <blockquote>
 <p>注意（WARNING）：本文所贴源码全部来自 Android API 29 Platform，即 Android 10.0。</p>
 </blockquote>
-<p>在前面的几篇文章中，<strong>AMS</strong>或者<strong>ATMS</strong>绝对是出现频率最高的缩写之一。关于ActivityManagerService（下文简称AMS），我们或多或少都知道它的一点职责，例如四大组件的启动和管理、管理ANR状态、发起应用程序进程启动请求等。</p>
+<p> 在前面的几篇文章中，<strong>AMS</strong>或者<strong>ATMS</strong>绝对是出现频率最高的缩写之一。关于ActivityManagerService（下文简称AMS），我们或多或少都知道它的一点职责，例如四大组件的启动和管理、管理ANR状态、发起应用程序进程启动请求等。</p>
 <p>AMS可以说是Android系统服务中最核心的一个服务，仅ActivityManagerService.java类中就有2万5千行代码，Android 10中对此类进行了拆解，其中Activity生命周期管理相关的代码都放到了一个新类ActivityTaskManager（下文简称ATMS）中。即便如此，Android 10中的AMS.java类依旧有1.9万行代码，可见AMS的重要性。</p>
-<p>本文的标题虽然是<strong>“Activity Manager Service”</strong>，但不会局限于AMS这一个类，还会包括其衍生类例如<strong>ActivityManager</strong>、<strong>ActivityTaskManager</strong>、<strong>ActivityTaskManagerService</strong>、<strong>ActivityManagerInternal</strong>、<strong>ActivityTaskManagerInternal</strong>等，我们统称它们为<strong>“AMS家族”</strong>。</p>
-<h2 id="AMS服务启动过程"><a href="#AMS服务启动过程" class="headerlink" title="AMS服务启动过程"></a>AMS服务启动过程</h2><p>在<a href="https://sukaidev.github.io/2021/05/14/7ca6484e/#SystemServer-main">Framework系列的第一篇文章</a>中，我们知道Android系统服务在<strong>SystemServer</strong>进程创建后，通过其run()方法来启动各类服务：</p>
+<p>本文主要涉及AMS启动、获取、以及选Activity栈管理。</p>
+<h2 id="AMS启动过程"><a href="#AMS启动过程" class="headerlink" title="AMS启动过程"></a>AMS启动过程</h2><p>在<a href="https://sukaidev.github.io/2021/05/14/7ca6484e/#SystemServer-main">Framework系列的第一篇文章</a>中，我们知道Android系统服务在<strong>SystemServer</strong>进程创建后，通过其run()方法来启动各类服务：</p>
 <blockquote>
 <p>frameworks/base/services/java/com/android/server/SystemServer.java</p>
 </blockquote>
