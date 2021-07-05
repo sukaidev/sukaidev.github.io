@@ -1,0 +1,789 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" type="image/png" href="/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="Android Developer">
+  <meta name="author" content="sukaidev">
+  <meta name="keywords" content="Android sukaidev 苏海鸿">
+  <title>深入理解JVM（七）——插件化注解处理器 - Sukai&#39;s Blog - Android Developer</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/atom-one-light.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"sukaidev.github.io","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Sukai's Blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="深入理解JVM（七）——插件化注解处理器">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-06-25 20:53" pubdate>
+        2021年6月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      3.5k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      44
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">深入理解JVM（七）——插件化注解处理器</h1>
+            
+            <div class="markdown-body">
+              <p>Java 中的注解（Annotation）在JDK 1.5中第一次被引入，当时开发者只能在运行时通过反射机制获取。反射的效率不高，局限性大，因此在JDK 1.6的<a target="_blank" rel="noopener" href="https://www.jcp.org/en/jsr/detail?id=269">JSR 269</a>规范中引入了编译期注解，即插件化注解处理器（<strong>Pluggable Annotation Processor</strong>），使得我们可以通过注解处理器在Javac的编译阶段修改抽象语法树的内部。</p>
+<p>在了解插件化注解处理器之前，先来了解一下Javac的编译过程以及抽象语法树操作相关的API。</p>
+<h2 id="Javac编译流程"><a href="#Javac编译流程" class="headerlink" title="Javac编译流程"></a>Javac编译流程</h2><p>Java中通过javac编译器将源码.java文件编译为.class文件，从编译原理的角度来说这一过程属于前端编译。</p>
+<p>整个编译过程分为七个阶段，其中process过程将会使用注解处理器来处理源码中的注解，如下图所示。</p>
+<p><img src="/img/image-20210704213727420.png" srcset="/img/loading.gif" alt="javac编译流程"></p>
+<p>编译原理并不是本文的重点，所以下面只是简单介绍这七个步骤，具体细节可以翻看javac源码，它本身也是由Java语言编写的。</p>
+<ol>
+<li><strong>parse</strong>阶段：读取.java文件并做词法分析和语法分析。</li>
+<li><strong>enter</strong>阶段：解析和填充符号表。</li>
+<li><strong>process</strong>阶段：处理编译时注解。</li>
+<li><strong>attr</strong>阶段：检查语义合法性、常量折叠。</li>
+<li><strong>flow</strong>阶段：处理数据流分析。</li>
+<li><strong>desugar</strong>阶段：去除高版本JDK中的语法糖。</li>
+<li><strong>generate</strong>：生成字节码并输出到.class文件。</li>
+</ol>
+<h2 id="抽象语法树操作API"><a href="#抽象语法树操作API" class="headerlink" title="抽象语法树操作API"></a>抽象语法树操作API</h2><p>抽象语法树操作的核心类是<strong>Names</strong>、<strong>JCTree</strong>和<strong>TreeMaker</strong>，其中Names类提供了访问标识符的方法，JCTree类是语法树元素的基类，TreeMaker类封装了创建语法树节点的办法。</p>
+<h3 id="Names"><a href="#Names" class="headerlink" title="Names"></a>Names</h3><p>Names类提供了访问标识符Name的方法，它最常用的方法是fromString，用来从一个字符串中获取Name对象，此方法声明如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> Name <span class="hljs-title">fromString</span><span class="hljs-params">(String s)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> table.fromString(s);<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="JCTree"><a href="#JCTree" class="headerlink" title="JCTree"></a>JCTree</h3><p>JCTree是语法树元素的基类，包含一个重要的字段pos，该字段用于指明当前语法树节点（JCTree）在语法树中的位置，因此我们不能直接用new关键字来创建语法树节点，即使创建了也没有意义。此外，结合访问者模式，将数据结构与数据的处理进行解耦，部分源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">JCTree</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Tree</span>, <span class="hljs-title">Cloneable</span>, <span class="hljs-title">DiagnosticPosition</span> </span>&#123;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> pos = -<span class="hljs-number">1</span>;<br><br>    ...<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-keyword">void</span> <span class="hljs-title">accept</span><span class="hljs-params">(JCTree.Visitor visitor)</span></span>;<br><br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>我们可以看到JCTree是一个抽象类，这里重点介绍几个JCTree的子类：</p>
+<ol>
+<li>JCStatement：声明语法树节点，常见的子类如下<ul>
+<li>JCBlock：<strong>语句块</strong>语法树节点</li>
+<li>JCReturn：<strong>return语句</strong>语法树节点</li>
+<li>JCClassDecl：<strong>类定义</strong>语法树节点</li>
+<li>JCVariableDecl：<strong>字段/变量定义</strong>语法树节点</li>
+</ul>
+</li>
+<li>JCMethodDecl：<strong>方法定义</strong>语法树节点</li>
+<li>JCModifiers：<strong>访问标志</strong>语法树节点</li>
+<li>JCExpression：表达式语法树节点，常见的子类如下<ul>
+<li>JCAssign：<strong>赋值语句</strong>语法树节点</li>
+<li>JCIdent：<strong>标识符</strong>语法树节点，可以是变量，类型，关键字等等</li>
+</ul>
+</li>
+</ol>
+<h3 id="TreeMaker"><a href="#TreeMaker" class="headerlink" title="TreeMaker"></a>TreeMaker</h3><p>TreeMaker用于创建一系列的语法树节点，我们上面说了创建JCTree不能直接使用new关键字来创建，所以Java为我们提供了一个工具，就是TreeMaker，它会在创建时为我们创建的JCTree对象设置pos字段，所以必须使用上下文相关的TreeMaker对象来创建语法树节点。</p>
+<p>具体的API介绍可以参照，<a target="_blank" rel="noopener" href="https://www.oschina.net/action/GoToLink?url=http://www.docjar.com/docs/api/com/sun/tools/javac/tree/TreeMaker.html">TreeMakerAPI</a>，接下来着重介绍一下常用的几个方法。</p>
+<h4 id="TreeMaker-Modifiers"><a href="#TreeMaker-Modifiers" class="headerlink" title="TreeMaker.Modifiers"></a>TreeMaker.Modifiers</h4><p>TreeMaker.Modifiers方法用于创建<strong>访问标志</strong>语法树节点（JCModifiers），源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> JCModifiers <span class="hljs-title">Modifiers</span><span class="hljs-params">(<span class="hljs-keyword">long</span> flags)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> Modifiers(flags, List.nil());<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">public</span> JCModifiers <span class="hljs-title">Modifiers</span><span class="hljs-params">(<span class="hljs-keyword">long</span> flags,</span></span><br><span class="hljs-function"><span class="hljs-params">    List&lt;JCAnnotation&gt; annotations)</span> </span>&#123;<br>        JCModifiers tree = <span class="hljs-keyword">new</span> JCModifiers(flags, annotations);<br>        <span class="hljs-keyword">boolean</span> noFlags = (flags &amp; (Flags.ModifierFlags | Flags.ANNOTATION)) == <span class="hljs-number">0</span>;<br>        tree.pos = (noFlags &amp;&amp; annotations.isEmpty()) ? Position.NOPOS : pos;<br>        <span class="hljs-keyword">return</span> tree;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>其中参数flag表示访问标志，annotations表示注解列表。</p>
+<p>flag可以使用枚举类<code>com.sun.tools.javac.code.Flags</code>来表示，例如要表示<code>public static final</code>可以这样用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">treeMaker.Modifiers(Flags.PUBLIC + Flags.STATIC + Flags.FINAL);<br></code></pre></td></tr></table></figure>
+<h4 id="TreeMaker-ClassDef"><a href="#TreeMaker-ClassDef" class="headerlink" title="TreeMaker.ClassDef"></a>TreeMaker.ClassDef</h4><p>TreeMaker.ClassDef用于创建<strong>类定义</strong>语法树节点（JCClassDecl）,源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> JCClassDecl <span class="hljs-title">ClassDef</span><span class="hljs-params">(JCModifiers mods,</span></span><br><span class="hljs-function"><span class="hljs-params">    Name name,</span></span><br><span class="hljs-function"><span class="hljs-params">    List&lt;JCTypeParameter&gt; typarams,</span></span><br><span class="hljs-function"><span class="hljs-params">    JCExpression extending,</span></span><br><span class="hljs-function"><span class="hljs-params">    List&lt;JCExpression&gt; implementing,</span></span><br><span class="hljs-function"><span class="hljs-params">    List&lt;JCTree&gt; defs)</span> </span>&#123;<br>        JCClassDecl tree = <span class="hljs-keyword">new</span> JCClassDecl(mods,<br>                                     name,<br>                                     typarams,<br>                                     extending,<br>                                     implementing,<br>                                     defs,<br>                                     <span class="hljs-keyword">null</span>);<br>        tree.pos = pos;<br>        <span class="hljs-keyword">return</span> tree;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>参数说明：</p>
+<ol>
+<li>mods：访问标志，可以通过方法<code>TreeMaker.Modifiers</code>来创建</li>
+<li>name：类名</li>
+<li>typarams：泛型参数列表</li>
+<li>extending：父类</li>
+<li>implementing：实现的接口</li>
+<li>defs：类定义的详细语句，包括字段、方法的定义等等</li>
+</ol>
+<h4 id="TreeMaker-MethodDef"><a href="#TreeMaker-MethodDef" class="headerlink" title="TreeMaker.MethodDef"></a>TreeMaker.MethodDef</h4><p>TreeMaker.MethodDef用于创建<strong>方法定义</strong>语法树节点（JCMethodDecl），源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> JCMethodDecl <span class="hljs-title">MethodDef</span><span class="hljs-params">(JCModifiers mods,</span></span><br><span class="hljs-function"><span class="hljs-params">    Name name,</span></span><br><span class="hljs-function"><span class="hljs-params">    JCExpression restype,</span></span><br><span class="hljs-function"><span class="hljs-params">    List&lt;JCTypeParameter&gt; typarams,</span></span><br><span class="hljs-function"><span class="hljs-params">    List&lt;JCVariableDecl&gt; params,</span></span><br><span class="hljs-function"><span class="hljs-params">    List&lt;JCExpression&gt; thrown,</span></span><br><span class="hljs-function"><span class="hljs-params">    JCBlock body,</span></span><br><span class="hljs-function"><span class="hljs-params">    JCExpression defaultValue)</span> </span>&#123;<br>        JCMethodDecl tree = <span class="hljs-keyword">new</span> JCMethodDecl(mods,<br>                                       name,<br>                                       restype,<br>                                       typarams,<br>                                       params,<br>                                       thrown,<br>                                       body,<br>                                       defaultValue,<br>                                       <span class="hljs-keyword">null</span>);<br>        tree.pos = pos;<br>        <span class="hljs-keyword">return</span> tree;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">public</span> JCMethodDecl <span class="hljs-title">MethodDef</span><span class="hljs-params">(MethodSymbol m,</span></span><br><span class="hljs-function"><span class="hljs-params">    Type mtype,</span></span><br><span class="hljs-function"><span class="hljs-params">    JCBlock body)</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> (JCMethodDecl)<br>            <span class="hljs-keyword">new</span> JCMethodDecl(<br>                Modifiers(m.flags(), Annotations(m.getAnnotationMirrors())),<br>                m.name,<br>                Type(mtype.getReturnType()),<br>                TypeParams(mtype.getTypeArguments()),<br>                Params(mtype.getParameterTypes(), m),<br>                Types(mtype.getThrownTypes()),<br>                body,<br>                <span class="hljs-keyword">null</span>,<br>                m).setPos(pos).setType(mtype);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>参数说明：</p>
+<ol>
+<li>mods：访问标志</li>
+<li>name：方法名</li>
+<li>restype：返回类型</li>
+<li>typarams：泛型参数列表</li>
+<li>params：参数列表</li>
+<li>thrown：异常声明列表</li>
+<li>body：方法体</li>
+<li>defaultValue：默认方法（可能是interface中的哪个default）</li>
+<li>m：方法符号</li>
+<li>mtype：方法类型。包含多种类型，泛型参数类型、方法参数类型、异常参数类型、返回参数类型。</li>
+</ol>
+<p>其中返回类型restype填写null或者<code>treeMaker.TypeIdent(TypeTag.VOID)</code>都代表返回void类型。</p>
+<h4 id="TreeMaker-VarDef"><a href="#TreeMaker-VarDef" class="headerlink" title="TreeMaker.VarDef"></a>TreeMaker.VarDef</h4><p>TreeMaker.VarDef用于创建<strong>字段/变量定义</strong>语法树节点（JCVariableDecl），源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> JCVariableDecl <span class="hljs-title">VarDef</span><span class="hljs-params">(JCModifiers mods,</span></span><br><span class="hljs-function"><span class="hljs-params">    Name name,</span></span><br><span class="hljs-function"><span class="hljs-params">    JCExpression vartype,</span></span><br><span class="hljs-function"><span class="hljs-params">    JCExpression init)</span> </span>&#123;<br>        JCVariableDecl tree = <span class="hljs-keyword">new</span> JCVariableDecl(mods, name, vartype, init, <span class="hljs-keyword">null</span>);<br>        tree.pos = pos;<br>        <span class="hljs-keyword">return</span> tree;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">public</span> JCVariableDecl <span class="hljs-title">VarDef</span><span class="hljs-params">(VarSymbol v,</span></span><br><span class="hljs-function"><span class="hljs-params">    JCExpression init)</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> (JCVariableDecl)<br>            <span class="hljs-keyword">new</span> JCVariableDecl(<br>                Modifiers(v.flags(), Annotations(v.getAnnotationMirrors())),<br>                v.name,<br>                Type(v.type),<br>                init,<br>                v).setPos(pos).setType(v.type);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>参数说明：</p>
+<ol>
+<li>mods：访问标志</li>
+<li>name：参数名称</li>
+<li>vartype：类型</li>
+<li>init：初始化语句</li>
+<li>v：变量符号</li>
+</ol>
+<h4 id="TreeMaker-Ident"><a href="#TreeMaker-Ident" class="headerlink" title="TreeMaker.Ident"></a>TreeMaker.Ident</h4><p>TreeMaker.Ident用于创建<strong>标识符</strong>语法树节点（JCIdent），源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> JCIdent <span class="hljs-title">Ident</span><span class="hljs-params">(Name name)</span> </span>&#123;<br>        JCIdent tree = <span class="hljs-keyword">new</span> JCIdent(name, <span class="hljs-keyword">null</span>);<br>        tree.pos = pos;<br>        <span class="hljs-keyword">return</span> tree;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">public</span> JCIdent <span class="hljs-title">Ident</span><span class="hljs-params">(Symbol sym)</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> (JCIdent)<span class="hljs-keyword">new</span> JCIdent((sym.name != names.empty)<br>                                ? sym.name<br>                                : sym.flatName(), sym)<br>            .setPos(pos)<br>            .setType(sym.type);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">public</span> JCExpression <span class="hljs-title">Ident</span><span class="hljs-params">(JCVariableDecl param)</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> Ident(param.sym);<br>&#125;<br></code></pre></td></tr></table></figure>
+<h4 id="TreeMaker-Return"><a href="#TreeMaker-Return" class="headerlink" title="TreeMaker.Return"></a>TreeMaker.Return</h4><p>TreeMaker.Return用于创建<strong>return语句</strong>（JCReturn），源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> JCReturn <span class="hljs-title">Return</span><span class="hljs-params">(JCExpression expr)</span> </span>&#123;<br>        JCReturn tree = <span class="hljs-keyword">new</span> JCReturn(expr);<br>        tree.pos = pos;<br>        <span class="hljs-keyword">return</span> tree;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h4 id="TreeMaker-Select"><a href="#TreeMaker-Select" class="headerlink" title="TreeMaker.Select"></a>TreeMaker.Select</h4><p>TreeMaker.Select用于创建<strong>域访问/方法访问</strong>（这里的方法访问只是取到名字，方法的调用需要用TreeMaker.Apply）语法树节点（JCFieldAccess），源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> JCFieldAccess <span class="hljs-title">Select</span><span class="hljs-params">(JCExpression selected,</span></span><br><span class="hljs-function"><span class="hljs-params">    Name selector)</span> </span><br><span class="hljs-function"></span>&#123;<br>        JCFieldAccess tree = <span class="hljs-keyword">new</span> JCFieldAccess(selected, selector, <span class="hljs-keyword">null</span>);<br>        tree.pos = pos;<br>        <span class="hljs-keyword">return</span> tree;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">public</span> JCExpression <span class="hljs-title">Select</span><span class="hljs-params">(JCExpression base,</span></span><br><span class="hljs-function"><span class="hljs-params">    Symbol sym)</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> JCFieldAccess(base, sym.name, sym).setPos(pos).setType(sym.type);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>参数说明：</p>
+<ol>
+<li>selected：<code>.</code>运算符左边的表达式</li>
+<li>selector：<code>.</code>运算符右边的表达式</li>
+</ol>
+<p>举个例子，使用如下代码可以生成<code>this.name</code>语句：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">TreeMaker.Select(treeMaker.Ident(names.fromString(<span class="hljs-string">&quot;this&quot;</span>)), names.fromString(<span class="hljs-string">&quot;name&quot;</span>));<br></code></pre></td></tr></table></figure>
+<h4 id="TreeMaker-NewClass"><a href="#TreeMaker-NewClass" class="headerlink" title="TreeMaker.NewClass"></a>TreeMaker.NewClass</h4><p>TreeMaker.NewClass用于创建<strong>new语句</strong>语法树节点（JCNewClass）,源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> JCNewClass <span class="hljs-title">NewClass</span><span class="hljs-params">(JCExpression encl,</span></span><br><span class="hljs-function"><span class="hljs-params">    List&lt;JCExpression&gt; typeargs,</span></span><br><span class="hljs-function"><span class="hljs-params">    JCExpression clazz,</span></span><br><span class="hljs-function"><span class="hljs-params">    List&lt;JCExpression&gt; args,</span></span><br><span class="hljs-function"><span class="hljs-params">    JCClassDecl def)</span> </span>&#123;<br>        JCNewClass tree = <span class="hljs-keyword">new</span> JCNewClass(encl, typeargs, clazz, args, def);<br>        tree.pos = pos;<br>        <span class="hljs-keyword">return</span> tree;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>参数说明：</p>
+<ol>
+<li>encl：以表达式的方式创建，正常new传null即可</li>
+<li>typeargs：参数类型列表</li>
+<li>clazz：待创建对象的类型</li>
+<li>args：参数列表</li>
+<li>def：类定义</li>
+</ol>
+<h4 id="TreeMaker-Apply"><a href="#TreeMaker-Apply" class="headerlink" title="TreeMaker.Apply"></a>TreeMaker.Apply</h4><p>TreeMaker.Apply用于创建<strong>方法调用</strong>语法树节点（JCMethodInvocation），源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> JCMethodInvocation <span class="hljs-title">Apply</span><span class="hljs-params">(List&lt;JCExpression&gt; typeargs,</span></span><br><span class="hljs-function"><span class="hljs-params">    JCExpression fn,</span></span><br><span class="hljs-function"><span class="hljs-params">    List&lt;JCExpression&gt; args)</span> </span>&#123;<br>        JCMethodInvocation tree = <span class="hljs-keyword">new</span> JCMethodInvocation(typeargs, fn, args);<br>        tree.pos = pos;<br>        <span class="hljs-keyword">return</span> tree;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>参数说明：</p>
+<ol>
+<li>typeargs：参数类型列表</li>
+<li>fn：调用语句</li>
+<li>args：参数列表</li>
+</ol>
+<h4 id="TreeMaker-Assign"><a href="#TreeMaker-Assign" class="headerlink" title="TreeMaker.Assign"></a>TreeMaker.Assign</h4><p>TreeMaker.Assign用户创建<strong>赋值语句</strong>语法树节点（JCAssign），源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> JCAssign <span class="hljs-title">Assign</span><span class="hljs-params">(JCExpression lhs,</span></span><br><span class="hljs-function"><span class="hljs-params">    JCExpression rhs)</span> </span>&#123;<br>        JCAssign tree = <span class="hljs-keyword">new</span> JCAssign(lhs, rhs);<br>        tree.pos = pos;<br>        <span class="hljs-keyword">return</span> tree;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>参数说明：</p>
+<ol>
+<li>lhs：赋值语句左边表达式</li>
+<li>rhs：赋值语句右边表达式</li>
+</ol>
+<h4 id="TreeMaker-Exec"><a href="#TreeMaker-Exec" class="headerlink" title="TreeMaker.Exec"></a>TreeMaker.Exec</h4><p>TreeMaker.Exec用于创建<strong>可执行语句</strong>语法树节点（JCExpressionStatement），源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> JCExpressionStatement <span class="hljs-title">Exec</span><span class="hljs-params">(JCExpression expr)</span> </span>&#123;<br>        JCExpressionStatement tree = <span class="hljs-keyword">new</span> JCExpressionStatement(expr);<br>        tree.pos = pos;<br>        <span class="hljs-keyword">return</span> tree;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>TreeMaker.Apply以及TreeMaker.Assign需要外面包一层TreeMaker.Exec来获得一个JCExpressionStatement。</p>
+<h4 id="TreeMaker-Block"><a href="#TreeMaker-Block" class="headerlink" title="TreeMaker.Block"></a>TreeMaker.Block</h4><p>TreeMaker.Block用于创建<strong>组合语句</strong>的语法树节点（JCBlock），源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> JCBlock <span class="hljs-title">Block</span><span class="hljs-params">(<span class="hljs-keyword">long</span> flags,</span></span><br><span class="hljs-function"><span class="hljs-params">    List&lt;JCStatement&gt; stats)</span> </span>&#123;<br>        JCBlock tree = <span class="hljs-keyword">new</span> JCBlock(flags, stats);<br>        tree.pos = pos;<br>        <span class="hljs-keyword">return</span> tree;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>参数说明：</p>
+<ol>
+<li>flags：访问标志</li>
+<li>stats：语句列表</li>
+</ol>
+<h2 id="javax-lang-model包介绍"><a href="#javax-lang-model包介绍" class="headerlink" title="javax.lang.model包介绍"></a>javax.lang.model包介绍</h2><p>上节讨论了操作抽象语法树的核心API，这些API可以帮助我们在javac的编译阶段修改源码，但实际上大部分情况下我们实现注解处理器并不需要去修改源码，而是通过生成辅助类来优化开发效率。</p>
+<p>因此大部分情况下我们仅需要使用<strong>javax.lang.model</strong>包中提供的类就可以实现我们需要的功能，下面就来简单介绍一下这个包。</p>
+<p>在JDK 1.8中，javax.lang.model的结构如下图所示：</p>
+<p><img src="/img/image-20210705093919834.png" srcset="/img/loading.gif" alt="javax.lang.model - JDK 1.8"></p>
+<h3 id="Element"><a href="#Element" class="headerlink" title="Element"></a>Element</h3><p>Element我们通常称为节点或者元素。例如HTML作为一种结构体语言，其中有很多规范的标签限定，每种标签标示一个Element，如下代码：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs html"><span class="hljs-meta">&lt;!DOCTYPE <span class="hljs-meta-keyword">html</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">html</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">charset</span>=<span class="hljs-string">&quot;utf-8&quot;</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>Sukai&#x27;s Blog<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span>...<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span><br></code></pre></td></tr></table></figure>
+<p>对于Java源文件来说，同样也是一种结构体语言，源代码的每一个部分都是一个特定类型的Element，也就是说Element代表源文件中的元素，例如包、类、字段、方法等。</p>
+<p>Element类是一个接口，由Element衍生出来的扩展类共有五种，分别是：</p>
+<ul>
+<li>PackageElement：表示一个包程序元素，提供对有关包及成员的信息的访问。</li>
+<li>TypeElement：表示一个类或者接口程序元素，提供对有关类型及其成员信息的访问。</li>
+<li>TypeParameterElement：表示一个泛型元素。</li>
+<li>VariableElement：表示一个字段、enum常量、方法或者构造方法的参数、局部变量或异常参数。</li>
+<li>ExecuteableElement：表示某个类或者接口的方法、构造方法或初始化程序（静态或者实例）。</li>
+</ul>
+<p>Element类中定义了几个方法，我们来看一下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">Element</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">javax</span>.<span class="hljs-title">lang</span>.<span class="hljs-title">model</span>.<span class="hljs-title">AnnotatedConstruct</span> </span>&#123;<br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 获取此元素的实际类型</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function">TypeMirror <span class="hljs-title">asType</span><span class="hljs-params">()</span></span>;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 获取此元素的元素类型</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function">ElementKind <span class="hljs-title">getKind</span><span class="hljs-params">()</span></span>;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 获取此元素的修饰符，</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function">Set&lt;Modifier&gt; <span class="hljs-title">getModifiers</span><span class="hljs-params">()</span></span>;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 获取不带包名的simpleName</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function">Name <span class="hljs-title">getSimpleName</span><span class="hljs-params">()</span></span>;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 获取直接父节点Element</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function">Element <span class="hljs-title">getEnclosingElement</span><span class="hljs-params">()</span></span>;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 获取直接子节点Element</span><br><span class="hljs-comment">     */</span><br>    List&lt;? extends Element&gt; getEnclosedElements();<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">equals</span><span class="hljs-params">(Object obj)</span></span>;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">hashCode</span><span class="hljs-params">()</span></span>;<br><br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 获取此节点元素的注解，不会包含子节点的注解</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@since</span> 1.6</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Override</span><br>    List&lt;? extends AnnotationMirror&gt; getAnnotationMirrors();<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 获取特定的注解</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@since</span> 1.6</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Override</span><br>    &lt;A extends Annotation&gt; <span class="hljs-function">A <span class="hljs-title">getAnnotation</span><span class="hljs-params">(Class&lt;A&gt; annotationType)</span></span>;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 在此节点上应用Visitor，可以修改元素节点树</span><br><span class="hljs-comment">     */</span><br>    &lt;R, P&gt; <span class="hljs-function">R <span class="hljs-title">accept</span><span class="hljs-params">(ElementVisitor&lt;R, P&gt; v, P p)</span></span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h4 id="ElementKind"><a href="#ElementKind" class="headerlink" title="ElementKind"></a>ElementKind</h4><p>ElementKind是一个枚举类，其中包含了所有Element类型，下表为ElementKind枚举类中的所有常量，详细信息请查看官方文档。</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>PACKAGE</td>
+<td>包类型</td>
+</tr>
+<tr>
+<td>ENUM</td>
+<td>枚举类型</td>
+</tr>
+<tr>
+<td>CLASS</td>
+<td>普通类类型</td>
+</tr>
+<tr>
+<td>ANNOTATION_TYPE</td>
+<td>注解类型</td>
+</tr>
+<tr>
+<td>INTERFACE</td>
+<td>普通接口类型</td>
+</tr>
+<tr>
+<td>ENUM_CONSTANT</td>
+<td>枚举常量类型</td>
+</tr>
+<tr>
+<td>FIELD</td>
+<td>类中定义的字段类型</td>
+</tr>
+<tr>
+<td>PARAMETER</td>
+<td>方法或构造器中的参数类型</td>
+</tr>
+<tr>
+<td>LOCAL_VARIABLE</td>
+<td>局部变量类型</td>
+</tr>
+<tr>
+<td>EXCEPTION_PARAMETER</td>
+<td>异常处理参数类型</td>
+</tr>
+<tr>
+<td>METHOD</td>
+<td>方法类型</td>
+</tr>
+<tr>
+<td>CONSTRUCTOR</td>
+<td>构造器类型</td>
+</tr>
+<tr>
+<td>STATIC_INIT</td>
+<td>静态代码块类型</td>
+</tr>
+<tr>
+<td>INSTANCE_INIT</td>
+<td>非静态代码块类型</td>
+</tr>
+<tr>
+<td>TYPE_PARAMETER</td>
+<td>泛型参数类型</td>
+</tr>
+<tr>
+<td>RESOURCE_VARIABLE</td>
+<td>资源变量类型</td>
+</tr>
+<tr>
+<td>OTHER</td>
+<td>其他类型</td>
+</tr>
+</tbody></table>
+<p>如果我们要判断一个元素的类型，应该使用Element.getKind()方法配合ElementKind枚举类进行判断。</p>
+<p>尽量<strong>避免使用instanceof进行判断</strong>，因为比如TypeElement既表示类又表示一个接口，这样判断的结果可能不是你想要的。例如我们判断一个元素是不是一个类：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">if</span> (element <span class="hljs-keyword">is</span> TypeElement)<br></code></pre></td></tr></table></figure>
+<p>这种情况element有可能是class、interface或者是enum，所以我们应该使用ElementKind来判断：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">if</span> (element.kind == ElementKind.CLASS)<br></code></pre></td></tr></table></figure>
+<h3 id="TypeMirror"><a href="#TypeMirror" class="headerlink" title="TypeMirror"></a>TypeMirror</h3><p>TypeMirror是一个接口，表示 Java 编程语言中的类型。类名为什么不直接用Type呢？猜测是为了与反射包中的Type作区分。</p>
+<p>TypeMirror表示的类型包括基本类型、声明类型、数组类型、类型变量和null类型，还可以表示通配符类型参数、executable 的签名和返回类型，以及对应于包和关键字 void 的伪类型。</p>
+<p>TypeMirror有许多子接口，其类图如下所示。</p>
+<p><img src="/img/TypeMirror.png" srcset="/img/loading.gif" alt="TypeMirror类图"></p>
+<p>这里简单介绍一下这些子接口。</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ExecutableType</td>
+<td>表示一个可执行类型，包括方法、构造器、构造块</td>
+</tr>
+<tr>
+<td>IntersectionType</td>
+<td>表示一个交集类型，出现在泛型的上下边界中</td>
+</tr>
+<tr>
+<td>ReferenceType</td>
+<td>表示一个引用类型，包括类和接口类型、数组类型、类型变量和 null 类型</td>
+</tr>
+<tr>
+<td>ArrayType</td>
+<td>表示一个数组类型</td>
+</tr>
+<tr>
+<td>DeclaredType</td>
+<td>表示一个声明类型，包括类和接口</td>
+</tr>
+<tr>
+<td>TypeVariable</td>
+<td>表示一个类型变量，即泛型类型</td>
+</tr>
+<tr>
+<td>NullType</td>
+<td>表示一个空类型，对应Java中的null</td>
+</tr>
+<tr>
+<td>NoType</td>
+<td>表示无类型，VOID、PACKAGE和NONE都是NoType</td>
+</tr>
+<tr>
+<td>PrimitiveType</td>
+<td>表示一个基本类型，包括boolean、byte、short、int、long、char、float和double</td>
+</tr>
+<tr>
+<td>WildcardType</td>
+<td>表示带通配符的泛型类型</td>
+</tr>
+</tbody></table>
+<h4 id="TypeKind"><a href="#TypeKind" class="headerlink" title="TypeKind"></a>TypeKind</h4><p>与ElementKind类似，判断TypeMirror类型时我们也应该使用TypeKind来进行。</p>
+<p>TypeKind的枚举类型有点多，这里简单介绍部分常量，详细信息请查看官方文档。</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>BOOLEAN</td>
+<td>基本类型 boolean</td>
+</tr>
+<tr>
+<td>INT</td>
+<td>基本类型 int</td>
+</tr>
+<tr>
+<td>LONG</td>
+<td>基本类型 long</td>
+</tr>
+<tr>
+<td>FLOAT</td>
+<td>基本类型 float</td>
+</tr>
+<tr>
+<td>DOUBLE</td>
+<td>基本类型 double</td>
+</tr>
+<tr>
+<td>VOID</td>
+<td>对应于关键字 void 的伪类型</td>
+</tr>
+<tr>
+<td>NULL</td>
+<td>null 类型</td>
+</tr>
+<tr>
+<td>ARRAY</td>
+<td>数组类型</td>
+</tr>
+<tr>
+<td>PACKAGE</td>
+<td>对应于包元素的伪类型</td>
+</tr>
+<tr>
+<td>EXECUTABLE</td>
+<td>方法、构造方法或初始化程序</td>
+</tr>
+</tbody></table>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://www.jcp.org/en/jsr/detail?id=269">JSR 269</a></li>
+<li><a href="(https://book.douban.com/subject/35079283/)">《深入理解JVM字节码》</a></li>
+<li><a target="_blank" rel="noopener" href="https://juejin.cn/post/6963873016220663844">Android注解处理器APT技术探究</a></li>
+<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzAxMTI4MTkwNQ==&mid=2650824004&idx=1&sn=a986f76389231290bdf4ef46d8341896&chksm=80b789dab7c000cc89d8ad9e47a58e9547049469659dc70936a95b45f992236d606e66e7a521&scene=38#wechat_redirect">详尽的Android编译时注解处理器教程</a></li>
+</ol>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/JVM/">JVM</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/APT/">APT</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+              
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                
+  <script type="text/javascript">
+    Fluid.utils.waitElementVisible('comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'sukaidev/sukaidev.github.io');
+      s.setAttribute('issue-term', 'pathname');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+<!-- SCRIPTS -->
+
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    (function () {
+      var path = "/local-search.xml";
+      var inputArea = document.querySelector("#local-search-input");
+      inputArea.onclick = function () {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+        this.onclick = null
+      }
+    })()
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+
+</body>
+</html>
