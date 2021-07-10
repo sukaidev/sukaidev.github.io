@@ -1,0 +1,526 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" type="image/png" href="/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="Android Developer">
+  <meta name="author" content="sukaidev">
+  <meta name="keywords" content="Android sukaidev 苏海鸿">
+  <title>最佳实践 | 基于注解处理器实现视图绑定 - Sukai&#39;s Blog - Android Developer</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/atom-one-light.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"sukaidev.github.io","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Sukai's Blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="最佳实践 | 基于注解处理器实现视图绑定">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-07-05 22:20" pubdate>
+        2021年7月5日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.8k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      24
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">最佳实践 | 基于注解处理器实现视图绑定</h1>
+            
+            <div class="markdown-body">
+              <p>上篇文章我们详细介绍了注解处理器的相关功能，不过即使看完也完全不知道注解处理器到底要怎么写。</p>
+<p>注解处理器本身是个实践性十分强的概念，本篇文章将会从0到1编写一个Kotlin注解处理器（KAPT）实现Android中的视图绑定功能，在这之前，先来介绍一些能够协助我们快速开发的开源库。</p>
+<blockquote>
+<p>注：源码链接放置在文末。</p>
+</blockquote>
+<h2 id="开源库推荐"><a href="#开源库推荐" class="headerlink" title="开源库推荐"></a>开源库推荐</h2><p>先推荐几个开源库：<strong>AutoService</strong>、<strong>JavaPoet</strong>、<strong>KotlinPoet</strong>。</p>
+<h3 id="AutoService"><a href="#AutoService" class="headerlink" title="AutoService"></a>AutoService</h3><p>在上篇文章中讲到自定义的注解处理器要正常运作的话，需要对其进行注册，具体是需要在resources/META-INF/services下新建<code>javax.annotation.processing.Processor</code>文件并将注解处理器的全限定名写入文件中。</p>
+<p><img src="/img/image-20210706142548844.png" srcset="/img/loading.gif" alt="注册注解处理器"></p>
+<p>这是Java中非常常见的<strong>ServiceLoader</strong>使用方式，需要我们创建的文件称为ServiceLoader的配置文件（configuration），这种方式在很多框架的源码中都有使用。</p>
+<p>不过这种方式略微繁琐，考虑一个问题，既然是生成文件的话，我们的APT刚好就可以实现，那么是否可以由注解处理器来自动生成这个文件呢？</p>
+<p>答案是可以的，而且已经有很多人这样在做了。谷歌就写了一个开源库叫<a target="_blank" rel="noopener" href="https://github.com/google/auto">auto</a>，其中的<a target="_blank" rel="noopener" href="https://github.com/google/auto/tree/master/service">AutoService</a>就可以帮助我们生成这个文件，源码非常精简，有兴趣可以看看。</p>
+<p>有了AutoService之后，只需要一个注解就可以解决注解处理器的注册问题了：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">package</span> com.sukaidev.compiler<br><br><span class="hljs-keyword">import</span> com.google.auto.service.AutoService<br><span class="hljs-keyword">import</span> javax.<span class="hljs-keyword">annotation</span>.processing.Processor<br><br><span class="hljs-meta">@AutoService(Processor::class)</span><br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ViewBindingProcessor</span> : <span class="hljs-type">AbstractProcessor</span></span>() &#123;<br>  <span class="hljs-comment">// …</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这里有一点需要注意，就是在引入AutoService依赖时，如果我们编写的是KAPT的话，需要以同时以implementation和kapt的方式引入AutoService：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs groovy">implementation <span class="hljs-string">&#x27;com.google.auto.service:auto-service:1.0-rc6&#x27;</span><br>kapt <span class="hljs-string">&#x27;com.google.auto.service:auto-service:1.0-rc6&#x27;</span><br></code></pre></td></tr></table></figure>
+<h3 id="JavaPoet"><a href="#JavaPoet" class="headerlink" title="JavaPoet"></a>JavaPoet</h3><p>APT中我们可以使用Filer来创建生成Java源文件：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs kotlin">env.filer.createClassFile(<span class="hljs-string">&quot;...&quot;</span>).openWriter().write(<span class="hljs-string">&quot;xx.java&quot;</span>)<br></code></pre></td></tr></table></figure>
+<p>然而这种方式我们只能通过字符串硬编码的方式来写入代码，对于程序员来说非常不友好，如果代码比较多很容易出现错误而找不到问题的情况。</p>
+<p>因此Square开发了<a target="_blank" rel="noopener" href="https://github.com/square/javapoet">JavaPoet</a>，JavaPoet提供了一套用于生成<code>.java</code>文件的API，其使用方法可以参照其Github页面的<a target="_blank" rel="noopener" href="https://github.com/square/javapoet/blob/master/README.md">Readme</a>，使用它我们可以按照程序员的方式去编写源代码并输出到文件中。</p>
+<h3 id="KotlinPoet"><a href="#KotlinPoet" class="headerlink" title="KotlinPoet"></a>KotlinPoet</h3><p>与JavaPoet类似，<a target="_blank" rel="noopener" href="https://github.com/square/kotlinpoet">KotlinPoet</a>用于生成<code>.kotlin</code>源码文件。</p>
+<p>详细的使用方法参照官方文档：<a target="_blank" rel="noopener" href="https://square.github.io/kotlinpoet/%E3%80%82">https://square.github.io/kotlinpoet/。</a></p>
+<h2 id="项目结构"><a href="#项目结构" class="headerlink" title="项目结构"></a>项目结构</h2><p>首先来搭建整个Demo的项目结构，一般情况下我们会创建两个Java/Kotlin Module，命名为annotations和processor，其中annotations存放所有的注解，processor则为注解处理器模块。</p>
+<p>另外添加了一个名为runtime的Android Module，存放框架的所有对外开放类，整个源码目录如下。</p>
+<p><img src="/img/image-20210710154732595.png" srcset="/img/loading.gif" alt="Demo基础结构"></p>
+<p>下面分别来介绍这些模块。</p>
+<h3 id="annotations"><a href="#annotations" class="headerlink" title="annotations"></a>annotations</h3><p>annotations模块中定义了我们所需要处理的注解，此Demo中我们需要定义两个注解：</p>
+<ul>
+<li><p><strong>BindClass</strong>：使用此注解标注的类我们才会去收集需要注入的View并声称对应的管理类。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-meta">@Target(AnnotationTarget.CLASS)</span><br><span class="hljs-meta">@Retention(AnnotationRetention.BINARY)</span><br><span class="hljs-keyword">annotation</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BindClass</span></span><br></code></pre></td></tr></table></figure></li>
+<li><p><strong>BindView</strong>：使用此注解标注的View才会进行依赖注入。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-meta">@Target(AnnotationTarget.FIELD)</span><br><span class="hljs-meta">@Retention(AnnotationRetention.BINARY)</span><br><span class="hljs-keyword">annotation</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BindView</span></span>(<span class="hljs-keyword">val</span> redId: <span class="hljs-built_in">Int</span>)<br></code></pre></td></tr></table></figure>
+<h3 id="processor"><a href="#processor" class="headerlink" title="processor"></a>processor</h3></li>
+</ul>
+<p>processor属于核心模块，注解处理器在这里定义。模块目录结构如下所示：</p>
+<p><img src="/img/image-20210710160936091.png" srcset="/img/loading.gif" alt="processor模块"></p>
+<p>主要的逻辑在VIewBindingProcessor中，其它类都用于协助注解处理器。</p>
+<p>VIewBindingProcessor要做的事情很简单，分为三步：</p>
+<ol>
+<li><p>收集所有标注了@BindClass的Activity/Fragment：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">val</span> activityType = elements.getTypeElement(ACTIVITY_JVM_CLASS_NAME).asType()<br><span class="hljs-keyword">val</span> fragmentType = elements.getTypeElement(FRAGMENT_JVM_CLASS_NAME).asType()<br>roundEnv.getElementsAnnotatedWith(BindClass::<span class="hljs-keyword">class</span>.java)<br>    .filter &#123; it.kind.isClass &#125;<br>    .forEach &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-keyword">when</span> &#123;<br>                it.asType().isSubType(activityType, types) -&gt; &#123;<br>                    bindingActivities[it] = BindingActivity(it <span class="hljs-keyword">as</span> TypeElement)<br>                &#125;<br>                it.asType().isSubType(fragmentType, types) -&gt; &#123;<br>                    bindingFragments[it] = BindingFragment(it <span class="hljs-keyword">as</span> TypeElement)<br>                &#125;<br>                <span class="hljs-keyword">else</span> -&gt; &#123;<br>                    Logger.error(it, <span class="hljs-string">&quot;Unsupported typeElement:<span class="hljs-subst">$&#123;it.simpleName&#125;</span>&quot;</span>)<br>                &#125;<br>            &#125;<br>        &#125; <span class="hljs-keyword">catch</span> (e: Exception) &#123;<br>            Logger.logParsingError(it, BindClass::<span class="hljs-keyword">class</span>.java, e)<br>        &#125;<br>    &#125;<br></code></pre></td></tr></table></figure></li>
+<li><p>收集所有标注了@BindView的View：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">val</span> viewType = elements.getTypeElement(VIEW_JVM_CLASS_NAME).asType()<br>roundEnv.getElementsAnnotatedWith(BindView::<span class="hljs-keyword">class</span>.java)<br>    .filter &#123; it.kind.isField &#125;<br>    .forEach &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-comment">// 必须是View的子类</span><br>            <span class="hljs-keyword">if</span> (it.isSubType(viewType, types)) &#123;<br>                <span class="hljs-keyword">if</span> (it.enclosingElement.isSubType(activityType, types)) &#123;<br>                    bindingActivities[it.enclosingElement]?.bindingViews?.add(BindingView(it <span class="hljs-keyword">as</span> Symbol.VarSymbol))<br>                        ?: Logger.error(it, <span class="hljs-string">&quot;BindingView <span class="hljs-variable">$it</span> annotated as @BindView while <span class="hljs-subst">$&#123;it.enclosingElement&#125;</span> not annotated.&quot;</span>)<br>                &#125;<br>                <span class="hljs-keyword">if</span> (it.enclosingElement.isSubType(fragmentType, types)) &#123;<br>                    bindingFragments[it.enclosingElement]?.bindingViews?.add(BindingView(it <span class="hljs-keyword">as</span> Symbol.VarSymbol))<br>                        ?: Logger.error(it, <span class="hljs-string">&quot;BindingView <span class="hljs-variable">$it</span> annotated as @BindView while <span class="hljs-subst">$&#123;it.enclosingElement&#125;</span> not annotated.&quot;</span>)<br>                &#125;<br>            &#125;<br>        &#125; <span class="hljs-keyword">catch</span> (e: Exception) &#123;<br>            Logger.logParsingError(it, BindView::<span class="hljs-keyword">class</span>.java, e)<br>        &#125;<br>    &#125;<br></code></pre></td></tr></table></figure></li>
+<li><p>为Activity/Fragment生成对应ViewBinding类：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs kotlin">bindingActivities.values.forEach &#123;<br>    it.builder.build()<br>&#125;<br>bindingFragments.values.forEach &#123;<br>    it.builder.build()<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>BindingActivityBuilder和BindingFragmentBuilder分别用于构造生成类的源码以及输出生成类，主要就是使用KotlinPoet构建整类的变量和方法，具体的代码参考文章底部的源码路径。</p>
+</li>
+</ol>
+<p>生成类演示：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MainActivity_ViewBinding</span></span>(<br>  <span class="hljs-keyword">private</span> <span class="hljs-keyword">var</span> activity: MainActivity?<br>) : UnBinder &#123;<br>  <span class="hljs-keyword">private</span> <span class="hljs-keyword">var</span> decorView: View? = activity!!.window.decorView<br><br>  <span class="hljs-keyword">private</span> <span class="hljs-keyword">var</span> button: AppCompatButton? = Utils.findRequiredViewAsType(decorView!!, <span class="hljs-number">2131230808</span>)<br><br>  <span class="hljs-keyword">public</span> <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">bind</span><span class="hljs-params">()</span></span>: UnBinder? &#123;<br>    <span class="hljs-keyword">if</span> (activity <span class="hljs-keyword">is</span> MainActivity) &#123;<br>      activity?.button = button!!<br>      <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span><br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span><br>  &#125;<br><br>  <span class="hljs-keyword">public</span> <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">unBind</span><span class="hljs-params">()</span></span>: <span class="hljs-built_in">Unit</span> &#123;<br>    <span class="hljs-keyword">this</span>.activity = <span class="hljs-literal">null</span><br>    <span class="hljs-keyword">this</span>.decorView = <span class="hljs-literal">null</span><br>    <span class="hljs-keyword">this</span>.button = <span class="hljs-literal">null</span><br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>在编写注解处理器时，最好是先把要生成的代码写出来，然后对照这个代码使用KotlinPoet进行代码生成。</p>
+<h3 id="runtime"><a href="#runtime" class="headerlink" title="runtime"></a>runtime</h3><p>runtime模块主要是提供一个门面类：ViewBinding。此类复制注册Activity和Fragment的LifecycleCallback，方便在Activity和Fragment销毁时自动进行视图解绑，防止出现内存泄露问题。</p>
+<p>ViewBinding类的代码如下：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ViewBinding</span> </span>&#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">val</span> BINDINGS = LinkedHashMap&lt;String, UnBinder&gt;()<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">val</span> activityLifecycleCallback = BindingActivityLifecycleCallback()<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">val</span> fragmentLifecycleCallback = BindingFragmentLifecycleCallback()<br><br>    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">init</span><span class="hljs-params">(app: <span class="hljs-type">Application</span>)</span></span> &#123;<br>        app.registerActivityLifecycleCallbacks(activityLifecycleCallback)<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 进行视图绑定</span><br><span class="hljs-comment">     * 需要在Activity setContentView之后</span><br><span class="hljs-comment">     * 以及Fragment onCreatedView之后调用</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">bind</span><span class="hljs-params">(source: <span class="hljs-type">Any</span>)</span></span> &#123;<br>        <span class="hljs-keyword">if</span> (source !<span class="hljs-keyword">is</span> Activity &amp;&amp; source !<span class="hljs-keyword">is</span> Fragment) <span class="hljs-keyword">return</span><br><br>        <span class="hljs-keyword">val</span> sourceClass = source::<span class="hljs-keyword">class</span>.java<br>        <span class="hljs-keyword">val</span> bindingClassName = source.javaClass.name + BINDING_CLASS_POSTFIX<br>        <span class="hljs-keyword">var</span> unBinder = BINDINGS[bindingClassName]<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-keyword">if</span> (unBinder == <span class="hljs-literal">null</span>) &#123;<br>                <span class="hljs-keyword">val</span> bindingClass = Class.forName(sourceClass.name)?.classLoader?.loadClass(bindingClassName) ?: <span class="hljs-keyword">return</span><br>                unBinder = bindingClass.getConstructor(sourceClass).newInstance(source) <span class="hljs-keyword">as</span> UnBinder<br>                BINDINGS[bindingClassName] = unBinder<br>            &#125;<br>            unBinder.bind()<br>        &#125; <span class="hljs-keyword">catch</span> (e: ClassNotFoundException) &#123;<br>            e.printStackTrace()<br>            <span class="hljs-keyword">return</span><br>        &#125;<br><br>        <span class="hljs-keyword">if</span> (source <span class="hljs-keyword">is</span> Fragment) &#123;<br>            source.parentFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleCallback, <span class="hljs-literal">false</span>)<br>        &#125;<br>    &#125;<br><br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 解绑</span><br><span class="hljs-comment">     * 由LifecycleCallback自动调用</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">unBind</span><span class="hljs-params">(source: <span class="hljs-type">Any</span>)</span></span> &#123;<br>        <span class="hljs-keyword">if</span> (source !<span class="hljs-keyword">is</span> Activity &amp;&amp; source !<span class="hljs-keyword">is</span> Fragment) <span class="hljs-keyword">return</span><br><br>        <span class="hljs-keyword">val</span> bindingClassName = source.javaClass.name + BINDING_CLASS_POSTFIX<br><br>        <span class="hljs-keyword">val</span> unBinder = BINDINGS[bindingClassName] ?: <span class="hljs-keyword">return</span><br>        unBinder.unBind()<br><br>        BINDINGS.remove(bindingClassName)<br><br>        <span class="hljs-keyword">if</span> (source <span class="hljs-keyword">is</span> Fragment) &#123;<br>            source.parentFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentLifecycleCallback)<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">companion</span> <span class="hljs-keyword">object</span> &#123;<br><br>        <span class="hljs-keyword">const</span> <span class="hljs-keyword">val</span> BINDING_CLASS_POSTFIX = <span class="hljs-string">&quot;_ViewBinding&quot;</span><br><br>        <span class="hljs-keyword">val</span> INSTANCE: ViewBinding <span class="hljs-keyword">by</span> lazy &#123; ViewBinding() &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>其中init方法需要在Application创建时调用，因此这里使用了ContentProvider来初始化ViewBinding类。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Created by sukaidev on 2021/07/03.</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * 用于初始化Runtime.</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> sukaidev</span><br><span class="hljs-comment"> */</span><br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RuntimeProvider</span> : <span class="hljs-type">ContentProvider</span></span>() &#123;<br><br>    <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onCreate</span><span class="hljs-params">()</span></span>: <span class="hljs-built_in">Boolean</span> &#123;<br>        ViewBinding.INSTANCE.<span class="hljs-keyword">init</span>(context.applicationContext <span class="hljs-keyword">as</span> Application)<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span><br>    &#125;<br><br>    <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">query</span><span class="hljs-params">(uri: <span class="hljs-type">Uri</span>?, projection: <span class="hljs-type">Array</span>&lt;<span class="hljs-type">out</span> <span class="hljs-type">String</span>&gt;?, selection: <span class="hljs-type">String</span>?, selectionArgs: <span class="hljs-type">Array</span>&lt;<span class="hljs-type">out</span> <span class="hljs-type">String</span>&gt;?, sortOrder: <span class="hljs-type">String</span>?)</span></span> = <span class="hljs-literal">null</span><br><br>    <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getType</span><span class="hljs-params">(uri: <span class="hljs-type">Uri</span>?)</span></span> = <span class="hljs-literal">null</span><br><br>    <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">insert</span><span class="hljs-params">(uri: <span class="hljs-type">Uri</span>?, values: <span class="hljs-type">ContentValues</span>?)</span></span> = <span class="hljs-literal">null</span><br><br>    <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">delete</span><span class="hljs-params">(uri: <span class="hljs-type">Uri</span>?, selection: <span class="hljs-type">String</span>?, selectionArgs: <span class="hljs-type">Array</span>&lt;<span class="hljs-type">out</span> <span class="hljs-type">String</span>&gt;?)</span></span> = <span class="hljs-number">0</span><br><br>    <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">update</span><span class="hljs-params">(uri: <span class="hljs-type">Uri</span>?, values: <span class="hljs-type">ContentValues</span>?, selection: <span class="hljs-type">String</span>?, selectionArgs: <span class="hljs-type">Array</span>&lt;<span class="hljs-type">out</span> <span class="hljs-type">String</span>&gt;?)</span></span> = <span class="hljs-number">0</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<h2 id="源码地址"><a href="#源码地址" class="headerlink" title="源码地址"></a>源码地址</h2><p>Github地址，需科学。</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/sukaidev/BestPractices/tree/main/ViewBindingAptDemo">https://github.com/sukaidev/BestPractices/tree/main/ViewBindingAptDemo</a></p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Best-Practices/">Best Practices</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Activity-Stack/">Activity Stack</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/06/25/19e6281/">
+                        <span class="hidden-mobile">深入理解JVM（七）——插件化注解处理器</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                
+  <script type="text/javascript">
+    Fluid.utils.waitElementVisible('comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'sukaidev/sukaidev.github.io');
+      s.setAttribute('issue-term', 'pathname');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+<!-- SCRIPTS -->
+
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    (function () {
+      var path = "/local-search.xml";
+      var inputArea = document.querySelector("#local-search-input");
+      inputArea.onclick = function () {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+        this.onclick = null
+      }
+    })()
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+
+</body>
+</html>

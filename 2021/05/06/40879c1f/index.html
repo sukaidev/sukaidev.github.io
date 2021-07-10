@@ -299,7 +299,7 @@
 <blockquote>
 <p>This loop unrolls recursion in current.resumeWith(param) to make saner and shorter stack traces on resume.</p>
 </blockquote>
-<p>这句话的意思是，此while循环可以帮助我们展开一些没有发生真正挂起的协程调用，相当于将递归转换成为了迭代，是的堆栈的跟踪更为清晰和简短。</p>
+<p>这句话的意思是，此while循环可以帮助我们展开一些没有发生真正挂起的协程调用，相当于将递归转换成为了迭代，使得堆栈的跟踪更为简短和清晰。</p>
 <p>来到循环内部，可以看到invokeSuspend 方法在这里被调用，那么协程体也会在此处执行，对应本例中的 CoroutineTestKt.main 方法，同时会将 this 传入，也就是说 <strong>CoroutineTestKt.main 中首次传入的参数为 RunSuspend#runSuspend 中创建的 RestrictedContinuationImpl 对象</strong>。</p>
 <p>接着分析协程的执行流程，如果 invokeSuspend 方法返回的是挂起标志 <strong>COROUTINE_SUSPENDED</strong> 的话，就会直接 return，使得当前while循环退出，等待 resumeWith 下一次被调用。这也是我们在使用 suspendCoroutine 挂起外部协程时需要调用 resumeWith 恢复协程执行的原因。</p>
 <p><img src="/img/jvm/image-20210508141910803.png" srcset="/img/loading.gif" alt="使用resumeWith恢复协程执行"></p>

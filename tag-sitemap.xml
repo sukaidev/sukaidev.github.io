@@ -3,15 +3,29 @@
 
 
     <url>
+        <loc>https://sukaidev.github.io/tags/Activity-Stack/</loc>
+        <lastmod>2021-07-10T08:40:48.631Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://sukaidev.github.io/tags/APT/</loc>
+        <lastmod>2021-07-10T05:46:48.497Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
         <loc>https://sukaidev.github.io/tags/Coroutines/</loc>
-        <lastmod>2021-07-08T08:42:05.719Z</lastmod>
+        <lastmod>2021-07-09T06:29:10.041Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>
 
     <url>
         <loc>https://sukaidev.github.io/tags/Bytecode/</loc>
-        <lastmod>2021-07-08T08:42:05.719Z</lastmod>
+        <lastmod>2021-07-09T06:29:10.041Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>
@@ -19,13 +33,6 @@
     <url>
         <loc>https://sukaidev.github.io/tags/View-Binding/</loc>
         <lastmod>2021-07-06T09:46:07.507Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.2</priority>
-    </url>
-
-    <url>
-        <loc>https://sukaidev.github.io/tags/APT/</loc>
-        <lastmod>2021-07-06T06:42:50.132Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>

@@ -181,6 +181,58 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
+        <a href="/2019/03/06/c63415c3/">Android性能优化之Bitmap高效加载</a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2019/03/06/c63415c3/">
+          
+          
+            
+          
+          为什么Bitmap需要高效加载？现在的高清大图，动辄就要好几M，而Android对单个应用锁施加的内存限制，只有小十几M，如16M，这导致加载Bitmap的时候很容易出现内存溢出。如下异常信息，便是在开发中经常需要的：
+
+java.lang.OutofMemoryError:bitmap size exceeds VM budget 
+
+为了解决这个问题，就出现了Bitmap的高效加载策略。假设通
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2019-03-06 16:32" pubdate>
+              2019-03-06
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Performance-Optimization/">Performance Optimization</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Bitmap/">Bitmap</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
         <a href="/2019/02/16/87a48ef6/">LinkedHashMap原理</a>
       </h1>
 
