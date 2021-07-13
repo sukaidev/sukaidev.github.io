@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      81
+      82
        分钟
     </span>
   
@@ -683,13 +683,14 @@
 <p>这种情况下启动的新建联系人Activity将会直接加入到当前任务栈的栈顶，此时该Activity只与短信App的任务栈Task具有相关性，并不会影响到原有的通讯录App任务栈。</p>
 <p>当我们点击返回按键时，新建联系人Activity出栈，回到短信详情页，我们依旧处于短信App任务栈中。</p>
 <h4 id="singleTask任务栈切换"><a href="#singleTask任务栈切换" class="headerlink" title="singleTask任务栈切换"></a>singleTask任务栈切换</h4><p>不同于standard模式启动的Activity会直接加入到当前任务栈栈顶，singleTask模式启动的Activity只会存在于特定任务栈中，这个任务栈与其设置的taskAffinity有关。</p>
-<p>这种模式下启动的Activity没有办法入栈的话，如何让它显示在栈顶呢？</p>
+<p>对于没有指定taskAffinity的Activity，其taskAffinity等于当前包名，这意味着如果我们在以singleTask启动一个当前App内的未指定taskAffinity的Activity，将不会发生任务栈的切换。</p>
+<p>这里我们主要讨论启动其它App中的，或者指定了taskAffinity的Activity，这种情况下启动的Activity没有办法入栈的话，如何让它显示在栈顶呢？</p>
 <p>只需要把此Activity所在的任务栈整体移到前台即可。不过此任务栈的栈顶可能并不是我们启动的Activity，这种时候就会进行一次“清顶”操作，将要启动的Activity上方所有Activity出栈，并且不会重建当前Activity。</p>
 <p><img src="/img/image-20210626231520598.png" srcset="/img/loading.gif" alt="singleTask模式"></p>
 <p>上图展示了一次singleTask模式启动Activity导致的任务栈切换，实际操作中会有较为明显的<strong>Task切换动画</strong>，而不是Activity切换动画。</p>
 <p>图中展示的是目标Activity所属任务栈已经存在的情况，<strong>如果启动目标Activity时其归属的任务栈还未启动，那么会先创建对应的任务栈TaskRecord</strong>。</p>
 <p>另外需要注意的是，目标Activity的回退栈可能还存在其它Activity，例如图中的“邮件首页”，此时会随着任务栈的切换一并移动到当前任务栈的上方，并且当我们按返回键时不会立刻回到App中而是先回到邮件首页。</p>
-<p>使用singleInstance启动Activity时Task的表现与singleTask启动类似，唯一的区别是由于singleInstance的任务栈只会有其一个Activity，所以当我们返回时一定返回到原App Task中。</p>
+<p>使用singleInstance启动Activity时Task的表现与非本栈singleTask启动或singleTask+taskAffinity类似，区别在于是由于singleInstance的任务栈只会有其一个Activity，所以当我们返回时一定返回到原App Task中。</p>
 <h3 id="Intent-Flag"><a href="#Intent-Flag" class="headerlink" title="Intent Flag"></a>Intent Flag</h3><p>在Intent中定义了很多Flag，其中有几个Flag直接影响了Activity栈的管理，需要注意的是如果Launch Mode与Intent Flag有冲突的话<strong>以Intent Flag为准</strong>。</p>
 <p>下面介绍一些与栈管理有关的Flag。</p>
 <table>
