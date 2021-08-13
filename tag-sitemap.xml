@@ -3,6 +3,27 @@
 
 
     <url>
+        <loc>https://www.sukaidev.top/tags/ViewModel/</loc>
+        <lastmod>2021-08-13T15:29:20.128Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://www.sukaidev.top/tags/Activity/</loc>
+        <lastmod>2021-08-13T15:29:20.128Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://www.sukaidev.top/tags/AOSP/</loc>
+        <lastmod>2021-08-13T15:29:20.128Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
         <loc>https://www.sukaidev.top/tags/Coroutines/</loc>
         <lastmod>2021-08-05T06:07:46.174Z</lastmod>
         <changefreq>weekly</changefreq>
@@ -12,34 +33,6 @@
     <url>
         <loc>https://www.sukaidev.top/tags/BinarySearch/</loc>
         <lastmod>2021-07-27T06:37:12.677Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.2</priority>
-    </url>
-
-    <url>
-        <loc>https://www.sukaidev.top/tags/Window/</loc>
-        <lastmod>2021-07-26T08:35:57.033Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.2</priority>
-    </url>
-
-    <url>
-        <loc>https://www.sukaidev.top/tags/Activity/</loc>
-        <lastmod>2021-07-26T08:35:57.033Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.2</priority>
-    </url>
-
-    <url>
-        <loc>https://www.sukaidev.top/tags/AOSP/</loc>
-        <lastmod>2021-07-26T08:35:57.033Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.2</priority>
-    </url>
-
-    <url>
-        <loc>https://www.sukaidev.top/tags/View/</loc>
-        <lastmod>2021-07-26T08:35:57.033Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>
@@ -117,6 +110,13 @@
     <url>
         <loc>https://www.sukaidev.top/tags/HashMap/</loc>
         <lastmod>2021-06-20T14:12:35.804Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://www.sukaidev.top/tags/View/</loc>
+        <lastmod>2021-06-20T13:29:12.130Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>
