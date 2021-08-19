@@ -17,7 +17,7 @@
   <meta name="description" content="Android Developer">
   <meta name="author" content="sukaidev">
   <meta name="keywords" content="Android sukaidev 苏海鸿">
-  <title>Android Framework（六） - Sukai&#39;s Blog - Android Developer</title>
+  <title>Android Framework（六）——ANR机制从生产到消费 - Sukai&#39;s Blog - Android Developer</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
 
@@ -162,7 +162,7 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="Android Framework（六）">
+            <span class="h2" id="subtitle" title="Android Framework（六）——ANR机制从生产到消费">
               
             </span>
 
@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      0 字
+      1.2k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      1
+      16
        分钟
     </span>
   
@@ -224,10 +224,54 @@
         <div class="py-5" id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">Android Framework（六）</h1>
+            <h1 style="display: none">Android Framework（六）——ANR机制从生产到消费</h1>
             
             <div class="markdown-body">
-              
+              <p>最近看了几篇关于ANR机制的文章，本篇文章来源码跟踪一下ANR消息的产生、消费与dump的全过程，彻底理解ANR出现的原因，并且讨论如何监控ANR的产生。</p>
+<h2 id="ANR机制原理"><a href="#ANR机制原理" class="headerlink" title="ANR机制原理"></a>ANR机制原理</h2><p>ANR（Application Not Responding）机制是Android系统中一种监控用户App是否长时间未响应的一种机制，类似于Windows系统中的“窗口未响应”。</p>
+<p>既然是监控耗时，类似于我们监控一个方法的执行时间，一定会在方法执行前做一些记录，然后与方法执行结束后进行对比，ANR中也是类似的。</p>
+<h3 id="触发场景"><a href="#触发场景" class="headerlink" title="触发场景"></a>触发场景</h3><p>那么哪些场景下会导致ANR呢？主要有以下几种情况：</p>
+<ol>
+<li><strong>KEY_DISPATCHING_TIMEOUT</strong>：输入事件分发超过5秒，包括触摸事件与按键事件。</li>
+<li><strong>BROADCAST_FG_TIMEOUT</strong>：前台广播在10秒内未执行完成。</li>
+<li><strong>BROADCAST_BG_TIMEOUT</strong>：后台广播在60秒内未执行完成。</li>
+<li><strong>CONTENT_PROVIDER_PUBLISH_TIMEOUT</strong>：内容提供者在publish时超过10秒。</li>
+<li><strong>SERVICE_TIMEOUT</strong>：前台服务在20秒内未执行完成。</li>
+<li><strong>SERVICE_BACKGROUND_TIMEOUT</strong>：后台服务在200秒内未执行完成。</li>
+</ol>
+<p>以上时间是基于Android 10.0源码的，具体时间定义在<code>ActivityManagerService.java</code>、<code>ActivityTaskManagerService</code>和<code>ActiveServices.java</code>中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java">[ActivityManagerService.java]<br><span class="hljs-comment">// How long we wait for an attached process to publish its content providers</span><br><span class="hljs-comment">// before we decide it must be hung.</span><br><span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> CONTENT_PROVIDER_PUBLISH_TIMEOUT = <span class="hljs-number">10</span>*<span class="hljs-number">1000</span>;<br><br><span class="hljs-comment">// How long we allow a receiver to run before giving up on it.</span><br><span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> BROADCAST_FG_TIMEOUT = <span class="hljs-number">10</span>*<span class="hljs-number">1000</span>;<br><span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> BROADCAST_BG_TIMEOUT = <span class="hljs-number">60</span>*<span class="hljs-number">1000</span>;<br><br>[ActivityTaskManagerService.java]<br><span class="hljs-comment">// How long we wait until we timeout on key dispatching.</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> KEY_DISPATCHING_TIMEOUT_MS = <span class="hljs-number">5</span> * <span class="hljs-number">1000</span>;<br><br>[ActiveServices.java]<br><span class="hljs-comment">// How long we wait for a service to finish executing.</span><br><span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> SERVICE_TIMEOUT = <span class="hljs-number">20</span>*<span class="hljs-number">1000</span>;<br><br><span class="hljs-comment">// How long we wait for a service to finish executing.</span><br><span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> SERVICE_BACKGROUND_TIMEOUT = SERVICE_TIMEOUT * <span class="hljs-number">10</span>;<br></code></pre></td></tr></table></figure>
+<p>下面以后台服务为例，分析ANR机制的触发流程。</p>
+<h3 id="触发流程"><a href="#触发流程" class="headerlink" title="触发流程"></a>触发流程</h3><p>我们从服务的启动过程来寻找ANR相关代码，由于代码比较多，并且启动Service的过程与Activity的启动很类似，而前面已经写了篇文章来详细讲解Activity的启动过程了，所以这里选择跳过部分代码。</p>
+<h4 id="ActiveServices-realStartServiceLocked"><a href="#ActiveServices-realStartServiceLocked" class="headerlink" title="ActiveServices#realStartServiceLocked"></a>ActiveServices#realStartServiceLocked</h4><p>直接来到ActiveServices中的<code>realStartServiceLocked</code>方法中：</p>
+<blockquote>
+<p>frameworks/base/services/core/java/com/android/server/am/ActiveServices.java</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">realStartServiceLocked</span><span class="hljs-params">(ServiceRecord r,</span></span><br><span class="hljs-function"><span class="hljs-params">        ProcessRecord app, <span class="hljs-keyword">boolean</span> execInFg)</span> <span class="hljs-keyword">throws</span> RemoteException </span>&#123;<br>  <br>    ···<br>      <br>    <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> newService = app.services.add(r);<br>    bumpServiceExecutingLocked(r, execInFg, <span class="hljs-string">&quot;create&quot;</span>);<br>    mAm.updateLruProcessLocked(app, <span class="hljs-keyword">false</span>, <span class="hljs-keyword">null</span>);<br>    updateServiceForegroundLocked(r.app, <span class="hljs-comment">/* oomAdj= */</span> <span class="hljs-keyword">false</span>);<br>    mAm.updateOomAdjLocked(OomAdjuster.OOM_ADJ_REASON_START_SERVICE);<br>     ···<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>此方法首先调用了<code>bumpServiceExecutingLocked</code>，这里有我们寻找的代码，跟进。</p>
+<h4 id="ActiveServices-bumpServiceExecutingLocked"><a href="#ActiveServices-bumpServiceExecutingLocked" class="headerlink" title="ActiveServices#bumpServiceExecutingLocked"></a>ActiveServices#bumpServiceExecutingLocked</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">bumpServiceExecutingLocked</span><span class="hljs-params">(ServiceRecord r, <span class="hljs-keyword">boolean</span> fg, String why)</span> </span>&#123;<br>  <br>    ···<br><br>    <span class="hljs-comment">// 记录当前时间</span><br>    <span class="hljs-keyword">long</span> now = SystemClock.uptimeMillis();<br>    <span class="hljs-keyword">if</span> (r.executeNesting == <span class="hljs-number">0</span>) &#123;<br>        r.executeFg = fg;<br>        ServiceState stracker = r.getTracker();<br>        <span class="hljs-keyword">if</span> (stracker != <span class="hljs-keyword">null</span>) &#123;<br>            stracker.setExecuting(<span class="hljs-keyword">true</span>, mAm.mProcessStats.getMemFactorLocked(), now);<br>        &#125;<br>        <span class="hljs-keyword">if</span> (r.app != <span class="hljs-keyword">null</span>) &#123;<br>            r.app.executingServices.add(r);<br>            r.app.execServicesFg |= fg;<br>            <span class="hljs-keyword">if</span> (timeoutNeeded &amp;&amp; r.app.executingServices.size() == <span class="hljs-number">1</span>) &#123;<br>                <span class="hljs-comment">// </span><br>                scheduleServiceTimeoutLocked(r.app);<br>            &#125;<br>        &#125;<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (r.app != <span class="hljs-keyword">null</span> &amp;&amp; fg &amp;&amp; !r.app.execServicesFg) &#123;<br>        r.app.execServicesFg = <span class="hljs-keyword">true</span>;<br>        <span class="hljs-keyword">if</span> (timeoutNeeded) &#123;<br>            <span class="hljs-comment">// </span><br>            scheduleServiceTimeoutLocked(r.app);<br>        &#125;<br>    &#125;<br>    ···<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这里无论是哪个if分支都调用了<code>scheduleServiceTimeoutLocked</code>方法，看名字猜测其余Service的超时有关，继续跟进。</p>
+<h4 id="ActiveServices-scheduleServiceTimeoutLocked"><a href="#ActiveServices-scheduleServiceTimeoutLocked" class="headerlink" title="ActiveServices#scheduleServiceTimeoutLocked"></a>ActiveServices#scheduleServiceTimeoutLocked</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">scheduleServiceTimeoutLocked</span><span class="hljs-params">(ProcessRecord proc)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (proc.executingServices.size() == <span class="hljs-number">0</span> || proc.thread == <span class="hljs-keyword">null</span>) &#123;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>    <span class="hljs-comment">// mAm为ActivityManager</span><br>    Message msg = mAm.mHandler.obtainMessage(<br>            ActivityManagerService.SERVICE_TIMEOUT_MSG);<br>    msg.obj = proc;<br>    mAm.mHandler.sendMessageDelayed(msg,<br>            proc.execServicesFg ? SERVICE_TIMEOUT : SERVICE_BACKGROUND_TIMEOUT);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>可以看到这里通过<strong>ActivityManager</strong>的Handler创建一个消息，指定类型为<strong>ActivityManagerService.SERVICE_TIMEOUT_MSG</strong>，并且根据服务是否前后台来设置了不同的Delay值。</p>
+<p>接下来我们可以直接去Handler的handleMessage方法中寻找对应的消息是如何处理的。</p>
+<h4 id="MainHandler-handleMessage"><a href="#MainHandler-handleMessage" class="headerlink" title="MainHandler#handleMessage"></a>MainHandler#handleMessage</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java">    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">handleMessage</span><span class="hljs-params">(Message msg)</span> </span>&#123;<br>        <span class="hljs-keyword">switch</span> (msg.what) &#123;<br>        <span class="hljs-keyword">case</span> GC_BACKGROUND_PROCESSES_MSG: &#123;<br>            <span class="hljs-keyword">synchronized</span> (ActivityManagerService.<span class="hljs-keyword">this</span>) &#123;<br>                performAppGcsIfAppropriateLocked();<br>            &#125;<br>        &#125; <span class="hljs-keyword">break</span>;<br>        <span class="hljs-keyword">case</span> SERVICE_TIMEOUT_MSG: &#123;<br>            <span class="hljs-comment">// 处理后台服务超时消息</span><br>            mServices.serviceTimeout((ProcessRecord)msg.obj);<br>        &#125; <span class="hljs-keyword">break</span>;<br>        <span class="hljs-keyword">case</span> SERVICE_FOREGROUND_TIMEOUT_MSG: &#123;<br>            <span class="hljs-comment">// 处理前台服务超时消息</span><br>            mServices.serviceForegroundTimeout((ServiceRecord)msg.obj);<br>        &#125; <span class="hljs-keyword">break</span>;<br>         <br>        ···<br>          <br>&#125;<br></code></pre></td></tr></table></figure>
+<p>mServices为ActiveServices对象，可以看到这里又交回给ActiveServices来处理。</p>
+<h4 id="ActiveServices-serviceTimeout"><a href="#ActiveServices-serviceTimeout" class="headerlink" title="ActiveServices#serviceTimeout"></a>ActiveServices#serviceTimeout</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">serviceTimeout</span><span class="hljs-params">(ProcessRecord proc)</span> </span>&#123;<br>    String anrMessage = <span class="hljs-keyword">null</span>;<br>    <br>    ···<br>    <br>    <span class="hljs-comment">// 如果Service还在执行且已经超时，并且其所在进程还在执行中，anrMessage不为null</span><br>    <span class="hljs-keyword">if</span> (anrMessage != <span class="hljs-keyword">null</span>) &#123;<br>        <span class="hljs-comment">// 消费ANR</span><br>        proc.appNotResponding(<span class="hljs-keyword">null</span>, <span class="hljs-keyword">null</span>, <span class="hljs-keyword">null</span>, <span class="hljs-keyword">null</span>, <span class="hljs-keyword">false</span>, anrMessage);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>最终在这里调用了ProcessRecord的<code>appNotResponding</code>方法来消费ANR事件，执行后续的弹框、dump堆栈等操作，这部分将会在后文分析。</p>
+<p>到这里就完成了ANR消息的产生与消费的流程，不过还有一点没有分析，就是消息在何时被移除。</p>
+<p>我们可以通过全局搜索的方式来寻找此条消息类型的remove是在何时调用的：</p>
+<p><img src="/img//image-20210819173001359.png" srcset="/img/loading.gif" alt="消息移除搜索"></p>
+<p>可以看到是在ActiveServices中的<code>serviceDoneExecutingLocked</code>进行消息的移除。</p>
+<p>继续利用全局搜索我们可以知道最早的调用时机是在Service的<strong>Create</strong>生命周期中，具体是在ActivityThread的<code>handleCreateService</code>方法中，接着来看这个方法。</p>
+<h4 id="ActivityThread-handleCreateService"><a href="#ActivityThread-handleCreateService" class="headerlink" title="ActivityThread#handleCreateService"></a>ActivityThread#handleCreateService</h4><blockquote>
+<p>frameworks/base/core/java/android/app/ActivityThread.java</p>
+</blockquote>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/fWoXprt2TFL1tTapt7esYg">微信Android客户端的ANR监控方案</a></li>
+<li><a target="_blank" rel="noopener" href="https://juejin.cn/post/6973564044351373326">卡顿、ANR、死锁，线上如何监控？</a></li>
+<li><a target="_blank" rel="noopener" href="http://gityuan.com/2016/07/02/android-anr/">理解Android ANR的触发原理</a></li>
+</ol>
+
             </div>
             <hr>
             <div>
