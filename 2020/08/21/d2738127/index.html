@@ -172,8 +172,8 @@
   
     <span class="post-meta">
       <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2021-08-21 17:57" pubdate>
-        2021年8月21日 下午
+      <time datetime="2020-08-21 17:57" pubdate>
+        2020年8月21日 下午
       </time>
     </span>
   
@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      618 字
+      645 字
     </span>
   
 
@@ -284,7 +284,11 @@
 <li>如果tryAcquire返回了false，即获取锁失败，那么调用<strong>addWaiter</strong>将当前线程添加到一个等待队列中</li>
 <li><strong>acquireQueued</strong>处理加入到队列中的结点，通过自旋去尝试获取锁，根据情况将线程阻塞或者取消阻塞</li>
 </ol>
-<h3 id="释放锁"><a href="#释放锁" class="headerlink" title="释放锁"></a>释放锁</h3><h2 id="公平锁实现"><a href="#公平锁实现" class="headerlink" title="公平锁实现"></a>公平锁实现</h2>
+<h3 id="释放锁"><a href="#释放锁" class="headerlink" title="释放锁"></a>释放锁</h3><h2 id="公平锁实现"><a href="#公平锁实现" class="headerlink" title="公平锁实现"></a>公平锁实现</h2><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://tech.meituan.com/2019/12/05/aqs-theory-and-apply.html">从ReentrantLock的实现看AQS的原理及应用</a></li>
+<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/hm9HRGE-lDvPIlZQqwbHXg">从ReentrantLock到AQS，写给Android工程师的锁教程</a></li>
+</ol>
+
             </div>
             <hr>
             <div>
@@ -311,23 +315,6 @@
               
                 <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
               
-              
-                <div class="post-prevnext">
-                  <article class="post-prev col-6">
-                    
-                    
-                  </article>
-                  <article class="post-next col-6">
-                    
-                    
-                      <a href="/2021/07/30/8c057ce7/">
-                        <span class="hidden-mobile">Android Framework（六）——ANR机制从生产到消费</span>
-                        <span class="visible-mobile">下一篇</span>
-                        <i class="iconfont icon-arrowright"></i>
-                      </a>
-                    
-                  </article>
-                </div>
               
             </div>
 
