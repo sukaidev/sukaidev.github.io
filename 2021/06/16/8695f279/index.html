@@ -233,7 +233,7 @@
 <p> 在前面的几篇文章中，<strong>AMS</strong>或者<strong>ATMS</strong>绝对是出现频率最高的缩写之一。关于ActivityManagerService（下文简称AMS），我们或多或少都知道它的一点职责，例如四大组件的启动和管理、管理ANR状态、发起应用程序进程启动请求等。</p>
 <p>AMS可以说是Android系统服务中最核心的一个服务，仅ActivityManagerService.java类中就有2万5千行代码，Android 10中对此类进行了拆解，其中Activity生命周期管理相关的代码都放到了一个新类ActivityTaskManager（下文简称ATMS）中。即便如此，Android 10中的AMS.java类依旧有1.9万行代码，可见AMS的重要性。</p>
 <p>本文主要涉及AMS启动、获取、以及Activity栈管理。</p>
-<h2 id="AMS启动过程"><a href="#AMS启动过程" class="headerlink" title="AMS启动过程"></a>AMS启动过程</h2><p>在<a target="_blank" rel="noopener" href="https://sukaidev.github.io/2021/05/14/7ca6484e/#SystemServer-main">Framework系列的第一篇文章</a>中，我们知道Android系统服务在<strong>SystemServer</strong>进程创建后，通过其run()方法来启动各类服务：</p>
+<h2 id="AMS启动过程"><a href="#AMS启动过程" class="headerlink" title="AMS启动过程"></a>AMS启动过程</h2><p>在<a href="/2021/05/14/7ca6484e/#SystemServer-main">Framework系列的第一篇文章</a>中，我们知道Android系统服务在<strong>SystemServer</strong>进程创建后，通过其run()方法来启动各类服务：</p>
 <blockquote>
 <p>frameworks/base/services/java/com/android/server/SystemServer.java</p>
 </blockquote>
@@ -287,7 +287,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">start</span><span class="hljs-params">()</span> </span>&#123;<br>  <br>    ··· <br>      <br>    <span class="hljs-comment">// 将LocalService添加到本地服务列表</span><br>    LocalServices.addService(ActivityManagerInternal.class, <span class="hljs-keyword">new</span> LocalService());<br>    <span class="hljs-comment">// 通知ATMS，AMS已经启动，可以获取到AMS</span><br>    mActivityTaskManager.onActivityManagerInternalAdded();<br>    <span class="hljs-comment">// 通知UGM，AMS已经启动，可以获取到AMS</span><br>    mUgmInternal.onActivityManagerInternalAdded();<br>    <span class="hljs-comment">// 通知PendingIntentController，AMS已经启动，可以获取到AMS</span><br>    mPendingIntentController.onActivityManagerInternalAdded();<br>    <br>    ···<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>此方法首先将AMS的LocalService对象添加到本地服务列表中，然后通知其他需要第一时间获取AMS的服务已经可以获取到AMS。</p>
 <h2 id="获取AMS服务"><a href="#获取AMS服务" class="headerlink" title="获取AMS服务"></a>获取AMS服务</h2><p>上节我们讲述了AMS服务的启动过程，那么如何获取AMS服务呢？</p>
-<p>实际上在<a target="_blank" rel="noopener" href="https://sukaidev.github.io/2021/05/22/4cb0a496/#Instrumentation-execStartActivity">Activity启动流程</a>一文中，我们已经知道了如何去获取ATMS服务。</p>
+<p>实际上在<a href="/2021/05/22/4cb0a496/#Instrumentation-execStartActivity">Activity启动流程</a>一文中，我们已经知道了如何去获取ATMS服务。</p>
 <p>而获取AMS服务跟ATMS是类似的，在日常开发中，我们通过context中定义好的方法来获取ActivityManager对象，例如：</p>
 <figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">val</span> am = context.getSystemService(Context.ACTIVITY_SERVICE) <span class="hljs-keyword">as</span> ActivityManager<br></code></pre></td></tr></table></figure>
 <p>ActivityManager是一个和AMS相关联的类，它主要对运行中的Activity进行管理，这些管理工作并不是由ActivityManager来处理的，而是交由AMS来处理。</p>
