@@ -172,8 +172,8 @@
   
     <span class="post-meta">
       <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2020-10-20 21:22" pubdate>
-        2020年10月20日 晚上
+      <time datetime="2021-08-05 21:22" pubdate>
+        2021年8月5日 晚上
       </time>
     </span>
   
@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      3.4k 字
+      5.2k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      41
+      62
        分钟
     </span>
   
@@ -288,7 +288,7 @@
 <p>其中<strong>SHARED</strong>和<strong>EXCLUSIVE</strong>表示锁的两种模式。</p>
 <p>waitStatus表示节点在队列中的等待状态，它有几个枚举值：</p>
 <ul>
-<li><strong>0</strong>：当一个Node被初始化的时候的默认值</li>
+<li><strong>0</strong>：当一个Node被初始化的时候的默认值，或者当前Node对应线程刚刚被唤醒</li>
 <li><strong>1（CANCELLED）</strong>：由于超时或者中断，线程获取的锁的请求已经取消了，节点一旦被取消了就不会再改变状态，取消节点的线程不会再阻塞。</li>
 <li><strong>-1（SIGNAL）</strong>：表示此节点的后继节点已经处于阻塞状态，当此节点在释放或者取消时，需要唤醒后继节点。</li>
 <li><strong>-2（CONDITION）</strong>：表示节点在条件等待队列中，标记为CONDITION的节点会被移动到一个特殊的条件等待队列，直到条件时才会被重新移动到同步等待队列 。</li>
@@ -371,10 +371,67 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">parkAndCheckInterrupt</span><span class="hljs-params">()</span> </span>&#123;<br>    LockSupport.park(<span class="hljs-keyword">this</span>);<br>    <span class="hljs-comment">// 注意返回值是是否响应了中断而唤醒</span><br>    <span class="hljs-keyword">return</span> Thread.interrupted();<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>到这里整个<code>acquire</code>方法执行流程就分析完了，如下图所示：</p>
 <p><img src="/img/image-20201023181429840.png" srcset="/img/loading.gif" alt="acquire执行流程"></p>
-<h4 id="独占式同步状态释放"><a href="#独占式同步状态释放" class="headerlink" title="独占式同步状态释放"></a>独占式同步状态释放</h4><h3 id="共享模式"><a href="#共享模式" class="headerlink" title="共享模式"></a>共享模式</h3><h2 id="阻塞和唤醒线程"><a href="#阻塞和唤醒线程" class="headerlink" title="阻塞和唤醒线程"></a>阻塞和唤醒线程</h2><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
+<blockquote>
+<p>注意：对于独占式同步状态的获取，AQS支持响应中断与超时检测，对应<code>acquireInterruptibly</code>、<code>doAcquireInterruptibly</code>和<code>tryAcquireNanos</code>、<code>doAcquireNanos</code>方法，这些方法与上文介绍的流程大同小异，因此这里不再赘述。</p>
+</blockquote>
+<h4 id="独占式同步状态释放"><a href="#独占式同步状态释放" class="headerlink" title="独占式同步状态释放"></a>独占式同步状态释放</h4><p>当线程获取同步状态后，执行完相应逻辑后就需要释放同步状态。AQS提供了了<code>release(int arg)</code>方法释放同步状态：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">release</span><span class="hljs-params">(<span class="hljs-keyword">int</span> arg)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (tryRelease(arg)) &#123;<br>        Node h = head;<br>        <span class="hljs-keyword">if</span> (h != <span class="hljs-keyword">null</span> &amp;&amp; h.waitStatus != <span class="hljs-number">0</span>)<br>            unparkSuccessor(h);<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>同样的，类似于<code>tryAcquire</code>，<code>release</code>方法中首先通过<code>tryRelease</code>方法来判断是否释放成功，<code>tryRelease</code>也是一个抽象方法需要子类实现。</p>
+<p>释放成功后，会调用<code>unparkSuccessor</code>方法唤醒后继节点。<code>unparkSuccessor</code>方法在<strong>出队</strong>这一小节已经详细介绍过了，不再赘述。</p>
+<h3 id="共享模式"><a href="#共享模式" class="headerlink" title="共享模式"></a>共享模式</h3><p>共享模式表示允许多个线程同时持有同步状态，我们常说的读写锁中的读锁就是这种模式。</p>
+<h4 id="共享式同步状态获取"><a href="#共享式同步状态获取" class="headerlink" title="共享式同步状态获取"></a>共享式同步状态获取</h4><p>AQS提供<code>acquireShared</code>方法共享式获取同步状态：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">acquireShared</span><span class="hljs-params">(<span class="hljs-keyword">int</span> arg)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (tryAcquireShared(arg) &lt; <span class="hljs-number">0</span>)<br>        doAcquireShared(arg);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>从上面程序可以看出，方法首先是调用<code>tryAcquireShared</code>方法尝试获取同步状态，如果获取失败则调用<code>doAcquireShared</code>自旋方式获取同步状态，共享式获取同步状态的标志是返回 &gt;= 0 的值表示获取成功。</p>
+<p><code>tryAcquireShared</code>同样是一个未实现的方法，需要由子类实现，不过对于这个方法的返回值需要重点注意下：</p>
+<ul>
+<li>返回值小于0：表示获取共享同步状态失败</li>
+<li>返回值等于0：表示获取共享同步状态成功，但没有剩余同步状态可以获取</li>
+<li>返回值大于0：表示获取共享同步状态成功，并且还有”返回值“个同步状态资源可以获取，需要传播到队列的后继节点中</li>
+</ul>
+<p>如何利用这个返回值呢，来看看<code>doAcquireShared</code>。</p>
+<h5 id="doAcquireShared"><a href="#doAcquireShared" class="headerlink" title="doAcquireShared"></a>doAcquireShared</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Node SHARED = <span class="hljs-keyword">new</span> Node();<br><br><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doAcquireShared</span><span class="hljs-params">(<span class="hljs-keyword">int</span> arg)</span> </span>&#123;<br>    <span class="hljs-comment">// 向队列中添加一个节点，其nextWaiter指向SHARED</span><br>    <span class="hljs-keyword">final</span> Node node = addWaiter(Node.SHARED);<br>    <span class="hljs-keyword">boolean</span> failed = <span class="hljs-keyword">true</span>;<br>    <span class="hljs-keyword">try</span> &#123;<br>        <span class="hljs-keyword">boolean</span> interrupted = <span class="hljs-keyword">false</span>;<br>        <span class="hljs-keyword">for</span> (;;) &#123;<br>            <span class="hljs-comment">// 前驱节点</span><br>            <span class="hljs-keyword">final</span> Node p = node.predecessor();<br>            <span class="hljs-keyword">if</span> (p == head) &#123;<br>                <span class="hljs-comment">// 如果p是头节点，尝试获取共享同步状态</span><br>                <span class="hljs-keyword">int</span> r = tryAcquireShared(arg);<br>                <span class="hljs-comment">// 获取共享同步状态成功</span><br>                <span class="hljs-keyword">if</span> (r &gt;= <span class="hljs-number">0</span>) &#123;<br>                    <span class="hljs-comment">// 设置头节点并且传播共享锁</span><br>                    setHeadAndPropagate(node, r);<br>                    p.next = <span class="hljs-keyword">null</span>; <span class="hljs-comment">// help GC</span><br>                    <span class="hljs-keyword">if</span> (interrupted)<br>                        selfInterrupt();<br>                    failed = <span class="hljs-keyword">false</span>;<br>                    <span class="hljs-keyword">return</span>;<br>                &#125;<br>            &#125;<br>            <span class="hljs-keyword">if</span> (shouldParkAfterFailedAcquire(p, node) &amp;&amp;<br>                parkAndCheckInterrupt())<br>                interrupted = <span class="hljs-keyword">true</span>;<br>        &#125;<br>    &#125; <span class="hljs-keyword">finally</span> &#123;<br>        <span class="hljs-keyword">if</span> (failed)<br>            cancelAcquire(node);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>此方法与上节独占式同步获取中<code>acquireQueued</code>十分类似，区别在于这里使用<code>tryAcquireShared</code>方法来获取共享同步状态，并且调用了<code>setHeadAndPropagate</code>方法来设置头节点。</p>
+<p><code>setHeadAndPropagate</code>由名字可知，其除了设置头节点外，还需要传播共享锁状态，来看看源码。</p>
+<h5 id="setHeadAndPropagate"><a href="#setHeadAndPropagate" class="headerlink" title="setHeadAndPropagate"></a>setHeadAndPropagate</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setHeadAndPropagate</span><span class="hljs-params">(Node node, <span class="hljs-keyword">int</span> propagate)</span> </span>&#123;<br>    <span class="hljs-comment">// 保存旧头节点</span><br>    Node h = head;<br>    <span class="hljs-comment">// 设置新头节点，执行完后head为当前node</span><br>    setHead(node);<br><br>    <span class="hljs-comment">// 满足条件的情况下释放共享锁并唤醒后继节点</span><br>    <span class="hljs-keyword">if</span> (propagate &gt; <span class="hljs-number">0</span> || h == <span class="hljs-keyword">null</span> || h.waitStatus &lt; <span class="hljs-number">0</span> ||<br>        (h = head) == <span class="hljs-keyword">null</span> || h.waitStatus &lt; <span class="hljs-number">0</span>) &#123;<br>        Node s = node.next;<br>        <span class="hljs-keyword">if</span> (s == <span class="hljs-keyword">null</span> || s.isShared())<br>            <span class="hljs-comment">// 释放共享同步状态</span><br>            doReleaseShared();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>先来看两个入参：<strong>node代表的线程一定是当前线程，propagate则表示剩余可获取的共享同步状态</strong>。</p>
+<p>方法中首先保存了旧头节点，同时设置了node为新的头节点。</p>
+<p>第一个if条件判断逻辑较为复杂，我们来重点梳理一下：</p>
+<ul>
+<li><code>propagate  &gt; 0</code>：传入的propagate可能是0也可能是正整数，当大于0时表示需要传播共享锁，因此可以直接短路。</li>
+<li><code>h == null || h.waitStatus &lt; 0</code>：由于方法一开始就将head赋值给了h，因此这里h == null是不可能成立的。而h的waitStatus可能有两种情况：<ul>
+<li>h.waitStatus为<strong>0</strong>：这个情况表示某个线程释放了锁，或者在获取共享锁时传播给后继节点共享锁状态，将h的h.waitStatus更新为了0，具体实现在<code>doReleaseShared</code>方法中，下一节会介绍。</li>
+<li>h.waitStatus为<strong>PROPAGATE</strong>：同样是<code>doReleaseShared</code>中唤醒后继节点时将head的waitStatus更新为0，但又有其他线程执行了<code>doReleaseShared</code>，将waitStatus更新为了PROPAGATE。</li>
+</ul>
+</li>
+<li><code>(h = head) == null || h.waitStatus &lt; 0)</code>：判断新head（下称：node）是否为null或者h.waitStatus小于0。一般node不会为null，而node的waitStatus可能有多种情况：<ul>
+<li>node.waitStatus为<strong>0</strong>：后继节点刚好入队列，还没有走到<code>shouldParkAfterFailedAcquire</code>中的修改前继节点<code>waitStatus</code>的代码。</li>
+<li>node.waitStatus为<strong>PROPAGATE</strong>：上一个共享节点被唤醒后，成为新head，后继节点刚入队列，又有其他线程释放锁调用<code>doReleaseShared</code>，<code>node.waitStatus</code>从0改为-3。</li>
+<li>node.waitStatus为<strong>SIGNAL</strong>：已经调用了<code>shouldParkAfterFailedAcquire</code>，<code>node.waitStatus</code>从0或者PROPAGATE改为SIGNAL，可能阻塞，可能未阻塞。</li>
+</ul>
+</li>
+</ul>
+<p>可以看到由于共享锁的特殊性，相比于独占锁，这里更多的是要考虑其他线程可能会修改新/旧头节点的情况，逻辑较为复杂，了解即可。</p>
+<p>上面多个条件只需满足一个即可if代码块中，当后继节点为共享状态时，调用<code>doReleaseShared</code>将共享状态传播给后继节点。</p>
+<h4 id="共享式同步状态释放"><a href="#共享式同步状态释放" class="headerlink" title="共享式同步状态释放"></a>共享式同步状态释放</h4><p>共享式同步状态释放逻辑在<code>doReleaseShared</code>方法中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doReleaseShared</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">for</span> (;;) &#123;<br>        Node h = head;<br>        <span class="hljs-keyword">if</span> (h != <span class="hljs-keyword">null</span> &amp;&amp; h != tail) &#123;<br>            <span class="hljs-keyword">int</span> ws = h.waitStatus;<br>            <span class="hljs-keyword">if</span> (ws == Node.SIGNAL) &#123;<br>                <span class="hljs-keyword">if</span> (!compareAndSetWaitStatus(h, Node.SIGNAL, <span class="hljs-number">0</span>))<br>                    <span class="hljs-keyword">continue</span>;            <span class="hljs-comment">// loop to recheck cases</span><br>                unparkSuccessor(h);<br>            &#125;<br>            <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (ws == <span class="hljs-number">0</span> &amp;&amp;<br>                     !compareAndSetWaitStatus(h, <span class="hljs-number">0</span>, Node.PROPAGATE))<br>                <span class="hljs-keyword">continue</span>;                <span class="hljs-comment">// loop on failed CAS</span><br>        &#125;<br>        <span class="hljs-keyword">if</span> (h == head)                   <span class="hljs-comment">// loop if head changed</span><br>            <span class="hljs-keyword">break</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>为了保证线程安全，共享锁的释放操作同样需要自旋配合CAS来完成。</p>
+<p>释放时同样需要判断当前head的waitStatus来确保成功：</p>
+<ul>
+<li>当waitStatus为SIGNAL时：尝试更新head的waitStatus为0，成功则调用<code>unparkSuccessor</code>唤醒后继节点，并且<code>unparkSuccessor</code>中会更新waitStatus为SIGNAL，失败表示有其他线程更改了waitStatus，重新循环</li>
+<li>当waitStatus为0时：此状态说明有线程执行了<code>doReleaseShared</code>并将waitStatus成功更新为0，但还未执行<code>unparkSuccessor</code>，或在<code>unparkSuccessor</code>更新waiStatus失败，此时当前线程刚好执行到<code>doReleaseShared</code>就会发现waitStatus为0。这种情况尝试更新waitStatus为PROPAGATE，失败将会继续循环。</li>
+</ul>
+<p>当上面两个操作中有一个执行成功时，将会继续执行判断：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (h == head)                   <span class="hljs-comment">// loop if head changed</span><br>    <span class="hljs-keyword">break</span>;<br></code></pre></td></tr></table></figure>
+<p>当前head如果发生了改变，继续循环，没有发生改变则说明此次释放操作成功。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本篇文章从数据结构到独占和共享锁的获取与释放过程简单分析了AQS框架的一些原理，当然这些只是冰山一角，实际上整个框架的设计非常巧妙，阅读源码时感觉很晦涩，可能是自己的多线程知识掌握的不够好。</p>
+<p>下一篇文章将会从ReentrantLock的实现来看AQS的应用。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
 <li>《Java并发编程实战》</li>
+<li>《Java并发编程的艺术》</li>
 <li><a target="_blank" rel="noopener" href="https://kaiwu.lagou.com/course/courseInfo.htm?courseId=67#/detail/pc?id=1864">深入理解 AQS 和 CAS 原理</a></li>
 <li><a target="_blank" rel="noopener" href="https://www.cmsblogs.com/article/1391311158086078464">J.U.C之AQS：CLH同步队列</a></li>
+<li><a target="_blank" rel="noopener" href="https://tech.meituan.com/2019/12/05/aqs-theory-and-apply.html">从ReentrantLock的实现看AQS的原理及应用</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.tuicool.com/articles/MveUNzF">LockSupport的park和unpark的基本使用,以及对线程中断的响应性</a></li>
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/anlian523/article/details/106448512/">AQS深入理解 shouldParkAfterFailedAcquire源码分析 状态为0或PROPAGATE的情况分析</a></li>
 </ol>
 
@@ -411,18 +468,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2020/12/22/789195ba/">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">刷题笔记</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2019/09/12/d497a59/">
-                        <span class="hidden-mobile">Android Studio金丝雀版更新  原生View Binding要来了？</span>
+                      <a href="/2021/07/30/8c057ce7/">
+                        <span class="hidden-mobile">Android Framework（六）——ANR机制从产生到消费</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
