@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      640 字
+      1.5k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      7
+      18
        分钟
     </span>
   
@@ -274,21 +274,42 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ReentrantLock</span><span class="hljs-params">(<span class="hljs-keyword">boolean</span> fair)</span> </span>&#123;<br>    sync = fair ? <span class="hljs-keyword">new</span> FairSync() : <span class="hljs-keyword">new</span> NonfairSync();<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>非公平锁的实现在NonfairSync类中，下面以代码为例，分析ReentrantLock在非公平锁的实现下的加锁与解锁过程。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> val reentrantLock = ReentrantLock(<span class="hljs-keyword">false</span>)<br><br><span class="hljs-function">fun <span class="hljs-title">tryGetResourceLocked</span><span class="hljs-params">()</span> </span>&#123;<br>    reentrantLock.lock()<br><br>    <span class="hljs-keyword">try</span> &#123;<br>        ···<br>    &#125; <span class="hljs-keyword">finally</span> &#123;<br>        reentrantLock.unlock()<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-<h3 id="获取锁"><a href="#获取锁" class="headerlink" title="获取锁"></a>获取锁</h3><h4 id="ReentrantLock-lock"><a href="#ReentrantLock-lock" class="headerlink" title="ReentrantLock#lock"></a>ReentrantLock#lock</h4><p>当前线程执行到reentrantLock.lock方法时，会尝试获取锁，来到NonfairSync的lock方法中：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">lock</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-comment">// 通过CAS操作来修改state，表示争夺锁</span><br>    <span class="hljs-keyword">if</span> (compareAndSetState(<span class="hljs-number">0</span>, <span class="hljs-number">1</span>))<br>        <span class="hljs-comment">// 争夺成功，设置当前持有锁的线程</span><br>        setExclusiveOwnerThread(Thread.currentThread());<br>    <span class="hljs-keyword">else</span><br>        <span class="hljs-comment">// 争夺失败，尝试获取锁</span><br>        acquire(<span class="hljs-number">1</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>对于非公平锁，它允许线程插队争夺锁，因此代码中首先利用了CAS机制来争夺锁，成功则更新当前持有锁的线程，失败调用<strong>acquire</strong>方法。</p>
-<h4 id="AbstractQueuedSynchronizer-acquire"><a href="#AbstractQueuedSynchronizer-acquire" class="headerlink" title="AbstractQueuedSynchronizer#acquire"></a>AbstractQueuedSynchronizer#acquire</h4><p>这里使用了AQS中的原有实现，源码如下：</p>
+<h3 id="获取锁"><a href="#获取锁" class="headerlink" title="获取锁"></a>获取锁</h3><p>当前线程执行到reentrantLock.lock方法时，会尝试获取锁，来到NonfairSync的lock方法中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">lock</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-comment">// 通过CAS操作来修改state，即插队</span><br>    <span class="hljs-keyword">if</span> (compareAndSetState(<span class="hljs-number">0</span>, <span class="hljs-number">1</span>))<br>        <span class="hljs-comment">// 修改成功，设置当前持有锁的线程</span><br>        setExclusiveOwnerThread(Thread.currentThread());<br>    <span class="hljs-keyword">else</span><br>        <span class="hljs-comment">// 修改失败，进入正常流</span><br>        acquire(<span class="hljs-number">1</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>对于非公平锁，它允许线程插队争夺锁，因此代码中首先利用了CAS机制来争夺锁，即插队，成功则更新当前持有锁的线程，失败调用<code>acquire</code>方法。</p>
+<p><code>acquire</code>方法在<a href="2021/08/05/d2738127/">上篇文章</a>中已经详细介绍了，我们再来看一下它的方法签名：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">acquire</span><span class="hljs-params">(<span class="hljs-keyword">int</span> arg)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (!tryAcquire(arg) &amp;&amp;<br>        acquireQueued(addWaiter(Node.EXCLUSIVE), arg))<br>        selfInterrupt();<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>此方法虽然只有两行代码，但实际上包含多个细节操作：</p>
-<ol>
-<li>调用<strong>tryAcquire</strong>方法尝试获取锁</li>
-<li>如果tryAcquire返回了false，即获取锁失败，那么调用<strong>addWaiter</strong>将当前线程添加到一个等待队列中</li>
-<li><strong>acquireQueued</strong>处理加入到队列中的结点，通过自旋去尝试获取锁，根据情况将线程阻塞或者取消阻塞</li>
-</ol>
-<h3 id="释放锁"><a href="#释放锁" class="headerlink" title="释放锁"></a>释放锁</h3><h2 id="公平锁实现"><a href="#公平锁实现" class="headerlink" title="公平锁实现"></a>公平锁实现</h2><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
-<li><a target="_blank" rel="noopener" href="https://tech.meituan.com/2019/12/05/aqs-theory-and-apply.html">从ReentrantLock的实现看AQS的原理及应用</a></li>
-<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/hm9HRGE-lDvPIlZQqwbHXg">从ReentrantLock到AQS，写给Android工程师的锁教程</a></li>
-</ol>
+<p>之前我们说到<code>tryAcquire</code>方法是由子类实现，来看NonfairSync是如何实现的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">tryAcquire</span><span class="hljs-params">(<span class="hljs-keyword">int</span> acquires)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> nonfairTryAcquire(acquires);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>仅仅是调用了<code>nonfairTryAcquire</code>方法，这个方法定义在NonfairSync的父类<strong>Sync</strong>里，来看看它是如何实现的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">nonfairTryAcquire</span><span class="hljs-params">(<span class="hljs-keyword">int</span> acquires)</span> </span>&#123;<br>    <span class="hljs-keyword">final</span> Thread current = Thread.currentThread();<br>    <span class="hljs-keyword">int</span> c = getState();<br>    <span class="hljs-keyword">if</span> (c == <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-comment">// 如果c=0，再次尝试获取锁</span><br>        <span class="hljs-keyword">if</span> (compareAndSetState(<span class="hljs-number">0</span>, acquires)) &#123;<br>            setExclusiveOwnerThread(current);<br>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;<br>        &#125;<br>    &#125;<br>    <span class="hljs-comment">// c不为0，但当前线程为独占锁持有者</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (current == getExclusiveOwnerThread()) &#123;<br>        <span class="hljs-comment">// 直接增加重入次数</span><br>        <span class="hljs-keyword">int</span> nextc = c + acquires;<br>      <br>        <span class="hljs-comment">// 可能溢出</span><br>        <span class="hljs-keyword">if</span> (nextc &lt; <span class="hljs-number">0</span>) <span class="hljs-comment">// overflow</span><br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error(<span class="hljs-string">&quot;Maximum lock count exceeded&quot;</span>);<br>        setState(nextc);<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>方法中重新获取了当前同步状态state，并且根据state的状态有：</p>
+<ul>
+<li>如果state为0，说明有线程释放了锁，可以尝试再次获取锁，成功则返回true</li>
+<li>如果state不为0，并且当前线程为锁持有者，则直接增加重入次数，这说明ReentrantLock是可重入的。另外还增加了对于可能存在的Int值的溢出判断，不过这里实际上目前是不太可能执行到的，因为在这之前可能已经出现StackOverflow了。</li>
+<li>其他情况返回false，表示获取锁失败</li>
+</ul>
+<p>假如方法返回了false，则表示当前线程未能成功抢到锁，则会加入到CLH同步队列中并阻塞，这个在上篇文章已经详细介绍过了，这里不再赘述。</p>
+<h3 id="释放锁"><a href="#释放锁" class="headerlink" title="释放锁"></a>释放锁</h3><p>当代码执行到reentrant.unlock方法时，会执行锁的释放操作，来看看unlock的源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">unlock</span><span class="hljs-params">()</span> </span>&#123;<br>    sync.release(<span class="hljs-number">1</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>方法直接调用了AQS中的release方法，同样在上篇文章详细介绍过，再来看下方法签名：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">release</span><span class="hljs-params">(<span class="hljs-keyword">int</span> arg)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (tryRelease(arg)) &#123;<br>        Node h = head;<br>        <span class="hljs-keyword">if</span> (h != <span class="hljs-keyword">null</span> &amp;&amp; h.waitStatus != <span class="hljs-number">0</span>)<br>            unparkSuccessor(h);<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p><code>tryRelease</code>方法在Sync类中实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">tryRelease</span><span class="hljs-params">(<span class="hljs-keyword">int</span> releases)</span> </span>&#123;<br>    <span class="hljs-comment">// state的预期值</span><br>    <span class="hljs-keyword">int</span> c = getState() - releases;<br>    <span class="hljs-keyword">if</span> (Thread.currentThread() != getExclusiveOwnerThread())<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalMonitorStateException();<br>    <span class="hljs-keyword">boolean</span> free = <span class="hljs-keyword">false</span>;<br>  <br>    <span class="hljs-comment">// c为0，表示所有线程都释放了锁</span><br>    <span class="hljs-keyword">if</span> (c == <span class="hljs-number">0</span>) &#123;<br>        free = <span class="hljs-keyword">true</span>;<br>        setExclusiveOwnerThread(<span class="hljs-keyword">null</span>);<br>    &#125;<br>  <br>    <span class="hljs-comment">// 独占模式不需要CAS</span><br>    setState(c);<br>    <span class="hljs-keyword">return</span> free;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>对于独占锁来说，只有可能是锁的持有线程才可能修改State的值，因此整个释放过程不需要CAS来参与。</p>
+<p>由于可能存在多次重入，本次释放后可能当前state不为0，那么当前线程依然是锁的持有者。</p>
+<p>如果释放后state为0，则表示当前线程已经完全释放了锁，则进入后续操作，唤醒后继节点。</p>
+<p>到这里NonfairSync类就解析完成了，可以看到在AQS框架的基础上要实现一个锁还是非常简单的。</p>
+<h2 id="公平锁实现"><a href="#公平锁实现" class="headerlink" title="公平锁实现"></a>公平锁实现</h2><p>下面来看看公平锁实现，在FairSync类中。</p>
+<p>FairSync与NonFairSync仅仅在获取锁的过程有差别，因此我们只需要关注获取锁即可。</p>
+<p>同样的在<code>lock</code>方法和<code>tryAcquire</code>中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">lock</span><span class="hljs-params">()</span> </span>&#123;<br>    acquire(<span class="hljs-number">1</span>);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">tryAcquire</span><span class="hljs-params">(<span class="hljs-keyword">int</span> acquires)</span> </span>&#123;<br>    <span class="hljs-keyword">final</span> Thread current = Thread.currentThread();<br>    <span class="hljs-keyword">int</span> c = getState();<br>    <span class="hljs-keyword">if</span> (c == <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">if</span> (!hasQueuedPredecessors() &amp;&amp;<br>            compareAndSetState(<span class="hljs-number">0</span>, acquires)) &#123;<br>            setExclusiveOwnerThread(current);<br>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (current == getExclusiveOwnerThread()) &#123;<br>        <span class="hljs-keyword">int</span> nextc = c + acquires;<br>        <span class="hljs-keyword">if</span> (nextc &lt; <span class="hljs-number">0</span>)<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error(<span class="hljs-string">&quot;Maximum lock count exceeded&quot;</span>);<br>        setState(nextc);<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>可以看到这里的实现与非公平锁非常类似，仅有少许差别，分别是：</p>
+<ul>
+<li>在<code>lock</code>方法中，不同于非公平锁会先采用CAS尝试插队，公平锁直接调用了<code>acquire</code>方法来尝试获取锁</li>
+<li>在<code>tryAcquire</code>方法中，如果此时已经同步资源已经处于无锁状态（state为0），当前线程将不会立马去尝试获取锁，而是先判断队列中有没有正在等待的线程，而且这个线程不是当前线程，如果有的话将返回false，没有才会尝试获取锁。</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本篇文章基于ReentrantLock的源码了解了AQS框架的应用，学习了如果使用AQS来实现公平锁与非公平锁，同时也加深了对于这两种锁的区别的理解。</p>
 
             </div>
             <hr>
@@ -316,6 +337,23 @@
               
                 <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
               
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/08/05/d2738127/">
+                        <span class="hidden-mobile">Java并发编程——AQS原理</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
               
             </div>
 

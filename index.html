@@ -179,6 +179,74 @@
     
     
       <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2021/08/12/d2738127/" target="_self">
+          <img src="/img/cover_java_concurrency_reentrant_lock.png" srcset="/img/loading.gif" alt="Java并发编程——从ReentrantLock来看AQS的应用">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/08/12/d2738127/">Java并发编程——从ReentrantLock来看AQS的应用</a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/08/12/d2738127/">
+          
+          
+            
+          
+          上篇文章简单梳理了一下AQS原理，这篇文章通过ReentrantLock来看JUC包是如何应用AQS的。
+ReentrantLock概述ReentrantLock意思为可重入锁，指的是一个线程能够对一个临界资源重复加锁，它通过AQS框架来提供公平锁与非公平锁的两种实现。
+可以将其与Synchronized对比，区别如下：
+
+
+
+
+ReentrantLock
+Synchronized
+
+
+
+锁实现机
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-08-12 20:57" pubdate>
+              2021-08-12
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Concurrency/">Concurrency</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/AQS/">AQS</a>
+            
+              <a href="/tags/ReentrantLock/">ReentrantLock</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2021/08/05/d2738127/" target="_self">
           <img src="/img/cover_java_concurrency_aqs.png" srcset="/img/loading.gif" alt="Java并发编程——AQS原理">
         </a>
@@ -706,63 +774,6 @@ Android系统架构当我们看到”Android系统架构“这几个字时，通
               <a href="/tags/Zygote/">Zygote</a>
             
               <a href="/tags/SystemServer/">SystemServer</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2021/05/06/40879c1f/" target="_self">
-          <img src="/img/cover_kotlin_coroutines.png" srcset="/img/loading.gif" alt="深入理解Kotlin协程（六）——从字节码角度理解协程">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2021/05/06/40879c1f/">深入理解Kotlin协程（六）——从字节码角度理解协程</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/05/06/40879c1f/">
-          
-          
-            
-          
-          之前的协程文章中并没有采用字节码来分析，原因一是当时对字节码不是很熟悉，二是不好用一个更难的概念来解释一个没那么难的概念。我们知道协程的关键实现都是由 kotlinc 即编译器来完成，而 IDE 反编译的代码阅读性很差，那么现在学习了字节码之后就可以通过 javap 来一探究竟了。
-suspend functionkotlin协程的”黑魔法“基础是 suspend 关键字，先来这个方法看看背后做了
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2021-05-06 22:23" pubdate>
-              2021-05-06
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/Kotlin/">Kotlin</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Bytecode/">Bytecode</a>
-            
-              <a href="/tags/Coroutines/">Coroutines</a>
             
           </div>
         

@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      5.2k 字
+      5.5k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      62
+      65
        分钟
     </span>
   
@@ -339,7 +339,12 @@
 <td>使用CAS方式更新State</td>
 </tr>
 </tbody></table>
-<p>仅仅只需要上面三个方法，我们就实现共享资源的两套模式：<strong>独占模式（EXCLUSIVE）</strong>和<strong>共享模式（SHARED）</strong>。</p>
+<p>仅仅只需要上面三个方法，我们就可以实现共享资源的两套模式：<strong>独占模式（EXCLUSIVE）</strong>和<strong>共享模式（SHARED）</strong>。</p>
+<p> 如果熟悉操作系统的话，可以将state类比为Linux中的信号量，信号量的值表示当前空闲的共享资源数量，而state的值则表示当前持有同步状态的线程数量。</p>
+<p>那么对于独占模式，即互斥模式来说，state只会有两个可能的值：0和1。</p>
+<p>其中0表示当前没有线程持有同步状态，即没有线程持有锁，这时如果线程A尝试获取锁，只需要使用CAS替换state的状态为1，如果成功则表示它拿到了这个互斥锁，失败表示存在锁竞争。</p>
+<p>1表示有线程持有同步状态，即当前有线程持有这个互斥锁，这时如果未持有锁的线程尝试获取锁发现state为1，将直接进行入队。</p>
+<p>下面我们就来看看独占模式和共享模式分别是如何实现的。</p>
 <h3 id="独占模式"><a href="#独占模式" class="headerlink" title="独占模式"></a>独占模式</h3><p>独占模式表示同一时刻有且仅有一个线程能够持有同步状态，也就是我们常说的<strong>互斥</strong>模式。</p>
 <h4 id="独占式同步状态获取"><a href="#独占式同步状态获取" class="headerlink" title="独占式同步状态获取"></a>独占式同步状态获取</h4><p>AQS提供了<code>acquire(int arg)</code>模版方法为独占式获取同步状态。</p>
 <p>该方法对中断不敏感，也就是说由于线程获取同步状态失败加入到CLH同步队列中，后续对线程进行中断操作时，线程不会从同步队列中移除。代码如下：</p>
@@ -467,6 +472,12 @@
                 <div class="post-prevnext">
                   <article class="post-prev col-6">
                     
+                    
+                      <a href="/2021/08/12/d2738127/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java并发编程——从ReentrantLock来看AQS的应用</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
                     
                   </article>
                   <article class="post-next col-6">
