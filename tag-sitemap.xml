@@ -3,6 +3,27 @@
 
 
     <url>
+        <loc>https://www.sukaidev.top/tags/CAS/</loc>
+        <lastmod>2021-08-29T08:38:55.013Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://www.sukaidev.top/tags/CLH/</loc>
+        <lastmod>2021-08-29T08:38:55.013Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://www.sukaidev.top/tags/AQS/</loc>
+        <lastmod>2021-08-29T08:38:55.013Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
         <loc>https://www.sukaidev.top/tags/Coroutines/</loc>
         <lastmod>2021-08-24T06:30:21.712Z</lastmod>
         <changefreq>weekly</changefreq>
@@ -54,27 +75,6 @@
     <url>
         <loc>https://www.sukaidev.top/tags/Generic/</loc>
         <lastmod>2021-08-24T06:19:03.881Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.2</priority>
-    </url>
-
-    <url>
-        <loc>https://www.sukaidev.top/tags/CAS/</loc>
-        <lastmod>2021-08-24T06:03:16.037Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.2</priority>
-    </url>
-
-    <url>
-        <loc>https://www.sukaidev.top/tags/CLH/</loc>
-        <lastmod>2021-08-24T06:03:16.037Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.2</priority>
-    </url>
-
-    <url>
-        <loc>https://www.sukaidev.top/tags/AQS/</loc>
-        <lastmod>2021-08-24T06:03:16.037Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>

@@ -17,7 +17,7 @@
   <meta name="description" content="Android Developer">
   <meta name="author" content="sukaidev">
   <meta name="keywords" content="Android sukaidev 苏海鸿">
-  <title>Java并发编程——从ReentrantLock来看AQS原理 - Sukai&#39;s Blog - Android Developer</title>
+  <title>Java并发编程——从ReentrantLock来看AQS的应用 - Sukai&#39;s Blog - Android Developer</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
 
@@ -162,7 +162,7 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="Java并发编程——从ReentrantLock来看AQS原理">
+            <span class="h2" id="subtitle" title="Java并发编程——从ReentrantLock来看AQS的应用">
               
             </span>
 
@@ -172,8 +172,8 @@
   
     <span class="post-meta">
       <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2020-08-21 17:57" pubdate>
-        2020年8月21日 下午
+      <time datetime="2021-08-12 20:57" pubdate>
+        2021年8月12日 晚上
       </time>
     </span>
   
@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      645 字
+      640 字
     </span>
   
 
@@ -224,10 +224,11 @@
         <div class="py-5" id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">Java并发编程——从ReentrantLock来看AQS原理</h1>
+            <h1 style="display: none">Java并发编程——从ReentrantLock来看AQS的应用</h1>
             
             <div class="markdown-body">
-              <h2 id="ReentrantLock概述"><a href="#ReentrantLock概述" class="headerlink" title="ReentrantLock概述"></a>ReentrantLock概述</h2><p>ReentrantLock意思为可重入锁，指的是一个线程能够对一个临界资源重复加锁，它通过AQS框架来提供公平锁与非公平锁的两种实现。</p>
+              <p><a href="2021/08/05/d2738127/">上篇文章</a>简单梳理了一下AQS原理，这篇文章通过ReentrantLock来看JUC包是如何应用AQS的。</p>
+<h2 id="ReentrantLock概述"><a href="#ReentrantLock概述" class="headerlink" title="ReentrantLock概述"></a>ReentrantLock概述</h2><p>ReentrantLock意思为可重入锁，指的是一个线程能够对一个临界资源重复加锁，它通过AQS框架来提供公平锁与非公平锁的两种实现。</p>
 <p>可以将其与<strong>Synchronized</strong>对比，区别如下：</p>
 <table>
 <thead>
@@ -268,8 +269,8 @@
 <td align="center">可重入</td>
 </tr>
 </tbody></table>
-<p>ReentrantLock内部使用AQS框架来实现加锁和解锁的操作，并且提供了公平锁与非公平锁的两种实现，后文将会通过ReentrantLock来分析它是如何使用AQS的，在这之前我们需要了解AQS的基本原理。</p>
-<h2 id="非公平锁实现"><a href="#非公平锁实现" class="headerlink" title="非公平锁实现"></a>非公平锁实现</h2><p>ReentrantLock 要实现非公平锁只需在创建时传入 false 即可，内部提供了两种实现：<strong>FairSync</strong> 和 <strong>NonfairSync</strong>。</p>
+<p>ReentrantLock本身没有实现AQS，而是通过内部类<strong>FairSync</strong>和<strong>NonfairSync</strong>来实现AQS，这两个类对应公平锁和非公平锁的实现，下面分别来看具体实现。</p>
+<h2 id="非公平锁实现"><a href="#非公平锁实现" class="headerlink" title="非公平锁实现"></a>非公平锁实现</h2><p>ReentrantLock 要实现非公平锁只需在创建时传入 false 即可：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ReentrantLock</span><span class="hljs-params">(<span class="hljs-keyword">boolean</span> fair)</span> </span>&#123;<br>    sync = fair ? <span class="hljs-keyword">new</span> FairSync() : <span class="hljs-keyword">new</span> NonfairSync();<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>非公平锁的实现在NonfairSync类中，下面以代码为例，分析ReentrantLock在非公平锁的实现下的加锁与解锁过程。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> val reentrantLock = ReentrantLock(<span class="hljs-keyword">false</span>)<br><br><span class="hljs-function">fun <span class="hljs-title">tryGetResourceLocked</span><span class="hljs-params">()</span> </span>&#123;<br>    reentrantLock.lock()<br><br>    <span class="hljs-keyword">try</span> &#123;<br>        ···<br>    &#125; <span class="hljs-keyword">finally</span> &#123;<br>        reentrantLock.unlock()<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
