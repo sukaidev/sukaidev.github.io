@@ -10,14 +10,21 @@
 
     <url>
         <loc>https://www.sukaidev.top/categories/Android-Framework/</loc>
-        <lastmod>2021-08-30T15:51:54.377Z</lastmod>
+        <lastmod>2021-09-01T14:42:45.852Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://www.sukaidev.top/categories/Android-Basics/</loc>
+        <lastmod>2021-09-01T14:32:38.902Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>
 
     <url>
         <loc>https://www.sukaidev.top/categories/Concurrency/</loc>
-        <lastmod>2021-08-29T14:33:17.970Z</lastmod>
+        <lastmod>2021-09-01T06:19:14.138Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>
@@ -53,13 +60,6 @@
     <url>
         <loc>https://www.sukaidev.top/categories/Algorithm/</loc>
         <lastmod>2021-07-27T06:37:12.677Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.2</priority>
-    </url>
-
-    <url>
-        <loc>https://www.sukaidev.top/categories/Android-Basics/</loc>
-        <lastmod>2021-07-06T09:46:07.507Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>

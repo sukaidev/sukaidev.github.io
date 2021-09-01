@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      5.5k 字
+      5.6k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      65
+      66
        分钟
     </span>
   
@@ -227,7 +227,7 @@
             <h1 style="display: none">Java并发编程——AQS原理</h1>
             
             <div class="markdown-body">
-              <p>AQS 全称是 <strong>Abstract Queued Synchronizer</strong>，一般翻译为<strong>同步器</strong>。它是一套实现多线程同步功能的<strong>框架</strong>，由大名鼎鼎的 Doug Lea 操刀设计并开发实现的。AQS 在源码中被广泛使用，尤其是在 JUC包中，比如 <strong>ReentrantLock</strong>、<strong>Semaphore</strong>、<strong>CountDownLatch</strong>、<strong>ThreadPoolExecutor</strong>。</p>
+              <p>AQS 全称是 <strong>Abstract Queued Synchronizer</strong>，翻译为<strong>抽象排队同步器</strong>。它是一套实现多线程同步功能的<strong>框架</strong>，由大名鼎鼎的 Doug Lea 操刀设计并开发实现的。AQS 在源码中被广泛使用，尤其是在 JUC包中，比如 <strong>ReentrantLock</strong>、<strong>Semaphore</strong>、<strong>CountDownLatch</strong>、<strong>ThreadPoolExecutor</strong>。</p>
 <p>理解 AQS 对我们理解 JUC 中其他组件至关重要，并且在实际开发中也可以通过自定义 AQS 来实现各种需求场景。</p>
 <h2 id="框架概览"><a href="#框架概览" class="headerlink" title="框架概览"></a>框架概览</h2><p>首先，我们来纵览一下整个AQS框架：</p>
 <p><img src="/img/82077ccf14127a87b77cefd1ccf562d3253591.png" srcset="/img/loading.gif" alt="AQS框架概览（图源美团技术团队）"></p>
@@ -428,7 +428,13 @@
 <p>当上面两个操作中有一个执行成功时，将会继续执行判断：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (h == head)                   <span class="hljs-comment">// loop if head changed</span><br>    <span class="hljs-keyword">break</span>;<br></code></pre></td></tr></table></figure>
 <p>当前head如果发生了改变，继续循环，没有发生改变则说明此次释放操作成功。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本篇文章从数据结构到独占和共享锁的获取与释放过程简单分析了AQS框架的一些原理，当然这些只是冰山一角，实际上整个框架的设计非常巧妙，阅读源码时感觉很晦涩，可能是自己的多线程知识掌握的不够好。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本篇文章从数据结构到独占和共享锁的获取与释放过程简单分析了AQS框架的一些原理，当然这些只是冰山一角，实际上整个框架的设计非常巧妙，建议读者自行阅读一遍。</p>
+<p>在了解了AQS的原理之后，我们就可以理解AQS为什么叫抽象排队同步器了，实际上这个名字起的非常巧妙，仅仅使用三个词就完美的诠释了它的特点：</p>
+<ul>
+<li>抽象（Abstract）：它是一套抽象实现的框架，需要子类继承来实现整个锁机制</li>
+<li>排队（Queued）：AQS中的核心数据结构为CLH队列，获取同步状态失败时，线程将会以队列中的节点的方式进行排队</li>
+<li>同步器（Synchronizer）：整个框架用于实现线程间同步机制</li>
+</ul>
 <p>下一篇文章将会从ReentrantLock的实现来看AQS的应用。</p>
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
 <li>《Java并发编程实战》</li>
