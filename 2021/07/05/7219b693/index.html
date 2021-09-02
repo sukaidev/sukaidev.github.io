@@ -247,7 +247,7 @@
 <p>然而这种方式我们只能通过字符串硬编码的方式来写入代码，对于程序员来说非常不友好，如果代码比较多很容易出现错误而找不到问题的情况。</p>
 <p>因此Square开发了<a target="_blank" rel="noopener" href="https://github.com/square/javapoet">JavaPoet</a>，JavaPoet提供了一套用于生成<code>.java</code>文件的API，其使用方法可以参照其Github页面的<a target="_blank" rel="noopener" href="https://github.com/square/javapoet/blob/master/README.md">Readme</a>，使用它我们可以按照程序员的方式去编写源代码并输出到文件中。</p>
 <p>比较有意思的是，AutoService正是使用了JavaPoet来生成System Loader的配置文件。</p>
-<h3 id="KotlinPoet"><a href="#KotlinPoet" class="headerlink" title="KotlinPoet"></a>KotlinPoet</h3><p>与JavaPoet类似，<a target="_blank" rel="noopener" href="https://github.com/square/kotlinpoet">KotlinPoet</a>用于生成<code>.kotlin</code>源码文件。</p>
+<h3 id="KotlinPoet"><a href="#KotlinPoet" class="headerlink" title="KotlinPoet"></a>KotlinPoet</h3><p>与JavaPoet类似，<a target="_blank" rel="noopener" href="https://github.com/square/kotlinpoet">KotlinPoet</a>用于生成<code>.kt</code>源码文件。</p>
 <p>详细的使用方法参照官方文档：<a target="_blank" rel="noopener" href="https://square.github.io/kotlinpoet/%E3%80%82">https://square.github.io/kotlinpoet/。</a></p>
 <h2 id="项目结构"><a href="#项目结构" class="headerlink" title="项目结构"></a>项目结构</h2><p>首先来搭建整个Demo的项目结构，一般情况下我们会创建两个Java/Kotlin Module，命名为annotations和processor，其中annotations存放所有的注解，processor则为注解处理器模块。</p>
 <p>另外添加了一个名为runtime的Android Module，存放框架的所有对外开放类，整个源码目录如下。</p>
