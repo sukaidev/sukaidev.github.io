@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      1.5k 字
+      1.7k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      18
+      20
        分钟
     </span>
   
@@ -309,7 +309,10 @@
 <li>在<code>lock</code>方法中，不同于非公平锁会先采用CAS尝试插队，公平锁直接调用了<code>acquire</code>方法来尝试获取锁</li>
 <li>在<code>tryAcquire</code>方法中，如果此时已经同步资源已经处于无锁状态（state为0），当前线程将不会立马去尝试获取锁，而是先判断队列中有没有正在等待的线程，而且这个线程不是当前线程，如果有的话将返回false，没有才会尝试获取锁。</li>
 </ul>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本篇文章基于ReentrantLock的源码了解了AQS框架的应用，学习了如果使用AQS来实现公平锁与非公平锁，同时也加深了对于这两种锁的区别的理解。</p>
+<p>到这里ReentrantLock的非公平锁与公平锁的实现分析就完成了，可以看到有了AQS框架之后整个实现是很简单的，不需要特别多的代码。</p>
+<h2 id="ReentrantReadWriteLock"><a href="#ReentrantReadWriteLock" class="headerlink" title="ReentrantReadWriteLock"></a>ReentrantReadWriteLock</h2><p>上节中的ReentrantLock实现仅仅利用了AQS的独占同步机制，共享同步则没有使用到，因为ReentrantLock本身就是独占锁实现。</p>
+<p>而ReentrantReadWriteLock中的读锁是典型的共享锁，下面就从ReentrantReadWriteLock中的读写锁实现来看如何利用AQS实现共享锁。</p>
+<h3 id="读锁（共享锁）"><a href="#读锁（共享锁）" class="headerlink" title="读锁（共享锁）"></a>读锁（共享锁）</h3><h3 id="写锁（排他锁）"><a href="#写锁（排他锁）" class="headerlink" title="写锁（排他锁）"></a>写锁（排他锁）</h3><h2 id=""><a href="#" class="headerlink" title=""></a></h2><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本篇文章基于ReentrantLock的源码了解了AQS框架的应用，学习了如果使用AQS来实现公平锁与非公平锁，同时也加深了对于这两种锁的区别的理解。</p>
 
             </div>
             <hr>
