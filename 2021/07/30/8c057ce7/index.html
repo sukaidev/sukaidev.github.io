@@ -360,7 +360,7 @@
 <p>那么我们可以搜索tid=2的线程查看其堆栈情况：<br><img src="/img/image-20210801222536830.png" srcset="/img/loading.gif" alt="tid为2线程dump日志"></p>
 <p>可以看到这个tid为2的线程同样处于阻塞状态，并且日志告诉我们它也在等待一个锁&lt;0x0dc0eb5a&gt;释放，而这个锁则被id为1的线程持有，同时它持有锁&lt;0x0475d18b&gt;。</p>
 <p>id为1的线程实际上就是我们的主线程main。到这里我们发现线程2与主线程互相持有对方需要的锁，并且同时又在请求对方线程持有的锁，造成了循环等待，产生死锁。通过ANR日志，可以很清楚分析出这个ANR是死锁导致的，并且有具体堆栈信息。</p>
-<p>上面只是举例一种非常简单的ANR情况，实际项目中可能会有很多意料之外的ANR，其中甚至还会与系统服务没有相应有关，那么对于线上项目，要如何拿到这个ANR日志文件呢？下面就来讨论一下微信的ANR监控方案。</p>
+<p>上面只是举例一种非常简单的ANR情况，实际项目中可能会有很多意料之外的ANR，而且可能会涉及到多个进程例如system_server，那么对于线上项目，要如何拿到这个ANR日志文件呢？下面就来讨论一下微信的ANR监控方案。</p>
 <h2 id="微信ANR监控方案"><a href="#微信ANR监控方案" class="headerlink" title="微信ANR监控方案"></a>微信ANR监控方案</h2><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
 <li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/fWoXprt2TFL1tTapt7esYg">微信Android客户端的ANR监控方案</a></li>
 <li><a target="_blank" rel="noopener" href="https://juejin.cn/post/6973564044351373326">卡顿、ANR、死锁，线上如何监控？</a></li>

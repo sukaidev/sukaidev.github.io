@@ -294,12 +294,12 @@
 <li><strong>-2（CONDITION）</strong>：表示节点在条件等待队列中，标记为CONDITION的节点会被移动到一个特殊的条件等待队列，直到条件时才会被重新移动到同步等待队列 。</li>
 <li><strong>-3（PROPAGATE）</strong>：当前线程处在SHARED情况下，该字段才会使用，表示应将releaseShared传播到其他节点。</li>
 </ul>
-<h3 id="入队"><a href="#入队" class="headerlink" title="入队"></a>入队</h3><p>看过上面Node结点我们知道CHL是基于链表的实现，那么入队其实只需要尾节点即可，不过过程中由于涉及到多线程所以需要配合CAS操作使用。</p>
+<h3 id="入队"><a href="#入队" class="headerlink" title="入队"></a>入队</h3><p>看过上面Node结点我们知道CLH是基于链表的实现，那么入队其实只需要尾节点即可，不过过程中由于涉及到多线程所以需要配合CAS操作使用。</p>
 <p>具体的实现在<code>addWaiter</code>方法中：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> Node <span class="hljs-title">addWaiter</span><span class="hljs-params">(Node mode)</span> </span>&#123;<br>    Node node = <span class="hljs-keyword">new</span> Node(Thread.currentThread(), mode);<br>    <span class="hljs-comment">// 快速设置</span><br>    Node pred = tail;<br>    <span class="hljs-keyword">if</span> (pred != <span class="hljs-keyword">null</span>) &#123;<br>        node.prev = pred;<br>        <span class="hljs-keyword">if</span> (compareAndSetTail(pred, node)) &#123;<br>            pred.next = node;<br>            <span class="hljs-keyword">return</span> node;<br>        &#125;<br>    &#125;<br>    <span class="hljs-comment">// 自旋尝试</span><br>    enq(node);<br>    <span class="hljs-keyword">return</span> node;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>addWaiter方法首先尝试使用CAS将AQS中保存的tail，即队尾替换为当前需要入队的Node，如果成功则Node成功入队，如果失败说明其他线程也在调用addWaiter进行入队，则自旋不断尝试。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> Node <span class="hljs-title">enq</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Node node)</span> </span>&#123;<br>    <span class="hljs-keyword">for</span> (;;) &#123;<br>        Node t = tail;<br>        <span class="hljs-comment">// tail为null，此时队列未初始化</span><br>        <span class="hljs-keyword">if</span> (t == <span class="hljs-keyword">null</span>) &#123; <br>            <span class="hljs-keyword">if</span> (compareAndSetHead(<span class="hljs-keyword">new</span> Node()))<br>                tail = head;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            node.prev = t;<br>            <span class="hljs-comment">// 尝试更新tail</span><br>            <span class="hljs-keyword">if</span> (compareAndSetTail(t, node)) &#123;<br>                t.next = node;<br>                <span class="hljs-keyword">return</span> t;<br>            &#125;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>对于tail为null的情况，说明此时CHL队列还未初始化，那么将会创建一个head来初始化队列。这里有个关键的地方在于，队列的Head是通过Node的无参构造创建的，这说明CHL中队头CLH是一个亚节点（Dummy Head），不具备其他意义。</p>
+<p>对于tail为null的情况，说明此时CLH队列还未初始化，那么将会创建一个head来初始化队列。这里有个关键的地方在于，队列的Head是通过Node的无参构造创建的，这说明CLH中队头CLH是一个亚节点（Dummy Head），不具备其他意义。</p>
 <p>对于tail不为null的情况，使用CAS替换tail引用来更新尾节点。</p>
 <p>过程图如下：</p>
 <p><img src="/img/image-20200922235737756.png" srcset="/img/loading.gif" alt="入队"></p>
@@ -349,7 +349,7 @@
 <h4 id="独占式同步状态获取"><a href="#独占式同步状态获取" class="headerlink" title="独占式同步状态获取"></a>独占式同步状态获取</h4><p>AQS提供了<code>acquire(int arg)</code>模版方法为独占式获取同步状态。</p>
 <p>该方法对中断不敏感，也就是说由于线程获取同步状态失败加入到CLH同步队列中，后续对线程进行中断操作时，线程不会从同步队列中移除。代码如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">acquire</span><span class="hljs-params">(<span class="hljs-keyword">int</span> arg)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (!tryAcquire(arg) &amp;&amp;<br>        acquireQueued(addWaiter(Node.EXCLUSIVE), arg))<br>        selfInterrupt();<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>此方法只有三行，但涉及到了三个方法，定义如下：</p>
+<p>此方法只有三行（准确的来说只有两行），但涉及到了三个方法，定义如下：</p>
 <ul>
 <li>tryAcquire：去尝试获取锁，获取成功则设置锁状态并返回true，否则返回false。此方法涉及到具体实现，因此由子类来完成，注意实现时必须要保证获取同步状态操作是线程安全的。</li>
 <li>addWaiter：此方法上一节介绍过，如果<code>tryAcquire</code>返回false，表示获取同步状态失败，则调用该方法将当前线程加入到CLH同步队列尾部。</li>
@@ -409,7 +409,7 @@
 </ul>
 </li>
 <li><code>(h = head) == null || h.waitStatus &lt; 0)</code>：判断新head（下称：node）是否为null或者h.waitStatus小于0。一般node不会为null，而node的waitStatus可能有多种情况：<ul>
-<li>node.waitStatus为<strong>0</strong>：后继节点刚好入队列，还没有走到<code>shouldParkAfterFailedAcquire</code>中的修改前继节点<code>waitStatus</code>的代码。</li>
+<li>node.waitStatus为<strong>0</strong>：后继节点刚好入队列，还没有走到<code>shouldParkAfterFailedAcquire</code>中的修改前驱节点<code>waitStatus</code>的代码。</li>
 <li>node.waitStatus为<strong>PROPAGATE</strong>：上一个共享节点被唤醒后，成为新head，后继节点刚入队列，又有其他线程释放锁调用<code>doReleaseShared</code>，<code>node.waitStatus</code>从0改为-3。</li>
 <li>node.waitStatus为<strong>SIGNAL</strong>：已经调用了<code>shouldParkAfterFailedAcquire</code>，<code>node.waitStatus</code>从0或者PROPAGATE改为SIGNAL，可能阻塞，可能未阻塞。</li>
 </ul>
