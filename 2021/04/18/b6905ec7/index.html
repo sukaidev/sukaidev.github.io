@@ -622,8 +622,7 @@
 <p>编译后对应字节码：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java">0: new           #3                  // class Initializer<br><span class="hljs-number">3</span>: dup<br>4: invokespecial #4                  // Method &quot;&lt;init&gt;&quot;:()V<br><span class="hljs-number">7</span>: astore_1<br></code></pre></td></tr></table></figure>
 <p>出去第 7 行的存储指令，new 关键字经过编译后实际上生成了 new-dup-invokespecial 3行字节码。new指令很容易理解，invokespecial 则是用于调用对象&lt;init&gt;方法来初始化对象，那么中间这个dup指令的作用是什么呢？</p>
-<p>dup指令的含义是复制栈顶的数据并且插入到栈顶，在第0行时通过new指令创建了</p>
-<p>Initializer的一个实例然后加入到栈顶，接着如果直接通过invokespecial调用其构造方法，由于invokespecial会消耗栈顶的类实例引用，会导致操作数栈为空，使得刚刚创建的对象丢失。因此在invokespecial调用前需使用dup复制一份实例，随后就可以通过astore_1指令将其存入局部变量表了。</p>
+<p>dup指令的含义是复制栈顶的数据并且插入到栈顶，在第0行时通过new指令创建了Initializer的一个实例然后加入到栈顶，接着如果直接通过invokespecial调用其构造方法，由于invokespecial会消耗栈顶的类实例引用，会导致操作数栈为空，使得刚刚创建的对象丢失。因此在invokespecial调用前需使用dup复制一份实例，随后就可以通过astore_1指令将其存入局部变量表了。</p>
 <h4 id="3-lt-clinit-gt-方法"><a href="#3-lt-clinit-gt-方法" class="headerlink" title="3.&lt;clinit&gt;方法"></a>3.&lt;clinit&gt;方法</h4><p>&lt;clinit&gt;是类的静态初始化方法，同样的，类静态初始化代码块、静态变量初始化都会被编译进这个方法中。javap输出字节码中的 static{} 表示&lt;cinit&gt;方法。</p>
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/35079283/">《深入理解JVM字节码》</a>
 <a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/34907497">《深入理解Java虚拟机》</a>

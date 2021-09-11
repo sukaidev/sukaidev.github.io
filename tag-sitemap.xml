@@ -3,15 +3,43 @@
 
 
     <url>
+        <loc>https://www.sukaidev.top/tags/Service/</loc>
+        <lastmod>2021-09-11T05:59:14.048Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://www.sukaidev.top/tags/ANR/</loc>
+        <lastmod>2021-09-11T05:59:14.048Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://www.sukaidev.top/tags/AOSP/</loc>
+        <lastmod>2021-09-11T05:59:14.048Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://www.sukaidev.top/tags/Bytecode/</loc>
+        <lastmod>2021-09-10T16:36:42.337Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
         <loc>https://www.sukaidev.top/tags/ReentrantLock/</loc>
-        <lastmod>2021-09-07T14:18:10.016Z</lastmod>
+        <lastmod>2021-09-08T01:48:35.026Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>
 
     <url>
         <loc>https://www.sukaidev.top/tags/AQS/</loc>
-        <lastmod>2021-09-07T14:18:10.016Z</lastmod>
+        <lastmod>2021-09-08T01:48:35.026Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>
@@ -33,27 +61,6 @@
     <url>
         <loc>https://www.sukaidev.top/tags/CLH/</loc>
         <lastmod>2021-09-06T08:10:01.280Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.2</priority>
-    </url>
-
-    <url>
-        <loc>https://www.sukaidev.top/tags/Service/</loc>
-        <lastmod>2021-09-03T15:27:45.753Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.2</priority>
-    </url>
-
-    <url>
-        <loc>https://www.sukaidev.top/tags/ANR/</loc>
-        <lastmod>2021-09-03T15:27:45.753Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.2</priority>
-    </url>
-
-    <url>
-        <loc>https://www.sukaidev.top/tags/AOSP/</loc>
-        <lastmod>2021-09-03T15:27:45.753Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>
@@ -102,13 +109,6 @@
 
     <url>
         <loc>https://www.sukaidev.top/tags/Coroutines/</loc>
-        <lastmod>2021-08-24T06:30:21.712Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.2</priority>
-    </url>
-
-    <url>
-        <loc>https://www.sukaidev.top/tags/Bytecode/</loc>
         <lastmod>2021-08-24T06:30:21.712Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
