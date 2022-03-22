@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      6.5k 字
+      6.6k 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      96
+      97
        分钟
     </span>
   
@@ -420,16 +420,16 @@
 </ul>
 <p>这部分的时序图如下所示。</p>
 <p><img src="/img/framwork_target_app_start_activity.jpg" srcset="/img/loading.gif" alt="目标进程启动Activity过程时序图"></p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文基于Android API 29源码分析了Activity的启动流程。整个过程涉及了四个进程和两次IPC调用，这四个进程分别是<strong>Launcher进程</strong>、<strong>SystemServer进程</strong>、<strong>应用程序进程</strong>、以及可能参与的<strong>Zygote进程</strong>。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文基于Android API 29源码分析了Activity的启动流程。整个过程涉及了四个进程和三次IPC调用，这四个进程分别是<strong>Launcher进程</strong>、<strong>SystemServer进程</strong>、<strong>应用程序进程</strong>、以及可能参与的<strong>Zygote进程</strong>，三次IPC调用又分为两次Binder调用和一次Socket调用。</p>
 <p>我们来总结一下这几个过程的工作：</p>
 <ol>
-<li>Launcher进程：通过点击图标生成Intent，通知ATMS启动对应Activity。</li>
+<li>Launcher进程：通过点击图标生成Intent，使用Binder通信通知ATMS启动对应Activity。</li>
 <li>SystemServer进程：<ul>
 <li>检查调用（Launcher）进程是否被隔离、是否有权限启动Activity，然后生成ActivityStarter来处理Activity启动事宜。</li>
 <li>解析Intent中的信息，通过这些信息解析出包含Activity信息的ActivityInfo对象。判断Activity是否有在清单文件中注册、是否有权限等。</li>
 <li>计算Intent的Flags，处理LaunchMode问题，判断Activity的目标任务栈，将Activity添加到任务栈中。</li>
-<li>将任务栈移至前台，使栈顶的Activity可见，会创建一个事务并通过IPC发送到目标App进程。</li>
-<li>如果App进程不存在，启动App进程。</li>
+<li>将任务栈移至前台，使栈顶的Activity可见，会创建一个事务并通过Binder调用发送到目标App进程。</li>
+<li>如果App进程不存在，通过Socket通知Zygote进程启动App进程。</li>
 </ul>
 </li>
 <li>应用程序进程：<ul>
@@ -438,6 +438,7 @@
 <li>回调其onCreate、onStart、onResume生命周期。</li>
 </ul>
 </li>
+<li>Zygote进程：接收SystemServer的消息通过Fork自身来创建App进程，这部分将会在下篇文章详细讨论。</li>
 </ol>
 <p>Launcher进程负责通知ATMS发起Activity启动；SystemServer进程中参与的主要是ATMS服务，它负责计算构造目标的Intent、处理TaskRecord和ActivityRecord信息、以及ActivityStack的处理，最后将启动消息发送到对应应用程序进程；应用程序进程负责接收ATMS发送过来的事务并处理，Activity的创建以及生命周期的回调都在这里处理。</p>
 <p>若应用程序进程还未启动，Zygote进程还需要参与进来创建对应进程。</p>
