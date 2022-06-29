@@ -267,7 +267,7 @@
 <li><p>最后触控事件处理完成后会调用<code>finishInputEvent</code>结束应用对触控事件处理逻辑，<strong>这里面会通过<code>JNI</code>调用到<code>native</code>层<code>InputConsumer</code>的<code>sendFinishedSignal</code>函数中通过socket消息通知系统框架中的<code>InputDispatcher</code>该<code>Input</code>事件处理完成</strong>，触发从<code>&quot;wq&quot;</code>队列中及时移除待处理事件以免报<code>ANR</code>异常。</p>
 </li>
 <li><p><strong>一次滑动过程的触控交互的<code>InputResponse</code>区域中一般会包含一个<code>Input</code>的<code>ACTION_DOWN</code>事件+多个<code>ACTION_MOVE</code>事件+一个<code>ACTION_UP</code>事件</strong>，<code>Settings</code>应用界面中的相关<code>View</code>控件在收到多个<code>ACTION_MOVE</code>触控事件后，经过判断为用户手指滑动行为，<strong>一般会调用<code>View#invalidate</code>等相关接口触发<code>UI</code>线程的绘制上帧更新画面的操作</strong>，具体流程后文会继续详细分析。以上过程如下<code>Systrace</code>截图所示：</p>
-<p><img src="img/26874665-f7b8127610f84a36.webp" srcset="/img/loading.gif" alt="input2"></p>
+<p><img src="/img/26874665-f7b8127610f84a36.webp" srcset="/img/loading.gif" alt="input2"></p>
 </li>
 </ol>
 <h2 id="2-应用UI线程消息循环机制"><a href="#2-应用UI线程消息循环机制" class="headerlink" title="2 应用UI线程消息循环机制"></a>2 应用UI线程消息循环机制</h2><p><code>App</code>应用启动时，在<code>Fork</code>创建进程后会通过反射创建代表应用主线程的<code>ActivityThread</code>对象并执行其<code>main</code>函数，进行<code>UI</code>主线程的初始化工作：</p>
