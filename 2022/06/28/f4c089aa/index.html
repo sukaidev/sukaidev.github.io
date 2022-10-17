@@ -244,7 +244,7 @@
 <li><code>InputResponse</code> 标识 <code>Input</code> 事件区域，这里可以看到一个 <code>Input_Down</code> 事件 + 若干个 <code>Input_Move</code> 事件 + 一个 <code>Input_Up</code> 事件的处理阶段都被算到了这里；</li>
 <li><code>App</code> 响应处理<code>Input</code> 事件，内部会在其界面<code>View</code>树中逐层分发和处理。</li>
 </ol>
-<p>用一张图描述整个过程大致如下（关于这部分详细的<code>Android</code>系统源码实现流程可以参考<a target="_blank" rel="noopener" href="https://links.jianshu.com/go?to=https://juejin.cn/post/6956500920108580878">这篇文章</a>）：</p>
+<p>用一张图描述整个过程大致如下（关于这部分详细的<code>Android</code>系统源码实现流程可以参考<a target="_blank" rel="noopener" href="https://juejin.cn/post/6956500920108580878">这篇文章</a>）：</p>
 <p><img src="/img/26874665-ab756e88f0bb89c2.webp" srcset="/img/loading.gif" alt="input模型"></p>
 <h3 id="1-2-结合Systrace分析"><a href="#1-2-结合Systrace分析" class="headerlink" title="1.2 结合Systrace分析"></a>1.2 结合Systrace分析</h3><p>从上面的系统机制的分析可以看出，整个<code>Input</code>触控事件的分发与处理主要涉及到两个进程：一个是<code>system_server</code>系统进程，另一个是当前焦点窗口所属的<code>Setting</code>应用进程。</p>
 <p><strong>一、<code>system_server</code>进程的处理过程：</strong></p>
