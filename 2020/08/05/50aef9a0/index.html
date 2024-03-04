@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      24 字
+      219 字
     </span>
   
 
@@ -194,7 +194,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      1
+      2
        分钟
     </span>
   
@@ -227,7 +227,11 @@
             <h1 style="display: none">RecyclerView回收复用机制</h1>
             
             <div class="markdown-body">
-              <p>RecyclerView作为一个可滚动的列表组件，具有非常优秀的性能表现，</p>
+              <h4 id="一级缓存"><a href="#一级缓存" class="headerlink" title="一级缓存"></a>一级缓存</h4><p><strong>mAttachedScap</strong>：存放屏幕内可见的ViewHolder，用于在进行布局时先临时存放，等布局的时候再从里面拿出来进行布局。</p>
+<p><strong>mChangedScap</strong>：主要为列表项数据发生变化时的动画效果服务，当item发生移动切需要动时，调用<strong>canReuseUpdatedViewHolder</strong>来判断能够直接复用ViewHolder，如果不行，比如实现一些淡入淡出效果的动画，则返回false，表示应该创建新的ViewHolder，然后存放到mChangedScap中。</p>
+<h4 id="二级缓存"><a href="#二级缓存" class="headerlink" title="二级缓存"></a>二级缓存</h4><p><strong>mCachedView</strong>：存放移出屏幕的ViewHolder，也就是列表首尾屏幕外的ViewHolder，默认值为2，也就是屏幕外各缓存1个。</p>
+<h4 id="三级缓存"><a href="#三级缓存" class="headerlink" title="三级缓存"></a>三级缓存</h4><p><strong>mViewCacheExtension</strong>：提供给外部扩展的缓存。</p>
+<h4 id="四级缓存"><a href="#四级缓存" class="headerlink" title="四级缓存"></a>四级缓存</h4><p><strong>mRecyclerPool</strong>：用于按不同的itemType分别存放超出mCachedViews限制的、被移出屏幕的列表项，默认每个itemType为5。</p>
 
             </div>
             <hr>

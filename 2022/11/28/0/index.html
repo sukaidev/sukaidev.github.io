@@ -1,0 +1,478 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" type="image/png" href="/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="Android Developer">
+  <meta name="author" content="sukaidev">
+  <meta name="keywords" content="Android sukaidev 苏海鸿">
+  <title>Sukai&#39;s Blog - Android Developer</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/atom-one-light.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"www.sukaidev.top","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Sukai's Blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2022-11-28 17:33" pubdate>
+        2022年11月28日 下午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.4k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      36
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none"></h1>
+            
+            <div class="markdown-body">
+              <p>KiwiTabLayout是Kiwi项目中用于替换日益臃肿的PagerSlideTabStrip、基于UI一致性的通用导航栏组件。</p>
+<h2 id="1-接入指南"><a href="#1-接入指南" class="headerlink" title="1 接入指南"></a>1 接入指南</h2><h3 id="1-1-Xml属性"><a href="#1-1-Xml属性" class="headerlink" title="1.1 Xml属性"></a>1.1 Xml属性</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">declare-styleable</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;KiwiTabLayout&quot;</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">attr</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;enablePivotScroll&quot;</span> <span class="hljs-attr">format</span>=<span class="hljs-string">&quot;boolean&quot;</span> /&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">attr</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;isFollowTouch&quot;</span> <span class="hljs-attr">format</span>=<span class="hljs-string">&quot;boolean&quot;</span> /&gt;</span><br>    <span class="hljs-comment">&lt;!-- 指示器是否在tab上面，默认为true --&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">attr</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;isIndicatorOnTop&quot;</span> <span class="hljs-attr">format</span>=<span class="hljs-string">&quot;boolean&quot;</span> /&gt;</span><br>    <span class="hljs-comment">&lt;!-- 滑动时，是否有掠过效果，默认为true --&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">attr</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;isSkimOverEnable&quot;</span> <span class="hljs-attr">format</span>=<span class="hljs-string">&quot;boolean&quot;</span> /&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">attr</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;isAlignBaseLine&quot;</span> <span class="hljs-attr">format</span>=<span class="hljs-string">&quot;boolean&quot;</span> /&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">attr</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;isSmoothScrollEnable&quot;</span> <span class="hljs-attr">format</span>=<span class="hljs-string">&quot;boolean&quot;</span> /&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">attr</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;scrollPivotX&quot;</span> <span class="hljs-attr">format</span>=<span class="hljs-string">&quot;float&quot;</span> /&gt;</span><br>    <span class="hljs-comment">&lt;!--  scroller的padding值，这个padding是可以滚动的，方便实现左右两边的遮盖或者其他效果 --&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">attr</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;scrollPaddingStart&quot;</span> <span class="hljs-attr">format</span>=<span class="hljs-string">&quot;dimension&quot;</span> /&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">attr</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;scrollPaddingEnd&quot;</span> <span class="hljs-attr">format</span>=<span class="hljs-string">&quot;dimension&quot;</span> /&gt;</span><br>    <span class="hljs-comment">&lt;!--  两个tab之间的间距  --&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">attr</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;tabMargin&quot;</span> <span class="hljs-attr">format</span>=<span class="hljs-string">&quot;dimension&quot;</span> /&gt;</span><br>    <span class="hljs-comment">&lt;!-- scroller的模式，0为可滚动，1为强制平分宽度  --&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">attr</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;tabScrollerMode&quot;</span> <span class="hljs-attr">format</span>=<span class="hljs-string">&quot;enum&quot;</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">enum</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;scrollable&quot;</span> <span class="hljs-attr">value</span>=<span class="hljs-string">&quot;0&quot;</span> /&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">enum</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;fixed&quot;</span> <span class="hljs-attr">value</span>=<span class="hljs-string">&quot;1&quot;</span> /&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">attr</span>&gt;</span><br>    <span class="hljs-comment">&lt;!--TabLayout 右边渐变透明宽度，设置0即无需渐变--&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">attr</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;tabFadeWidth&quot;</span> <span class="hljs-attr">format</span>=<span class="hljs-string">&quot;dimension&quot;</span> /&gt;</span><br>    <span class="hljs-comment">&lt;!--需要渐变时必须颜色，因为实现是一个View覆盖在右边--&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">attr</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;tabFadeColor&quot;</span> <span class="hljs-attr">format</span>=<span class="hljs-string">&quot;color|reference&quot;</span> /&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">declare-styleable</span>&gt;</span><br></code></pre></td></tr></table></figure>
+<p>这些属性的含义都通过注释解释了，绝大部分情况下我们直接使用默认值即可，xml中这样使用：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs xml">&lt;com.duowan.biz.ui.tablayout.KiwiTabLayout<br>    android:id=&quot;@+id/tab_layout&quot;<br>    android:layout_width=&quot;match_parent&quot;<br>    android:layout_height=&quot;@dimen/dp44&quot;/&gt;<br></code></pre></td></tr></table></figure>
+<h3 id="1-2-适配器"><a href="#1-2-适配器" class="headerlink" title="1.2 适配器"></a>1.2 适配器</h3><h4 id="KiwiTabPagerAdapter"><a href="#KiwiTabPagerAdapter" class="headerlink" title="KiwiTabPagerAdapter"></a>KiwiTabPagerAdapter</h4><p>KiwiTabPagerAdapter继承自项目中的FragmentStatePagerAdapterEx，FragmentStatePagerAdapterEx是一个支持动态更新Fragment的PagerAdapter，它默认实现了getItemPosition方法，这意味着我们不再需要重写getItemPosition来实现Fragment的动态更新，并且它支持两种Behavior：<code>BEHAVIOR_SET_USER_VISIBLE_HINT</code>和<code>BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Retention(RetentionPolicy.SOURCE)</span><br><span class="hljs-meta">@IntDef(&#123;BEHAVIOR_SET_USER_VISIBLE_HINT, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT&#125;)</span><br><span class="hljs-keyword">private</span> <span class="hljs-meta">@interface</span> Behavior &#123; &#125;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Indicates that &#123;<span class="hljs-doctag">@link</span> Fragment#setUserVisibleHint(boolean)&#125; will be called when the current</span><br><span class="hljs-comment"> * fragment changes.</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@deprecated</span> This behavior relies on the deprecated</span><br><span class="hljs-comment"> * &#123;<span class="hljs-doctag">@link</span> Fragment#setUserVisibleHint(boolean)&#125; API. Use</span><br><span class="hljs-comment"> * &#123;<span class="hljs-doctag">@link</span> #BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT&#125; to switch to its replacement,</span><br><span class="hljs-comment"> * &#123;<span class="hljs-doctag">@link</span> FragmentTransaction#setMaxLifecycle&#125;.</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@see</span> #FragmentStatePagerAdapterEx(FragmentManager, int)</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Deprecated</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> BEHAVIOR_SET_USER_VISIBLE_HINT = <span class="hljs-number">0</span>;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Indicates that only the current fragment will be in the &#123;<span class="hljs-doctag">@link</span> Lifecycle.State#RESUMED&#125;</span><br><span class="hljs-comment"> * state. All other Fragments are capped at &#123;<span class="hljs-doctag">@link</span> Lifecycle.State#STARTED&#125;.</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@see</span> #FragmentStatePagerAdapterEx(FragmentManager, int)</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT = <span class="hljs-number">1</span>;<br></code></pre></td></tr></table></figure>
+<p>继承KiwiTabPagerAdapter，需要传入泛型&lt;DATA&gt;为数据的实际类型，如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SearchPageAdapter</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">KiwiTabPagerAdapter</span>&lt;<span class="hljs-title">SearchPageTabInfo</span>&gt; </span>&#123;<br>   ···<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>实现三个方法：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 创建Fragment</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getItem</span><span class="hljs-params">(position: <span class="hljs-type">Int</span>)</span></span>: Fragment<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 创建Tab</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">createTab</span><span class="hljs-params">(position: <span class="hljs-type">Int</span>)</span></span>: ITab<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 创建指示器</span><br><span class="hljs-comment"> * 非必须，默认返回NonIndicator</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">createIndicator</span><span class="hljs-params">()</span></span>: IIndicator<br></code></pre></td></tr></table></figure>
+<p>参考com.duowan.kiwi.search.impl.SearchPageAdapter。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SearchPageAdapter</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">KiwiTabPagerAdapter</span>&lt;<span class="hljs-title">SearchPageTabInfo</span>&gt; </span>&#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> FragmentManager mFragmentManager;<br>    <span class="hljs-keyword">public</span> Fragment mAllTabFragment;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> FragmentActivity activity;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> indicatorWidth = ScreenUtil.dp2px(<span class="hljs-number">15</span>);<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> indicatorHeight = ScreenUtil.dp2px(<span class="hljs-number">2.5f</span>);<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">SearchPageAdapter</span><span class="hljs-params">(List&lt;SearchPageTabInfo&gt; list, FragmentActivity activity)</span> </span>&#123;<br>        <span class="hljs-keyword">super</span>(activity.getSupportFragmentManager(), <span class="hljs-number">0</span>);<br>        mFragmentManager = activity.getSupportFragmentManager();<br>        <span class="hljs-keyword">this</span>.activity = activity;<br>        setData(list);<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-meta">@SuppressLint(&quot;AvoidExMethodDefaultNull&quot;)</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> Fragment <span class="hljs-title">getItem</span><span class="hljs-params">(<span class="hljs-keyword">int</span> i)</span> </span>&#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            SearchPageTabInfo info = getItemData(i);<br>            <span class="hljs-keyword">int</span> index = info != <span class="hljs-keyword">null</span> ? info.iTabId : SearchConstantsNew.KEY_SEARCH_TAB_INDEX_UNKNOWN;<br>            Fragment fragment = SearchConstantsNew.INSTANCE.getItemByIndex(index);<br>            <span class="hljs-keyword">if</span> (index == EMobileSearchJumpTab._SEARCH_JUMP_TYPE_ALL) &#123;<br>                mAllTabFragment = fragment;<br>            &#125;<br>            <span class="hljs-keyword">return</span> fragment;<br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>            e.printStackTrace();<br>        &#125;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;<br>    &#125;<br>  <br>  <br>    ··· ···<br>      <br><br>    <span class="hljs-meta">@NotNull</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-meta">@SuppressLint(&quot;AvoidExMethodDefaultNull&quot;)</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> ITab <span class="hljs-title">createTab</span><span class="hljs-params">(<span class="hljs-keyword">int</span> position)</span> </span>&#123;<br>        Fragment fragment = SearchConstantsNew.INSTANCE.getItemByIndex(position);<br>        <span class="hljs-keyword">if</span> (position == EMobileSearchJumpTab._SEARCH_JUMP_TYPE_ALL) &#123;<br>            mAllTabFragment = fragment;<br>        &#125;<br>        SearchPageTabInfo info = ListEx.get(getDataList(), position, <span class="hljs-keyword">null</span>);<br>        String title = info == <span class="hljs-keyword">null</span> ? <span class="hljs-string">&quot;&quot;</span> : info.sTabTitle;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> KiwiNavBarItemBuilder()<br>                .withStyle(KiwiNavBarItemBuilder.Style.Title14)<br>                .withTitle(title)<br>                .build(activity);<br>    &#125;<br><br>    <span class="hljs-meta">@NotNull</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> IIndicator <span class="hljs-title">createIndicator</span><span class="hljs-params">()</span> </span>&#123;<br>        KiwiNormalIndicator indicator = <span class="hljs-keyword">new</span> KiwiNormalIndicator(activity);<br>        indicator.setColors(ResourcesCompat.getColor(activity.getResources(), com.duowan.ark.ui.widget.R.color.gray1_color, activity.getTheme()));<br>        indicator.setIndicatorWidth(indicatorWidth);<br>        indicator.setIndicatorHeight(indicatorHeight);<br>        indicator.setYOffset(<span class="hljs-number">0f</span>);<br>        <span class="hljs-keyword">return</span> indicator;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>其中KiwiNavBarItemBuilder为UI一致性中快速构造Tab的Builder，KiwiNormalIndicator为项目中默认的指示器类型，如果不需要指示器，可直接返回NonIndicator。</p>
+<p>将KiwiTabPagerAdapter设置给<strong>ViewPager</strong>后，直接调用<strong>setupWithViewPager</strong>完成KiwiTabLayout与ViewPager的绑定：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">mSearchTabs.setupWithViewPager(mSearchPager);<br></code></pre></td></tr></table></figure>
+<h4 id="KiwiTabPager2Adapter"><a href="#KiwiTabPager2Adapter" class="headerlink" title="KiwiTabPager2Adapter"></a>KiwiTabPager2Adapter</h4><p>KiwiTabPager2Adapter继承自项目中的FragmentStateAdapter，这个Adapter从ViewPager2包中复制出来，支持拿到当前Fragment，支持指定Fragment不进行回收复用，与项目中的<strong>ViewPager2</strong>搭配使用。</p>
+<p>参考案例：com.duowan.kiwi.discovery.huche.HuCheDynamicTabsAdapter2</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HuCheDynamicTabsAdapter2</span></span>(fragment: Fragment) : KiwiTabPager2Adapter&lt;HuCheSquareTab&gt;(fragment) &#123;<br><br>    <span class="hljs-comment">// 保留旧版Adapter里面的不销毁策略</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">val</span> mNoDestroyPosition = ServiceCenter.getService(IMatchCommunity::<span class="hljs-keyword">class</span>.java).huCheSquareModule.getNoNeedDestroyPosition()<br><br>    <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">createFragment</span><span class="hljs-params">(position: <span class="hljs-type">Int</span>)</span></span>: Fragment &#123;<br>        <span class="hljs-keyword">val</span> <span class="hljs-keyword">data</span>: HuCheSquareTab? = getData(position)<br>        <span class="hljs-keyword">if</span> (<span class="hljs-keyword">data</span> == <span class="hljs-literal">null</span>) &#123;<br>            KLog.error(TAG, <span class="hljs-string">&quot;tab is null!!&quot;</span>)<br>            <span class="hljs-keyword">return</span> NoSupportFragment()<br>        &#125;<br>        <span class="hljs-keyword">return</span> newPreloadingFragment(&#123;<br>            <span class="hljs-keyword">when</span> (<span class="hljs-keyword">data</span>.iTabType) &#123;<br>                <span class="hljs-comment">//由后台确定focus=1的tab为推荐页面，其他为品类tab或者标签tab</span><br>                EHuCheTabType._E_HUCHE_BIZ_TYPE, EHuCheTabType._E_HUCHE_LABEL_TYPE -&gt; HuCheSquareGameTypeFragment.newInstance(<span class="hljs-keyword">data</span>)<br>                EHuCheTabType._E_HUCHE_RCMD_BIZ_TYPE -&gt; HuCheSquareRecommendFragment.newInstance(<span class="hljs-keyword">data</span>)<br>                EHuCheTabType._E_HUCHE_RN_TYPE -&gt; HuCheSquareRnFragment.newInstance(<span class="hljs-keyword">data</span>)<br>                EHuCheTabType._E_HUCHE_WEB_TYPE -&gt; HuCheSquareWebFragment.newInstance(<span class="hljs-keyword">data</span>)<br>                EHuCheTabType._E_HUCHE_MATCH_TYPE -&gt; &#123;<br>                    <span class="hljs-keyword">if</span> (!TextUtils.isEmpty(<span class="hljs-keyword">data</span>.sJumpUrl)) &#123;<br>                        HuCheS12MatchRNFragment.newInstance(S12RNTabSection(<span class="hljs-keyword">data</span>.sTabName, <span class="hljs-keyword">data</span>.sJumpUrl, S12RNTabSection.SOURCE_HUCHE_PAGE, <span class="hljs-keyword">data</span>.iTabId))<br>                    &#125; <span class="hljs-keyword">else</span> &#123;<br>                        KLog.error(TAG, <span class="hljs-string">&quot;error: <span class="hljs-variable">$data</span>&quot;</span>)<br>                        NoSupportFragment()<br>                    &#125;<br>                &#125;<br>                <span class="hljs-keyword">else</span> -&gt; NoSupportFragment()<br>            &#125;<br>        &#125;)<br>    &#125;<br><br>    <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">createTab</span><span class="hljs-params">(position: <span class="hljs-type">Int</span>)</span></span>: ITab &#123;<br>        <span class="hljs-keyword">val</span> ctx = context ?: <span class="hljs-keyword">return</span> NonTab()<br>        <span class="hljs-keyword">val</span> <span class="hljs-keyword">data</span> = getData(position) ?: <span class="hljs-keyword">return</span> NonTab()<br>        <span class="hljs-keyword">return</span> HuCheTabBar(ctx).apply &#123;<br>            setHuCheTab(<span class="hljs-keyword">data</span>)<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getItemViewType</span><span class="hljs-params">(position: <span class="hljs-type">Int</span>)</span></span>: <span class="hljs-built_in">Int</span> &#123;<br>        <span class="hljs-keyword">val</span> <span class="hljs-keyword">data</span>: HuCheSquareTab? = getData(position)<br>        <span class="hljs-keyword">if</span> (<span class="hljs-keyword">data</span> == <span class="hljs-literal">null</span>) &#123;<br>            KLog.error(TAG, <span class="hljs-string">&quot;tab is null!!&quot;</span>)<br>            <span class="hljs-keyword">return</span> VIEW_TYPE_DEFAULT<br>        &#125;<br>        <span class="hljs-keyword">if</span> (mNoDestroyPosition &lt;= <span class="hljs-number">0</span>) &#123;<br>            <span class="hljs-keyword">return</span> VIEW_TYPE_NON_RECYCLABLE<br>        &#125;<br>        <span class="hljs-keyword">if</span> (position &lt; mNoDestroyPosition) &#123;<br>            <span class="hljs-keyword">return</span> VIEW_TYPE_NON_RECYCLABLE<br>        &#125;<br>        <span class="hljs-keyword">return</span> VIEW_TYPE_DEFAULT<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>getItemViewType方法默认返回<code>VIEW_TYPE_DEFAULT</code>，若返回<code>VIEW_TYPE_NON_RECYCLABLE</code>则表示当前位置的Fragment不会进行回收复用，适合一些需要常驻的页面例如RN，RN加载太慢为避免重复加载，一般会选择返回<code>VIEW_TYPE_NON_RECYCLABLE</code>。两种ViewType对应两种ViewHolder，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@NonNull</span><br><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> FragmentViewHolder <span class="hljs-title">onCreateViewHolder</span><span class="hljs-params">(<span class="hljs-meta">@NonNull</span> ViewGroup parent, <span class="hljs-keyword">int</span> viewType)</span> </span>&#123;<br>   <span class="hljs-keyword">if</span> (viewType == VIEW_TYPE_NON_RECYCLABLE)&#123;<br>       <span class="hljs-keyword">return</span> NonRecyclableFragmentViewHolder.Companion.create(parent);<br>   &#125;<br>    <span class="hljs-keyword">return</span> FragmentViewHolder.create(parent);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>将KiwiTabPager2Adapter设置给<strong>ViewPager2</strong>后，直接调用<strong>setupWithViewPager2</strong>完成KiwiTabLayout与ViewPager2的绑定：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">mTabLayout.setupWithViewPager2(mViewPager2);<br></code></pre></td></tr></table></figure>
+<h3 id="1-3-自定义Tab"><a href="#1-3-自定义Tab" class="headerlink" title="1.3 自定义Tab"></a>1.3 自定义Tab</h3><p>自定义Tab需要实现ITab或者IMeasurableTab，其中IMeasurableTab继承自ITab。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Created by suhaihong on 2022/10/23.</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> suhaihong</span><br><span class="hljs-comment"> */</span><br><span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">ITab</span> </span>&#123;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 当Tab被选中时调用</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> index 当前tab的index</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onTabSelected</span><span class="hljs-params">(index: <span class="hljs-type">Int</span>, totalCount: <span class="hljs-type">Int</span>)</span></span><br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 当Tab被反选时调用</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> index 当前tab的index</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> totalCount</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onTabUnselected</span><span class="hljs-params">(index: <span class="hljs-type">Int</span>, totalCount: <span class="hljs-type">Int</span>)</span></span><br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 滑入当前Tab，可供动画使用</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> enterPercent 当Tab滑入选中状态时的百分比</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> leftToRight 是否从左至右滑入</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onEnter</span><span class="hljs-params">(index: <span class="hljs-type">Int</span>, totalCount: <span class="hljs-type">Int</span>, enterPercent: <span class="hljs-type">Float</span>, leftToRight: <span class="hljs-type">Boolean</span>)</span></span> = <span class="hljs-built_in">Unit</span><br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 滑出当前Tab，可供动画使用</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> leavePercent 离开的百分比, 0.0f - 1.0f</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> leftToRight  是否从左至右滑出</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onLeave</span><span class="hljs-params">(index: <span class="hljs-type">Int</span>, totalCount: <span class="hljs-type">Int</span>, leavePercent: <span class="hljs-type">Float</span>, leftToRight: <span class="hljs-type">Boolean</span>)</span></span> = <span class="hljs-built_in">Unit</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>有时候需要知道Tab的精确绘制区域，比如根据Tab中文字长度来绘制指示器，则需要实现IMeasurableTab。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Created by suhaihong on 2022/10/31.</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * 给indicator用的，</span><br><span class="hljs-comment"> * 可以拿到Tab的精确的内容区域，</span><br><span class="hljs-comment"> * 用于处理indicator动画.</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> suhaihong</span><br><span class="hljs-comment"> */</span><br><span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">IMeasurableTab</span> : <span class="hljs-type">ITab &#123;</span></span><br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * Tab绘制区域左边界</span><br><span class="hljs-comment">     * 注意这个值需要转换成父View的相对位置，参考[KiwiSimpleTab]，下同</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getContentLeft</span><span class="hljs-params">()</span></span>: <span class="hljs-built_in">Int</span><br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * Tab绘制区域上边界</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getContentTop</span><span class="hljs-params">()</span></span>: <span class="hljs-built_in">Int</span><br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * Tab绘制区域右边界</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getContentRight</span><span class="hljs-params">()</span></span>: <span class="hljs-built_in">Int</span><br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * Tab绘制区域下边界</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getContentBottom</span><span class="hljs-params">()</span></span>: <span class="hljs-built_in">Int</span><br><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>大部分情况下可以直接使用UI一致性中的KiwiNavBarItem，如果确实需要自定义，可以参考KiwiNavBarItem或者KiwiSimpleTab。</p>
+<h3 id="1-4-自定义Indicator"><a href="#1-4-自定义Indicator" class="headerlink" title="1.4 自定义Indicator"></a>1.4 自定义Indicator</h3><p>自定义指示器需要实现IIndicator接口：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Created by suhaihong on 2022/10/23.</span><br><span class="hljs-comment"> * 抽象指示器接口.</span><br><span class="hljs-comment"> * 自定义Indicator需要实现此接口.</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> suhaihong</span><br><span class="hljs-comment"> */</span><br><span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">IIndicator</span> </span>&#123;<br><br>    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">attachedWithViewPager</span><span class="hljs-params">(attached: <span class="hljs-type">Boolean</span>)</span></span><br><br>    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onPageScrolled</span><span class="hljs-params">(position: <span class="hljs-type">Int</span>, positionOffset: <span class="hljs-type">Float</span>, positionOffsetPixels: <span class="hljs-type">Int</span>)</span></span><br><br>    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onPageSelected</span><span class="hljs-params">(position: <span class="hljs-type">Int</span>)</span></span><br><br>    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onPageScrollStateChanged</span><span class="hljs-params">(state: <span class="hljs-type">Int</span>)</span></span><br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 外部提供所有indicator的信息</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * 用于indicator在滑动时确认自己的状态</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * 用法参考[KiwiNormalIndicator]</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onIndicatorPositionProvide</span><span class="hljs-params">(dataList: <span class="hljs-type">List</span>&lt;<span class="hljs-type">IndicatorInfo</span>&gt;)</span></span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>指示器的宽度跟TabContainer的宽度是一致的，绘制时通过onIndicatorPositionProvide回调返回的IndicatorInfo来确定Tab的位置信息以及Tab的绘制内容区信息。</p>
+<p>onPageScrolled、onPageSelected、onPageScrollStateChanged为ViewPager或ViewPager2调用过来，根据其参数position、positionOffset以及Tab的位置信息来做动画，具体参考<code>KiwiNormalIndicator</code>。</p>
+<h3 id="1-5-自定义Scroller"><a href="#1-5-自定义Scroller" class="headerlink" title="1.5 自定义Scroller"></a>1.5 自定义Scroller</h3><p>自定义Scroller需要集成AbsScrollerView，参考<code>KiwiSimpleScroller</code>。</p>
+<h2 id="2-注意事项"><a href="#2-注意事项" class="headerlink" title="2 注意事项"></a>2 注意事项</h2><h3 id="2-1-KiwiTabPagerCompatAdapter和KiwiTabPager2CompatAdapter"><a href="#2-1-KiwiTabPagerCompatAdapter和KiwiTabPager2CompatAdapter" class="headerlink" title="2.1 KiwiTabPagerCompatAdapter和KiwiTabPager2CompatAdapter"></a>2.1 KiwiTabPagerCompatAdapter和KiwiTabPager2CompatAdapter</h3><p>这两个适配器都是用于兼容当前项目中已有的适配器，用于快速接入KiwiTabLayout，不会影响到ViewPager或ViewPager2中的页面。</p>
+<p>其中KiwiTabPagerCompatAdapter继承自com.duowan.kiwi.ui.widget.FragmentStatePagerAdapter，KiwiTabPager2CompatAdapter继承自androidx.viewpager2.adapter。</p>
+<h3 id="2-2-ViewPager2的接入问题"><a href="#2-2-ViewPager2的接入问题" class="headerlink" title="2.2 ViewPager2的接入问题"></a>2.2 ViewPager2的接入问题</h3><p>androidx中的ViewPager2直接接入会有许多问题，它的滑动完全委托给内部的RecyclerView，而这个RecyclerView也是直接使用的，使用起来ViewPager2容易拦截页面的滑动事件，导致误滑，在配合RN页面使用时，RN的触摸事件很容易被ViewPager2拦截。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RecyclerViewImpl</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">RecyclerView</span> </span>&#123;<br>    RecyclerViewImpl(<span class="hljs-meta">@NonNull</span> Context context) &#123;<br>        <span class="hljs-keyword">super</span>(context);<br>    &#125;<br><br>    ··· ···<br><br>    <span class="hljs-meta">@SuppressLint(&quot;ClickableViewAccessibility&quot;)</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">onTouchEvent</span><span class="hljs-params">(MotionEvent event)</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> isUserInputEnabled() &amp;&amp; <span class="hljs-keyword">super</span>.onTouchEvent(event);<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">onInterceptTouchEvent</span><span class="hljs-params">(MotionEvent ev)</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> isUserInputEnabled() &amp;&amp; <span class="hljs-keyword">super</span>.onInterceptTouchEvent(ev);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>为了解决这个问题在项目中复制了一份出来com.duowan.kiwi.ui.viewpager2.widget.ViewPager2，参照ViewPager1的代码，还原了ViewPager1的体验，解决了横向滑动异常灵敏问题以及和RN的冲突问题，并且支持RN页面不回收，<strong>因此接入时推荐使用</strong><code>com.duowan.kiwi.ui.viewpager2.widget.ViewPager2</code>。</p>
+<p>使用com.duowan.kiwi.ui.viewpager2.widget.ViewPager2时，Adapter必须使用KiwiTabPager2Adapter，Adapter中谨慎复写<code>getItemId</code>或者<code>containsItem</code>方法。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Default implementation works for collections that don&#x27;t add, move, remove items.</span><br><span class="hljs-comment"> * &lt;p&gt;</span><br><span class="hljs-comment"> * 正常不需要重写此方法，如果需要重写此方法，务必重写&#123;<span class="hljs-doctag">@link</span> #containsItem(long)&#125;</span><br><span class="hljs-comment"> * If the item is not a part of the collection, return &#123;<span class="hljs-doctag">@link</span> RecyclerView#NO_ID&#125;.</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> position Adapter position</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@return</span> stable item id &#123;<span class="hljs-doctag">@link</span> RecyclerView.Adapter#hasStableIds()&#125;</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Override</span><br><span class="hljs-keyword">public</span> long getItemId(int position) &#123;<br>    <span class="hljs-keyword">return</span> position;<br>&#125;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Default implementation works for collections that don&#x27;t add, move, remove items.</span><br><span class="hljs-comment"> * &lt;p&gt;</span><br><span class="hljs-comment"> * 如果需要重写此方法，务必重写&#123;<span class="hljs-doctag">@link</span> #getItemId(int)&#125;</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> boolean containsItem(long itemId) &#123;<br>    <span class="hljs-keyword">return</span> itemId &gt;= <span class="hljs-number">0</span> &amp;&amp; itemId &lt; getItemCount();<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>如果确实需要复写这两个方法中的某一个，需要同时复写这两个方法，否则在页面因为各种原因被销毁重建或者切换白天/夜间模式时，在onRestoreInstanceState调用时会抛出异常。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+              
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                
+  <script type="text/javascript">
+    Fluid.utils.waitElementVisible('comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'sukaidev/sukaidev.github.io');
+      s.setAttribute('issue-term', 'pathname');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+<!-- SCRIPTS -->
+
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    (function () {
+      var path = "/local-search.xml";
+      var inputArea = document.querySelector("#local-search-input");
+      inputArea.onclick = function () {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+        this.onclick = null
+      }
+    })()
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+
+</body>
+</html>
