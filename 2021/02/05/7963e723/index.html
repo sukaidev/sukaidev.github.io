@@ -1,47 +1,59 @@
 
 
 <!DOCTYPE html>
-<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+<html lang="zh-CN" data-default-color-scheme=auto>
 
 
 
 <head>
   <meta charset="UTF-8">
+
   <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
-  <link rel="icon" type="image/png" href="/img/favicon.png">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <link rel="icon" href="/img/favicon.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
   <meta name="theme-color" content="#2f4154">
-  <meta name="description" content="Android Developer">
   <meta name="author" content="sukaidev">
   <meta name="keywords" content="Android sukaidev 苏海鸿">
+  
+    <meta name="description" content="本篇文章我们将基于简单协程实现几种复合协程。 序列生成器仿Python的Generator实现Python中的Generator可以在函数中调用yield将当前函数挂起并返回yield的参数，效果如下： 12345678910111213141516171819val nums: (Int) -&gt; Generator&lt;Int&gt; &#x3D; generator &amp;#123; start:">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入理解Kotlin协程（二）——复合协程">
+<meta property="og:url" content="https://www.sukaidev.top/2021/02/05/7963e723/index.html">
+<meta property="og:site_name" content="Sukai&#39;s Blog - Android Developer">
+<meta property="og:description" content="本篇文章我们将基于简单协程实现几种复合协程。 序列生成器仿Python的Generator实现Python中的Generator可以在函数中调用yield将当前函数挂起并返回yield的参数，效果如下： 12345678910111213141516171819val nums: (Int) -&gt; Generator&lt;Int&gt; &#x3D; generator &amp;#123; start:">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://www.sukaidev.top/img/cover_kotlin_coroutines.png">
+<meta property="article:published_time" content="2021-02-05T13:28:43.000Z">
+<meta property="article:modified_time" content="2021-02-28T15:46:37.445Z">
+<meta property="article:author" content="sukaidev">
+<meta property="article:tag" content="Coroutines">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.sukaidev.top/img/cover_kotlin_coroutines.png">
+  
+  
+  
   <title>深入理解Kotlin协程（二）——复合协程 - Sukai&#39;s Blog - Android Developer</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
 
 
+
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
   <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
 
-  
-    
-    
-      
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/atom-one-light.min.css" />
-    
-  
-
-  
-    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
-  
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
 
 
 
 <!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
 
 
 
@@ -50,24 +62,46 @@
 
 <link  rel="stylesheet" href="/css/main.css" />
 
-<!-- 自定义样式保持在最底部 -->
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
 
 
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"www.sukaidev.top","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.sukaidev.top","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
   </script>
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
 <meta name="generator" content="Hexo 5.3.0"></head>
 
 
 <body>
-  <header style="height: 70vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
-    <a class="navbar-brand"
-       href="/">&nbsp;<strong>Sukai's Blog</strong>&nbsp;</a>
+    <a class="navbar-brand" href="/">
+      <strong>Sukai&#39;s Blog</strong>
+    </a>
 
     <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
             data-target="#navbarSupportedContent"
@@ -84,9 +118,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/">
+              <a class="nav-link" href="/" target="_self">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                <span>首页</span>
               </a>
             </li>
           
@@ -96,9 +130,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/archives/">
+              <a class="nav-link" href="/archives/" target="_self">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                <span>归档</span>
               </a>
             </li>
           
@@ -108,9 +142,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/categories/">
+              <a class="nav-link" href="/categories/" target="_self">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                <span>分类</span>
               </a>
             </li>
           
@@ -120,9 +154,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/tags/">
+              <a class="nav-link" href="/tags/" target="_self">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                <span>标签</span>
               </a>
             </li>
           
@@ -132,23 +166,26 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/about/">
+              <a class="nav-link" href="/about/" target="_self">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                <span>关于</span>
               </a>
             </li>
           
         
         
           <li class="nav-item" id="search-btn">
-            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
-                class="iconfont icon-search"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
           </li>
+          
         
         
           <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" href="javascript:">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
           </li>
         
       </ul>
@@ -156,60 +193,71 @@
   </div>
 </nav>
 
-    <div class="banner" id="banner" parallax=true
-         style="background: url('/img/default.png') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="深入理解Kotlin协程（二）——复合协程">
-              
-            </span>
-
-            
-              <div class="mt-3">
-  
-  
-    <span class="post-meta">
-      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2021-02-05 21:28" pubdate>
-        2021年2月5日 晚上
-      </time>
-    </span>
-  
-</div>
-
-<div class="mt-1">
-  
-    
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-chart"></i>
-      6k 字
-    </span>
   
 
-  
-    
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-clock-fill"></i>
-      
-      
-      78
-       分钟
-    </span>
-  
-
-  
-  
-</div>
-
-            
-          </div>
-
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="深入理解Kotlin协程（二）——复合协程"></span>
           
         </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-02-05 21:28" pubdate>
+          2021年2月5日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          5.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          48 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
       </div>
+
+      
     </div>
+  </div>
+</div>
+
+</div>
+
   </header>
 
   <main>
@@ -218,16 +266,21 @@
 
 <div class="container-fluid nopadding-x">
   <div class="row nomargin-x">
-    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
     <div class="col-lg-8 nopadding-x-md">
       <div class="container nopadding-x-md" id="board-ctn">
-        <div class="py-5" id="board">
+        <div id="board">
           <article class="post-content mx-auto">
-            <!-- SEO header -->
-            <h1 style="display: none">深入理解Kotlin协程（二）——复合协程</h1>
+            <h1 id="seo-header">深入理解Kotlin协程（二）——复合协程</h1>
             
-            <div class="markdown-body">
-              <p>本篇文章我们将基于简单协程实现几种复合协程。</p>
+            
+              <div class="markdown-body">
+                
+                <p>本篇文章我们将基于简单协程实现几种复合协程。</p>
 <h2 id="序列生成器"><a href="#序列生成器" class="headerlink" title="序列生成器"></a>序列生成器</h2><h3 id="仿Python的Generator实现"><a href="#仿Python的Generator实现" class="headerlink" title="仿Python的Generator实现"></a>仿Python的Generator实现</h3><p>Python中的Generator可以在函数中调用yield将当前函数挂起并返回yield的参数，效果如下：</p>
 <figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">val</span> nums: (<span class="hljs-built_in">Int</span>) -&gt; Generator&lt;<span class="hljs-built_in">Int</span>&gt; = generator &#123; start: <span class="hljs-built_in">Int</span> -&gt;<br>    <span class="hljs-keyword">for</span> (i <span class="hljs-keyword">in</span> <span class="hljs-number">0.</span><span class="hljs-number">.5</span>) &#123;<br>        yield(start + i)<br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">val</span> gen: Generator&lt;<span class="hljs-built_in">Int</span>&gt; = nums(<span class="hljs-number">10</span>)<br><br><span class="hljs-keyword">for</span> (j <span class="hljs-keyword">in</span> gen) &#123;<br>    println(j)<br>&#125;<br><br><span class="hljs-comment">// 运行结果 </span><br><span class="hljs-number">10</span><br><span class="hljs-number">11</span><br><span class="hljs-number">12</span><br><span class="hljs-number">13</span><br><span class="hljs-number">14</span><br><span class="hljs-number">15</span><br></code></pre></td></tr></table></figure>
 <p>我们通过generator函数来得到一个新的函数nums，通过调用这个函数我们可以得到一个序列生成器Generator，Generator需要重载iterator操作符并且返回一个迭代器。</p>
@@ -242,7 +295,7 @@
 <figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">sealed</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">State</span> </span>&#123;<br>    <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">NotReady</span></span>(<span class="hljs-keyword">val</span> continuation: Continuation&lt;<span class="hljs-built_in">Unit</span>&gt;) : State()<br>    <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Ready</span>&lt;<span class="hljs-type">T</span>&gt;</span>(<span class="hljs-keyword">val</span> continuation: Continuation&lt;<span class="hljs-built_in">Unit</span>&gt;, <span class="hljs-keyword">val</span> nextValue: T) : State()<br>    <span class="hljs-keyword">object</span> Done : State()<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>序列生成时，<strong>next</strong>函数和<strong>yield</strong>相互配合实现状态的流转，next函数需要恢复协程的执行，yield函数需要挂起协程同时将产生的数据传递给next函数返回，因此这里我们将等待恢复的continuation实例和返回的数据作为入参添加到状态中方便两个函数获取。</p>
 <p>这几种状态的状态流转关系图如下：</p>
-<p><img src="/img/state_transfer.png" srcset="/img/loading.gif" alt="状态流转图"></p>
+<p><img src="/img/state_transfer.png" srcset="/img/loading.gif" lazyload alt="状态流转图"></p>
 <p>根据状态流转图编写GeneratorIterator的部分代码：</p>
 <figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 获取下一个元素</span><br><span class="hljs-comment"> * 当状态为[State.NotReady]时，表示协程未启动或已经挂起，调用[resume]函数启动或者恢复协程</span><br><span class="hljs-comment"> * 当状态为[State.Ready]时，返回yield携带过来的value，并且将当前状态流转为[State.NotReady]状态</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">next</span><span class="hljs-params">()</span></span>: T &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">when</span> (<span class="hljs-keyword">val</span> currentState = state) &#123;<br>        <span class="hljs-keyword">is</span> State.NotReady -&gt; &#123;<br>            resume()<br>            <span class="hljs-keyword">return</span> next()<br>        &#125;<br>        <span class="hljs-keyword">is</span> State.Ready&lt;*&gt; -&gt; &#123;<br>            state = State.NotReady(currentState.continuation)<br>            (currentState <span class="hljs-keyword">as</span> State.Ready&lt;T&gt;).nextValue<br>        &#125;<br>        State.Done -&gt; &#123;<br>            <span class="hljs-keyword">throw</span>  IndexOutOfBoundsException(<span class="hljs-string">&quot;No value left.&quot;</span>)<br>        &#125;<br>    &#125;<br>&#125;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 使用suspendCoroutine挂起当前协程</span><br><span class="hljs-comment"> * 并将当前状态流转为[State.Ready]状态，返回value</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">override</span> <span class="hljs-keyword">suspend</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">yield</span><span class="hljs-params">(value: <span class="hljs-type">T</span>)</span></span> = suspendCoroutine&lt;<span class="hljs-built_in">Unit</span>&gt; &#123; continuation -&gt;<br>    state = <span class="hljs-keyword">when</span> (state) &#123;<br>        <span class="hljs-keyword">is</span> State.NotReady -&gt; State.Ready(continuation, value)<br>        <span class="hljs-keyword">is</span> State.Ready&lt;*&gt; -&gt; <span class="hljs-keyword">throw</span> IllegalStateException(<span class="hljs-string">&quot;cannot yield while ready.&quot;</span>)<br>        <span class="hljs-keyword">is</span> State.Done -&gt; <span class="hljs-keyword">throw</span>  IllegalStateException(<span class="hljs-string">&quot;cannot yield while done.&quot;</span>)<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>在yield函数的实现中，我们对当前的状态进行了判断，这是复合协程的一个核心逻辑：<strong>状态机</strong>。无论是何种场景下的协程，都会有挂起、恢复、结束等相应的状态需要维护，同时在有对应的事件到达时也需要完成状态的转移。状态转移务必考虑原子性，kotlin核心库中的状态转移都通过CAS操作来更新，由于本例仅限于单线程中使用，所以这里没有考虑线程安全问题。yield函数定义在协程作用域中：</p>
@@ -296,7 +349,7 @@
 <li><strong>Dead：</strong>表示协程已经执行完毕。</li>
 </ul>
 <p>状态之间的转移如下所示。</p>
-<p><img src="/img/state_transfer_02.png" srcset="/img/loading.gif" alt="状态流转图"></p>
+<p><img src="/img/state_transfer_02.png" srcset="/img/loading.gif" lazyload alt="状态流转图"></p>
 <p>创建一个CoroutineScope来约束yield的调用范围：</p>
 <figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">CoroutineScope</span>&lt;<span class="hljs-type">P, R</span>&gt; </span>&#123;<br>    <span class="hljs-keyword">val</span> parameter: P?   <span class="hljs-comment">// 协程体启动时的参数</span><br>    <span class="hljs-keyword">suspend</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">yield</span><span class="hljs-params">(value: <span class="hljs-type">R</span>)</span></span>: P<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>由于Coroutine的对象需要返回给调用者，所以我们这里不能让Coroutine来直接实现CoroutineScope，而是在内部创建了一个CoroutineScope的匿名内部类。协程描述类的部分代码如下所示。</p>
@@ -317,7 +370,7 @@
 <li>Yielded，协程已执行处于挂起状态。</li>
 </ul>
 <p>resume函数的作用是挂起外部协程，并且启动或恢复当前协程的执行。外部协程挂起后，我们将其continuation实例存入到状态机中，当当前协程yield函数被调用时，又会将外部协程恢复，使得外部协程可以继续执行后续工作，例如调用另一个协程的resume函数。文字说起来可能比较抽象，这里画了一个时序图，如下。</p>
-<p><img src="/img/asymmetric_api.png" srcset="/img/loading.gif" alt="非对称API时序图"></p>
+<p><img src="/img/asymmetric_api.png" srcset="/img/loading.gif" lazyload alt="非对称API时序图"></p>
 <p>最后就是resumeWith的实现了，它的调用表示该协程已经执行完毕，需要将状态流转为State.Dead，同时不要忘记恢复外部协程执行，如下所示。</p>
 <figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">resumeWith</span><span class="hljs-params">(result: <span class="hljs-type">Result</span>&lt;<span class="hljs-type">R</span>&gt;)</span></span> &#123;<br>    <span class="hljs-keyword">val</span> previousStatus = status.getAndUpdate &#123;<br>        <span class="hljs-keyword">when</span> (it) &#123;<br>            <span class="hljs-keyword">is</span> Status.Created -&gt; <span class="hljs-keyword">throw</span> IllegalStateException(<span class="hljs-string">&quot;Never started!&quot;</span>)<br>            <span class="hljs-keyword">is</span> Status.Yielded&lt;*&gt; -&gt; <span class="hljs-keyword">throw</span>  IllegalStateException(<span class="hljs-string">&quot;Already yielded!&quot;</span>)<br>            <span class="hljs-keyword">is</span> Status.Resumed&lt;*&gt; -&gt; Status.Dead<br>            Status.Dead -&gt; <span class="hljs-keyword">throw</span> IllegalStateException(<span class="hljs-string">&quot;Already dead!&quot;</span>)<br>        &#125;<br>    &#125;<br>    (previousStatus <span class="hljs-keyword">as</span>? Status.Resumed&lt;R&gt;)?.continuation?.resumeWith(result)<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>至此，Lua风格的非对称协程API完成。</p>
@@ -329,7 +382,7 @@
 <p>这个控制中心显然是一个可以恢复（当前协程挂起）和挂起（传递调度权给目标协程）的协程，实际上我们之前的非对称API中的外部协程已经具备了一些控制中心的能力，我们只需要对其进行改造即可。效果如下所示。</p>
 <figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">object</span> SymCoroutines &#123;<br>    <span class="hljs-keyword">val</span> coroutine0: SymCoroutine&lt;<span class="hljs-built_in">Int</span>&gt; = SymCoroutine.create &#123; params: <span class="hljs-built_in">Int</span> -&gt;<br>        println(<span class="hljs-string">&quot;coroutine-0 <span class="hljs-variable">$params</span>&quot;</span>)<br>        <span class="hljs-keyword">var</span> result = transfer(coroutine2, <span class="hljs-number">0</span>)<br>        println(<span class="hljs-string">&quot;coroutine-0 1 <span class="hljs-variable">$result</span>&quot;</span>)<br>        result = transfer(SymCoroutine.main, <span class="hljs-built_in">Unit</span>)<br>        println(<span class="hljs-string">&quot;coroutine-0 1 <span class="hljs-variable">$result</span>&quot;</span>)<br>    &#125;<br><br>    <span class="hljs-keyword">val</span> coroutine1: SymCoroutine&lt;<span class="hljs-built_in">Int</span>&gt; = SymCoroutine.create &#123; param: <span class="hljs-built_in">Int</span> -&gt;<br>        println(<span class="hljs-string">&quot;coroutine-1 <span class="hljs-variable">$param</span>&quot;</span>)<br>        <span class="hljs-keyword">val</span> result = transfer(coroutine0, <span class="hljs-number">1</span>)<br>        println(<span class="hljs-string">&quot;coroutine-1 1 <span class="hljs-variable">$result</span>&quot;</span>)<br>    &#125;<br><br>    <span class="hljs-keyword">val</span> coroutine2: SymCoroutine&lt;<span class="hljs-built_in">Int</span>&gt; = SymCoroutine.create &#123; param: <span class="hljs-built_in">Int</span> -&gt;<br>        println(<span class="hljs-string">&quot;coroutine-2 <span class="hljs-variable">$param</span>&quot;</span>)<br>        <span class="hljs-keyword">var</span> result = transfer(coroutine1, <span class="hljs-number">2</span>)<br>        println(<span class="hljs-string">&quot;coroutine-2 1 <span class="hljs-variable">$result</span>&quot;</span>)<br>        result = transfer(coroutine0, <span class="hljs-number">2</span>)<br>        println(<span class="hljs-string">&quot;coroutine-2 2 <span class="hljs-variable">$result</span>&quot;</span>)<br>    &#125;<br>&#125;<br><br>SymCoroutine.main &#123;<br>    println(<span class="hljs-string">&quot;main 0&quot;</span>)<br>    <span class="hljs-keyword">val</span> result = transfer(SymCoroutines.coroutine2, <span class="hljs-number">3</span>)<br>    println(<span class="hljs-string">&quot;main end <span class="hljs-variable">$result</span>&quot;</span>)<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>我们使用<strong>SymCoroutine.create</strong>创建了多个协程，并且使用<strong>SymCoroutine.main</strong>创建了一个外部协程，这个外部协程就是控制中心，后文简称为 Main协程。Main协程通过<strong>transfer</strong>函数将调度权转移给coroutine2，从而开始了对称协程的调度权转移过程。</p>
-<p><img src="/img/sym_coroutine_sequence_diagram.png" srcset="/img/loading.gif" alt="调度权转移时序图"></p>
+<p><img src="/img/sym_coroutine_sequence_diagram.png" srcset="/img/loading.gif" lazyload alt="调度权转移时序图"></p>
 <p>与之前一样，我们定义一个作用域接口来提供transfer函数，如下所示。</p>
 <figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">SymCoroutineScope</span>&lt;<span class="hljs-type">T</span>&gt; </span>&#123;<br>    <span class="hljs-keyword">suspend</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;P&gt;</span> <span class="hljs-title">transfer</span><span class="hljs-params">(symCoroutine: <span class="hljs-type">SymCoroutine</span>&lt;<span class="hljs-type">P</span>&gt;, value: <span class="hljs-type">P</span>)</span></span>: T<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>这里需要注意的是，泛型参数T为对称协程的参数类型，而transfer函数的泛型参数P表示目标协程的参数类型，对称协程自身的定义决定了它不存在返回值，这点与非对称协程不同。</p>
@@ -361,36 +414,96 @@
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span>Kotlin标准库1.4.21
 <a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/35094136/">《深入理解Kotlin协程》</a>
 <a href="#fnref:2" rev="footnote" class="footnote-backref"> ↩</a></span></span></li></ol></div></section>
-            </div>
-            <hr>
-            <div>
-              <div class="post-metas mb-3">
-                
-                  <div class="post-meta mr-3">
-                    <i class="iconfont icon-category"></i>
-                    
-                      <a class="hover-with-bg" href="/categories/Kotlin/">Kotlin</a>
-                    
-                  </div>
-                
-                
-                  <div class="post-meta">
-                    <i class="iconfont icon-tags"></i>
-                    
-                      <a class="hover-with-bg" href="/tags/Coroutines/">Coroutines</a>
-                    
-                  </div>
                 
               </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Kotlin/" class="category-chain-item">Kotlin</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Coroutines/" class="print-no-link">#Coroutines</a>
+      
+    </div>
+  
+</div>
+
+
               
-                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>深入理解Kotlin协程（二）——复合协程</div>
+      <div>https://www.sukaidev.top/2021/02/05/7963e723/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>sukaidev</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2021年2月5日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
               
               
-                <div class="post-prevnext">
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2021/02/16/b912c613/">
+                      <a href="/2021/02/16/b912c613/" title="深入理解Kotlin协程（三）——Kotlin协程框架初探（一）">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">深入理解Kotlin协程（三）——Kotlin协程框架初探（一）</span>
                         <span class="visible-mobile">上一篇</span>
@@ -400,7 +513,7 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2021/02/01/595755ca/">
+                      <a href="/2021/02/01/595755ca/" title="深入理解Kotlin协程（一）——基本概念与原理">
                         <span class="hidden-mobile">深入理解Kotlin协程（一）——基本概念与原理</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
@@ -412,12 +525,12 @@
             </div>
 
             
-              <!-- Comments -->
-              <article class="comments" id="comments">
-                
-                
+  
+  
+    <article id="comments" lazyload>
+      
   <script type="text/javascript">
-    Fluid.utils.waitElementVisible('comments', function() {
+    Fluid.utils.loadComments('#comments', function() {
       var light = 'github-light';
       var dark = 'github-dark';
       var schema = document.documentElement.getAttribute('data-user-color-scheme');
@@ -443,31 +556,64 @@
   <noscript>Please enable JavaScript to view the comments</noscript>
 
 
-              </article>
-            
+    </article>
+  
+
+
           </article>
         </div>
       </div>
     </div>
-    
-      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
-        <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
   <div class="toc-body" id="toc-body"></div>
 </div>
 
-      </div>
-    
+
+
+  </aside>
+
+
+    </div>
   </div>
 </div>
 
-<!-- Custom -->
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+
 
 
     
 
     
-      <a id="scroll-top-button" href="#" role="button">
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
         <i class="iconfont icon-arrowup" aria-hidden="true"></i>
       </a>
     
@@ -486,32 +632,34 @@
       <div class="modal-body mx-3">
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>
     </div>
   </div>
 </div>
+
     
 
     
   </main>
 
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
-  </div>
+  <footer>
+    <div class="footer-inner">
   
-
+    <div class="footer-content">
+       Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
   
-
   
-</footer>
+  
+</div>
 
-<!-- SCRIPTS -->
+  </footer>
 
+  <!-- Scripts -->
+  
   <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
 
@@ -526,83 +674,105 @@
 
 <script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
 <script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
-<script  src="/js/debouncer.js" ></script>
 <script  src="/js/events.js" ></script>
 <script  src="/js/plugins.js" ></script>
-
-<!-- Plugins -->
-
-
-  
-    <script  src="/js/lazyload.js" ></script>
-  
-
-
-
-  
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
-
-
-
-
-
-  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
-
-
-
-
 
 
   <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
   <script>
     (function (window, document) {
       var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
       
-      typing(title)
+        typing(text);
       
     })(window, document);
   </script>
 
 
 
-  <script  src="/js/local-search.js" ></script>
-  <script>
-    (function () {
-      var path = "/local-search.xml";
-      var inputArea = document.querySelector("#local-search-input");
-      inputArea.onclick = function () {
-        searchFunc(path, 'local-search-input', 'local-search-result');
-        this.onclick = null
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
       }
-    })()
-  </script>
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-<!-- 主题的启动项 保持在最底部 -->
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
 <script  src="/js/boot.js" ></script>
 
 
+  
 
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
 </body>
 </html>

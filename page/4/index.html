@@ -1,31 +1,49 @@
 
 
 <!DOCTYPE html>
-<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+<html lang="zh-CN" data-default-color-scheme=auto>
 
 
 
 <head>
   <meta charset="UTF-8">
+
   <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
-  <link rel="icon" type="image/png" href="/img/favicon.png">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <link rel="icon" href="/img/favicon.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
   <meta name="theme-color" content="#2f4154">
-  <meta name="description" content="Android Developer">
   <meta name="author" content="sukaidev">
   <meta name="keywords" content="Android sukaidev 苏海鸿">
+  
+    <meta name="description" content="Android Developer">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Sukai&#39;s Blog - Android Developer">
+<meta property="og:url" content="https://www.sukaidev.top/page/4/index.html">
+<meta property="og:site_name" content="Sukai&#39;s Blog - Android Developer">
+<meta property="og:description" content="Android Developer">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:author" content="sukaidev">
+<meta property="article:tag" content="Android sukaidev 苏海鸿">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
   <title>Sukai&#39;s Blog - Android Developer</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
 
 
 
-<!-- 主题依赖的图标库，不要自行修改 -->
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
 
 
 
@@ -34,24 +52,46 @@
 
 <link  rel="stylesheet" href="/css/main.css" />
 
-<!-- 自定义样式保持在最底部 -->
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
 
 
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"www.sukaidev.top","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.sukaidev.top","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
   </script>
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
 <meta name="generator" content="Hexo 5.3.0"></head>
 
 
 <body>
-  <header style="height: 100vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 100vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
-    <a class="navbar-brand"
-       href="/">&nbsp;<strong>Sukai's Blog</strong>&nbsp;</a>
+    <a class="navbar-brand" href="/">
+      <strong>Sukai&#39;s Blog</strong>
+    </a>
 
     <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
             data-target="#navbarSupportedContent"
@@ -68,9 +108,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/">
+              <a class="nav-link" href="/" target="_self">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                <span>首页</span>
               </a>
             </li>
           
@@ -80,9 +120,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/archives/">
+              <a class="nav-link" href="/archives/" target="_self">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                <span>归档</span>
               </a>
             </li>
           
@@ -92,9 +132,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/categories/">
+              <a class="nav-link" href="/categories/" target="_self">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                <span>分类</span>
               </a>
             </li>
           
@@ -104,9 +144,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/tags/">
+              <a class="nav-link" href="/tags/" target="_self">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                <span>标签</span>
               </a>
             </li>
           
@@ -116,23 +156,26 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/about/">
+              <a class="nav-link" href="/about/" target="_self">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                <span>关于</span>
               </a>
             </li>
           
         
         
           <li class="nav-item" id="search-btn">
-            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
-                class="iconfont icon-search"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
           </li>
+          
         
         
           <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" href="javascript:">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
           </li>
         
       </ul>
@@ -140,34 +183,40 @@
   </div>
 </nav>
 
-    <div class="banner" id="banner" parallax=true
-         style="background: url('/img/default.png') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="Greate hopes make greate man.">
-              
-            </span>
+  
 
-            
-          </div>
-
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
           
-            <div class="scroll-down-bar">
-              <i class="iconfont icon-arrowdown"></i>
-            </div>
+            <span id="subtitle" data-typed-text="Greate hopes make greate man."></span>
           
         </div>
+
+        
       </div>
+
+      
+        <div class="scroll-down-bar">
+          <i class="iconfont icon-arrowdown"></i>
+        </div>
+      
     </div>
+  </div>
+</div>
+
+</div>
+
   </header>
 
   <main>
     
       <div class="container nopadding-x-md">
-        <div class="py-5" id="board"
-          style=margin-top:0>
+        <div id="board"
+          style="margin-top: 0">
           
           <div class="container">
             <div class="row">
@@ -179,24 +228,19 @@
     
     
     <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
-        <a href="/2019/02/04/48014e1e/">HashMap详解</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2019/02/04/48014e1e/">
-          
-          
-            
-          
-          数据结构JDK1.7之前HashMap采用的数据结构为数组+链表，使用这种结构是为了解决哈希冲突（拉链法）。JDK1.8之后还引入了红黑树，当链表长度达到一个阈值时该链表就会转化为红黑树。
-
-数组元素和链表结点JDK1.7之前为Entry，JDK1.8为Node，两者只是名称不同。
-Entry（或Node）中存放着键值对、键的哈希值，并且指向下一个结点。
-123456789101112131415
+        <a href="/2019/02/04/48014e1e/" target="_self">
+          HashMap详解
         </a>
-      </p>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2019/02/04/48014e1e/" target="_self">
+        <div>
+          数据结构JDK1.7之前HashMap采用的数据结构为数组+链表，使用这种结构是为了解决哈希冲突（拉链法）。JDK1.8之后还引入了红黑树，当链表长度达到一个阈值时该链表就会转化为红黑树。  数组元素和链表结点JDK1.7之前为Entry，JDK1.8为Node，两者只是名称不同。 Entry（或Node）中存放着键值对、键的哈希值，并且指向下一个结点。 123456789101112131415
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -208,18 +252,32 @@ Entry（或Node）中存放着键值对、键的哈希值，并且指向下一�
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/Data-Structure/">Data Structure</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Data-Structure/" class="category-chain-item">Data Structure</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/HashMap/">HashMap</a>
+              <a href="/tags/HashMap/">#HashMap</a>
             
           </div>
         
@@ -231,28 +289,19 @@ Entry（或Node）中存放着键值对、键的哈希值，并且指向下一�
     
     
     <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
-        <a href="/2018/12/15/7f716777/">Android触摸事件分发机制</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2018/12/15/7f716777/">
-          
-          
-            
-          
-          为什么要进行事件分发android中View是树形结构的，view可能会重叠，当我们点击某个区域时，如下图中的View，由于Activity、ViewGroupA、ViewGroupB和View都能对触摸事件进行响应，系统无法确定该事件交由谁处理，这就需要事件分发机制来帮忙。
-
-  
-
-
-
-什么是触摸事件官方文档中的描述：
-
-Motion events describe movements in 
+        <a href="/2018/12/15/7f716777/" target="_self">
+          Android触摸事件分发机制
         </a>
-      </p>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2018/12/15/7f716777/" target="_self">
+        <div>
+          为什么要进行事件分发android中View是树形结构的，view可能会重叠，当我们点击某个区域时，如下图中的View，由于Activity、ViewGroupA、ViewGroupB和View都能对触摸事件进行响应，系统无法确定该事件交由谁处理，这就需要事件分发机制来帮忙。        什么是触摸事件官方文档中的描述：  Motion events describe movements in
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -264,18 +313,32 @@ Motion events describe movements in
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/Android-Basics/">Android Basics</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Android-Basics/" class="category-chain-item">Android Basics</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Touch-Event/">Touch Event</a>
+              <a href="/tags/Touch-Event/">#Touch Event</a>
             
           </div>
         
@@ -287,20 +350,19 @@ Motion events describe movements in
     
     
     <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
-        <a href="/2018/12/10/bfd836fe/">View的绘制流程</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2018/12/10/bfd836fe/">
-          
-          
-            
-          
-          ViewRoot和DecorViewRoot对应与VieRootImpl类，它是连接WindowManager和DecorView的纽带，View的三大流程（Measure、Layout和Draw）均是通过ViewRoot来完成的。在ActivityThread中，当Activity对象被创建完毕后，会将DecorView添加到Window中，同时会创建ViewRootImpl对象，并将ViewR
+        <a href="/2018/12/10/bfd836fe/" target="_self">
+          View的绘制流程
         </a>
-      </p>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2018/12/10/bfd836fe/" target="_self">
+        <div>
+          ViewRoot和DecorViewRoot对应与VieRootImpl类，它是连接WindowManager和DecorView的纽带，View的三大流程（Measure、Layout和Draw）均是通过ViewRoot来完成的。在ActivityThread中，当Activity对象被创建完毕后，会将DecorView添加到Window中，同时会创建ViewRootImpl对象，并将ViewR
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -312,18 +374,32 @@ Motion events describe movements in
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/Android-Basics/">Android Basics</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Android-Basics/" class="category-chain-item">Android Basics</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/View/">View</a>
+              <a href="/tags/View/">#View</a>
             
           </div>
         
@@ -335,22 +411,19 @@ Motion events describe movements in
     
     
     <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
-        <a href="/2018/11/04/c28d723e/">AsyncTask源码详解</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2018/11/04/c28d723e/">
-          
-          
-            
-          
-          基础知识CallableCallable的接口定义如下:
-123public interface Callable &#123;          V   call()   throws Exception;&#125;
-Callable接口声明了一个名称为call()的方法，该方法可以有返回值V，也可以抛出异常。Callable也是一个线程接口，它与Runnable的主要区别就是Callable
+        <a href="/2018/11/04/c28d723e/" target="_self">
+          AsyncTask源码详解
         </a>
-      </p>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2018/11/04/c28d723e/" target="_self">
+        <div>
+          基础知识CallableCallable的接口定义如下: 123public interface Callable &#123;          V   call()   throws Exception;&#125; Callable接口声明了一个名称为call()的方法，该方法可以有返回值V，也可以抛出异常。Callable也是一个线程接口，它与Runnable的主要区别就是Callable
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -362,18 +435,32 @@ Callable接口声明了一个名称为call()的方法，该方法可以有返回
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/Android-Basics/">Android Basics</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Android-Basics/" class="category-chain-item">Android Basics</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/AsyncTask/">AsyncTask</a>
+              <a href="/tags/AsyncTask/">#AsyncTask</a>
             
           </div>
         
@@ -385,23 +472,19 @@ Callable接口声明了一个名称为call()的方法，该方法可以有返回
     
     
     <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
-        <a href="/2018/10/29/e7df41f4/">Handler机制基本原理</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2018/10/29/e7df41f4/">
-          
-          
-            
-          
-          定义由于Android本身是线程不安全的，为了解决多线程并发的问题，Android提供了一套原生异步消息处理机制——Handler机制。Handler机制主要涉及到四个类：Handler、Looper、Message和MessageQueue。
-
-使用方法创建Handler对象方式一：在主线程中创建Handler对象，并重写其handMessage方法。 
-123456789101112priva
+        <a href="/2018/10/29/e7df41f4/" target="_self">
+          Handler机制基本原理
         </a>
-      </p>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2018/10/29/e7df41f4/" target="_self">
+        <div>
+          定义由于Android本身是线程不安全的，为了解决多线程并发的问题，Android提供了一套原生异步消息处理机制——Handler机制。Handler机制主要涉及到四个类：Handler、Looper、Message和MessageQueue。  使用方法创建Handler对象方式一：在主线程中创建Handler对象，并重写其handMessage方法。  123456789101112priva
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -413,18 +496,32 @@ Callable接口声明了一个名称为call()的方法，该方法可以有返回
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/Android-Basics/">Android Basics</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Android-Basics/" class="category-chain-item">Android Basics</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Handler/">Handler</a>
+              <a href="/tags/Handler/">#Handler</a>
             
           </div>
         
@@ -436,21 +533,19 @@ Callable接口声明了一个名称为call()的方法，该方法可以有返回
     
     
     <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
-        <a href="/2018/09/28/ad641d8b/">Fragment进阶使用技巧</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2018/09/28/ad641d8b/">
-          
-          
-            
-          
-          内存重启当App运行在后台，系统由于资源紧张把App杀死回收，此时App从后台切回前台会产生重启现象，我们把这种情况称为“内存重启”。另外，屏幕旋转等配置变化也会造成当前Activity重启，本质与“内存重启”类似。
-在系统要把app回收之前，系统会把Activity的状态保存下来，Activity的FragmentManager负责把Activity中的Fragment保存起来。在“内存重启”后
+        <a href="/2018/09/28/ad641d8b/" target="_self">
+          Fragment进阶使用技巧
         </a>
-      </p>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2018/09/28/ad641d8b/" target="_self">
+        <div>
+          内存重启当App运行在后台，系统由于资源紧张把App杀死回收，此时App从后台切回前台会产生重启现象，我们把这种情况称为“内存重启”。另外，屏幕旋转等配置变化也会造成当前Activity重启，本质与“内存重启”类似。 在系统要把app回收之前，系统会把Activity的状态保存下来，Activity的FragmentManager负责把Activity中的Fragment保存起来。在“内存重启”后
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -462,18 +557,32 @@ Callable接口声明了一个名称为call()的方法，该方法可以有返回
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/Android-Basics/">Android Basics</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Android-Basics/" class="category-chain-item">Android Basics</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Fragment/">Fragment</a>
+              <a href="/tags/Fragment/">#Fragment</a>
             
           </div>
         
@@ -485,15 +594,9 @@ Callable接口声明了一个名称为call()的方法，该方法可以有返回
 
   <nav aria-label="navigation">
     <span class="pagination" id="pagination">
-      <a class="extend prev" rel="prev" href="/page/3/"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span>
+      <a class="extend prev" rel="prev" href="/page/3/#board"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/#board">2</a><a class="page-number" href="/page/3/#board">3</a><span class="page-number current">4</span>
     </span>
   </nav>
-  
-  <script>
-    for (ele of document.getElementById("pagination").getElementsByTagName("a")) {
-      ele.href += '#board';
-    }
-  </script>
 
 
 
@@ -505,7 +608,7 @@ Callable接口声明了一个名称为call()的方法，该方法可以有返回
     
 
     
-      <a id="scroll-top-button" href="#" role="button">
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
         <i class="iconfont icon-arrowup" aria-hidden="true"></i>
       </a>
     
@@ -524,32 +627,34 @@ Callable接口声明了一个名称为call()的方法，该方法可以有返回
       <div class="modal-body mx-3">
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>
     </div>
   </div>
 </div>
+
     
 
     
   </main>
 
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
-  </div>
+  <footer>
+    <div class="footer-inner">
   
-
+    <div class="footer-content">
+       Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
   
-
   
-</footer>
+  
+</div>
 
-<!-- SCRIPTS -->
+  </footer>
 
+  <!-- Scripts -->
+  
   <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
 
@@ -564,79 +669,50 @@ Callable接口声明了一个名称为call()的方法，该方法可以有返回
 
 <script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
 <script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
-<script  src="/js/debouncer.js" ></script>
 <script  src="/js/events.js" ></script>
 <script  src="/js/plugins.js" ></script>
-
-<!-- Plugins -->
-
-
-  
-    <script  src="/js/lazyload.js" ></script>
-  
-
-
-
-  
-
-
-
-
-
-
-
-
-
-  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
-
-
-
-
 
 
   <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
   <script>
     (function (window, document) {
       var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
       
-      typing(title)
+        typing(text);
       
     })(window, document);
   </script>
 
 
 
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
   <script  src="/js/local-search.js" ></script>
-  <script>
-    (function () {
-      var path = "/local-search.xml";
-      var inputArea = document.querySelector("#local-search-input");
-      inputArea.onclick = function () {
-        searchFunc(path, 'local-search-input', 'local-search-result');
-        this.onclick = null
-      }
-    })()
-  </script>
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-<!-- 主题的启动项 保持在最底部 -->
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
 <script  src="/js/boot.js" ></script>
 
 
+  
 
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
 </body>
 </html>

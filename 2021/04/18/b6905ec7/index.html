@@ -1,47 +1,59 @@
 
 
 <!DOCTYPE html>
-<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+<html lang="zh-CN" data-default-color-scheme=auto>
 
 
 
 <head>
   <meta charset="UTF-8">
+
   <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
-  <link rel="icon" type="image/png" href="/img/favicon.png">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <link rel="icon" href="/img/favicon.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
   <meta name="theme-color" content="#2f4154">
-  <meta name="description" content="Android Developer">
   <meta name="author" content="sukaidev">
   <meta name="keywords" content="Android sukaidev 苏海鸿">
+  
+    <meta name="description" content="上篇文章中了解了虚拟机执行子系统中的栈和栈帧结构，并且学习了一些方法调用相关的字节码指令，对于方法的分派过程有了更深入的理解，接下来这篇文章来了解一下基础的字节码指令。 字节码指令字节码指令主要有加载和存储指令、操作数栈指令、运算和类型转换指令、控制转移指令等，这一部分是了解字节码的基础。 加载和存储指令加载（load）和存储（store）相关的指令是使用得最频繁的指令，分为load类、store">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入理解JVM（五）——字节码基础">
+<meta property="og:url" content="https://www.sukaidev.top/2021/04/18/b6905ec7/index.html">
+<meta property="og:site_name" content="Sukai&#39;s Blog - Android Developer">
+<meta property="og:description" content="上篇文章中了解了虚拟机执行子系统中的栈和栈帧结构，并且学习了一些方法调用相关的字节码指令，对于方法的分派过程有了更深入的理解，接下来这篇文章来了解一下基础的字节码指令。 字节码指令字节码指令主要有加载和存储指令、操作数栈指令、运算和类型转换指令、控制转移指令等，这一部分是了解字节码的基础。 加载和存储指令加载（load）和存储（store）相关的指令是使用得最频繁的指令，分为load类、store">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://www.sukaidev.top/img/cover_jvm_byte-code.png">
+<meta property="article:published_time" content="2021-04-18T14:08:14.000Z">
+<meta property="article:modified_time" content="2021-09-10T16:36:42.337Z">
+<meta property="article:author" content="sukaidev">
+<meta property="article:tag" content="Bytecode">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.sukaidev.top/img/cover_jvm_byte-code.png">
+  
+  
+  
   <title>深入理解JVM（五）——字节码基础 - Sukai&#39;s Blog - Android Developer</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
 
 
+
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
   <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
 
-  
-    
-    
-      
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/atom-one-light.min.css" />
-    
-  
-
-  
-    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
-  
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
 
 
 
 <!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
 
 
 
@@ -50,24 +62,46 @@
 
 <link  rel="stylesheet" href="/css/main.css" />
 
-<!-- 自定义样式保持在最底部 -->
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
 
 
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"www.sukaidev.top","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.sukaidev.top","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
   </script>
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
 <meta name="generator" content="Hexo 5.3.0"></head>
 
 
 <body>
-  <header style="height: 70vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
-    <a class="navbar-brand"
-       href="/">&nbsp;<strong>Sukai's Blog</strong>&nbsp;</a>
+    <a class="navbar-brand" href="/">
+      <strong>Sukai&#39;s Blog</strong>
+    </a>
 
     <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
             data-target="#navbarSupportedContent"
@@ -84,9 +118,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/">
+              <a class="nav-link" href="/" target="_self">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                <span>首页</span>
               </a>
             </li>
           
@@ -96,9 +130,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/archives/">
+              <a class="nav-link" href="/archives/" target="_self">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                <span>归档</span>
               </a>
             </li>
           
@@ -108,9 +142,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/categories/">
+              <a class="nav-link" href="/categories/" target="_self">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                <span>分类</span>
               </a>
             </li>
           
@@ -120,9 +154,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/tags/">
+              <a class="nav-link" href="/tags/" target="_self">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                <span>标签</span>
               </a>
             </li>
           
@@ -132,23 +166,26 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/about/">
+              <a class="nav-link" href="/about/" target="_self">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                <span>关于</span>
               </a>
             </li>
           
         
         
           <li class="nav-item" id="search-btn">
-            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
-                class="iconfont icon-search"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
           </li>
+          
         
         
           <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" href="javascript:">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
           </li>
         
       </ul>
@@ -156,60 +193,71 @@
   </div>
 </nav>
 
-    <div class="banner" id="banner" parallax=true
-         style="background: url('/img/default.png') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="深入理解JVM（五）——字节码基础">
-              
-            </span>
-
-            
-              <div class="mt-3">
-  
-  
-    <span class="post-meta">
-      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2021-04-18 22:08" pubdate>
-        2021年4月18日 晚上
-      </time>
-    </span>
-  
-</div>
-
-<div class="mt-1">
-  
-    
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-chart"></i>
-      4.5k 字
-    </span>
   
 
-  
-    
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-clock-fill"></i>
-      
-      
-      53
-       分钟
-    </span>
-  
-
-  
-  
-</div>
-
-            
-          </div>
-
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="深入理解JVM（五）——字节码基础"></span>
           
         </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-04-18 22:08" pubdate>
+          2021年4月18日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          4.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          36 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
       </div>
+
+      
     </div>
+  </div>
+</div>
+
+</div>
+
   </header>
 
   <main>
@@ -218,16 +266,21 @@
 
 <div class="container-fluid nopadding-x">
   <div class="row nomargin-x">
-    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
     <div class="col-lg-8 nopadding-x-md">
       <div class="container nopadding-x-md" id="board-ctn">
-        <div class="py-5" id="board">
+        <div id="board">
           <article class="post-content mx-auto">
-            <!-- SEO header -->
-            <h1 style="display: none">深入理解JVM（五）——字节码基础</h1>
+            <h1 id="seo-header">深入理解JVM（五）——字节码基础</h1>
             
-            <div class="markdown-body">
-              <p>上篇文章中了解了虚拟机执行子系统中的栈和栈帧结构，并且学习了一些方法调用相关的字节码指令，对于方法的分派过程有了更深入的理解，接下来这篇文章来了解一下基础的字节码指令。</p>
+            
+              <div class="markdown-body">
+                
+                <p>上篇文章中了解了虚拟机执行子系统中的栈和栈帧结构，并且学习了一些方法调用相关的字节码指令，对于方法的分派过程有了更深入的理解，接下来这篇文章来了解一下基础的字节码指令。</p>
 <h2 id="字节码指令"><a href="#字节码指令" class="headerlink" title="字节码指令"></a>字节码指令</h2><p>字节码指令主要有<strong>加载和存储指令</strong>、<strong>操作数栈指令</strong>、<strong>运算和类型转换指令</strong>、<strong>控制转移指令</strong>等，这一部分是了解字节码的基础。</p>
 <h3 id="加载和存储指令"><a href="#加载和存储指令" class="headerlink" title="加载和存储指令"></a>加载和存储指令</h3><p><strong>加载（load）</strong>和<strong>存储（store）</strong>相关的指令是使用得最频繁的指令，分为load类、store类、常量加载这三种。</p>
 <ul>
@@ -313,7 +366,7 @@
 </tr>
 </tbody></table>
 <h3 id="操作数栈指令"><a href="#操作数栈指令" class="headerlink" title="操作数栈指令"></a>操作数栈指令</h3><p>常见的操作数栈指令有pop、dup和swap。pop指令用于将栈顶的值出栈，dup指令用来复制栈顶的元素并压入栈顶，swap用于交换栈顶的两个元素，如下图所示。</p>
-<p><img src="/img/jvm/dup_pop_swap.png" srcset="/img/loading.gif" alt="dup、pop、swap指令"></p>
+<p><img src="/img/jvm/dup_pop_swap.png" srcset="/img/loading.gif" lazyload alt="dup、pop、swap指令"></p>
 <p>另外还有几个复杂一点的指令，如下操作数栈指令列表所示。</p>
 <table>
 <thead>
@@ -458,7 +511,7 @@
 <p>对应的字节码如下所示。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-number">0</span>: iload_1  <span class="hljs-comment">// 将局部变量表中下标为1的int变量加载到操作数栈上</span><br><span class="hljs-number">1</span>: ifle <span class="hljs-number">6</span>   <span class="hljs-comment">// 将操作数栈顶元素出栈与0比较，如果小于等于0则跳转到字节码第六行</span><br><span class="hljs-number">4</span>: iconst_1 <span class="hljs-comment">// 4~5行对应代码”return 1“，这里先将常量1压到栈顶</span><br><span class="hljs-number">5</span>: ireturn  <span class="hljs-comment">// 将栈顶整数1出栈并返回</span><br><span class="hljs-number">6</span>: iconst_0  <span class="hljs-comment">// 将常量0压入栈顶</span><br><span class="hljs-number">7</span>: ireturn  <span class="hljs-comment">// 将栈顶整数0出栈返回</span><br></code></pre></td></tr></table></figure>
 <p>假设n等于20，调用isPositive(20)方法操作数栈的变化情况如下图所示。</p>
-<p><img src="/img/jvm/jvm_bytecode_ispositive.png" srcset="/img/loading.gif" alt="isPositive(/img/jvm/jvm_bytecode_ispositive.png)操作数栈变化">所所有控制转移指令如下表所示。</p>
+<p><img src="/img/jvm/jvm_bytecode_ispositive.png" srcset="/img/loading.gif" lazyload alt="isPositive(/img/jvm/jvm_bytecode_ispositive.png)操作数栈变化">所所有控制转移指令如下表所示。</p>
 <table>
 <thead>
 <tr>
@@ -558,32 +611,32 @@
 <p>以下列为例，看看JVM是如何处理高级for循环的。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">sum</span><span class="hljs-params">(<span class="hljs-keyword">int</span>[] numbers)</span> </span>&#123;<br>    <span class="hljs-keyword">int</span> sum = <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> num : numbers) &#123;<br>        sum += num;<br>    &#125;<br>    <span class="hljs-keyword">return</span> sum;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>同样的，使用 javac -p 命令编译后，通过javap -c -v -l 来查看字节码：</p>
-<p><img src="/img/jvm/jvm_bytecode_sum.png" srcset="/img/loading.gif" alt="sum方法字节码"></p>
+<p><img src="/img/jvm/jvm_bytecode_sum.png" srcset="/img/loading.gif" lazyload alt="sum方法字节码"></p>
 <p>为了方便理解，我们可以把局部变量表画出来，如下图所示。</p>
-<p><img src="/img/jvm/jvm_bytecode_sum_op.png" srcset="/img/loading.gif" alt="sum方法局部变量表"></p>
+<p><img src="/img/jvm/jvm_bytecode_sum_op.png" srcset="/img/loading.gif" lazyload alt="sum方法局部变量表"></p>
 <p>下面以执行sum(new int[]{0,20,30});为例来逐行分析字节码执行过程。</p>
 <p>第0~1行：把常量0加载到操作数栈上，随后通过istore_2指令将0出栈赋值给局部变量表中下标为2的元素，就是将sum赋值为0。此时的局部变量表和操作数栈如下图所示。</p>
-<p><img src="/img/jvm/image-20210410104512311.png" srcset="/img/loading.gif" alt="for循环执行细节（1）"></p>
+<p><img src="/img/jvm/image-20210410104512311.png" srcset="/img/loading.gif" lazyload alt="for循环执行细节（1）"></p>
 <p>第2~9行：初始化循环控制变量，可以使用如下伪代码表示。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java">$array = numbers;<br>$len = $array.arraylength<br>$i = <span class="hljs-number">0</span><br></code></pre></td></tr></table></figure>
 <p>第2~3行：aload_1指令的作用是加载局部变量表中下标为1的变量（参数numbers），astore_3指令的作用是将栈顶元素存储到局部变量表下标为3的位置上，这里记为$array，如下图所示。</p>
-<p><img src="/img/jvm/image-20210410111449022.png" srcset="/img/loading.gif" alt="for循环执行细节（2）"></p>
+<p><img src="/img/jvm/image-20210410111449022.png" srcset="/img/loading.gif" lazyload alt="for循环执行细节（2）"></p>
 <p>第4~6行：计算数据的长度，astore_3加载$array到栈顶，调用arrayLength指令获取数组长度存储到栈顶，随后调用istore 4将数组长度存储到局部变量表的第4个位置，这里记为$len，如下图所示。</p>
-<p><img src="/img/jvm/image-20210410123456070.png" srcset="/img/loading.gif" alt="for循环执行细节（3）"></p>
+<p><img src="/img/jvm/image-20210410123456070.png" srcset="/img/loading.gif" lazyload alt="for循环执行细节（3）"></p>
 <p>第8~9行：初始化数组遍历的下标初始值。iconst_0将0加载到操作数栈上，随后istore 5将栈顶的0存储到局部变量表中的第5个位置，这个局部变量是数据变量的下表初始值，这里记为$i，如下图所示。</p>
-<p><img src="/img/jvm/image-20210410123800666.png" srcset="/img/loading.gif" alt="for循环执行细节（4）"></p>
+<p><img src="/img/jvm/image-20210410123800666.png" srcset="/img/loading.gif" lazyload alt="for循环执行细节（4）"></p>
 <p>第11~32行是循环体执行过程。</p>
 <p>第11~15行的作用是判断循环能否继续：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-number">11</span>: iload         <span class="hljs-number">5</span><br><span class="hljs-number">13</span>: iload         <span class="hljs-number">4</span><br><span class="hljs-number">15</span>: if_icmpge     <span class="hljs-number">35</span><br></code></pre></td></tr></table></figure>
 <p>首先通过iload 5和iload 4加载局部变量表中下标5和4的变量到栈顶，参照上图中的局部变量表我们知道下标5和下标4的变量分别是数组下标$i和数组长度$len。</p>
 <p>接着会调用if_icmpge进行条件判断，如果$i &gt;= $len，则直接跳转到第35行指令处，for循环结束，否则继续往下执行。过程如下图所示。</p>
-<p><img src="/img/jvm/image-20210410141322131.png" srcset="/img/loading.gif" alt="for循环执行细节（5）"></p>
+<p><img src="/img/jvm/image-20210410141322131.png" srcset="/img/loading.gif" lazyload alt="for循环执行细节（5）"></p>
 <p>第18~22行的作用是把$array[$i]赋值给number。aload_3加载$array到栈上，iload 5加载$i到栈上，然后iaload指令把下标为$i的数组元素加载到操作数栈上，随后istore 6将栈顶元素存储到局部变量表下标为6的位置上，如下图所示。</p>
-<p><img src="/img/jvm/image-20210410145943441.png" srcset="/img/loading.gif" alt="for循环执行细节（6）"></p>
+<p><img src="/img/jvm/image-20210410145943441.png" srcset="/img/loading.gif" lazyload alt="for循环执行细节（6）"></p>
 <p>第24~28行：iload_2 和 iload 6指令把sum和number值加载到操作数栈上，然后执行iadd指令进行整数相加，如下图所示。</p>
-<p><img src="/img/jvm/image-20210410164045262.png" srcset="/img/loading.gif" alt="for循环执行细节（7）"></p>
+<p><img src="/img/jvm/image-20210410164045262.png" srcset="/img/loading.gif" lazyload alt="for循环执行细节（7）"></p>
 <p>第29行：”iinc 5,1“指令对执行循环后的$i加一。iinc指令比较特殊，它并不依赖于操作数栈，而是直接对局部变量进行自增，再将结果出栈存储到局部变量表，因此效率非常高。</p>
-<p><img src="/img/jvm/image-20210410164642263.png" srcset="/img/loading.gif" alt="for循环执行细节（8）"></p>
+<p><img src="/img/jvm/image-20210410164642263.png" srcset="/img/loading.gif" lazyload alt="for循环执行细节（8）"></p>
 <p>第32行：goto 11指令无条件跳转到第11行继续进行循环条件判断。</p>
 <p>经过上述分析，很容易发现所谓”高级”for循环翻译成字节码后实际上与普通的for循环并无差别，只是个语法糖而已。</p>
 <h3 id="swtich-case底层实现原理"><a href="#swtich-case底层实现原理" class="headerlink" title="swtich-case底层实现原理"></a>swtich-case底层实现原理</h3><p>switch-case语法实现原理依赖于tableswitch和lookupswtich两条字节码指令。先来看下面的与其字节码：</p>
@@ -596,7 +649,7 @@
 <p>同样以一段代码为例：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">stringSwitch</span><span class="hljs-params">(String name)</span> </span>&#123;<br>    <span class="hljs-keyword">switch</span> (name) &#123;<br>        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;Java&quot;</span>:<br>            <span class="hljs-keyword">return</span> <span class="hljs-number">100</span>;<br>        <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;Kotlin&quot;</span>:<br>            <span class="hljs-keyword">return</span> <span class="hljs-number">200</span>;<br>        <span class="hljs-keyword">default</span>:<br>            <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>对应字节码如下图：</p>
-<p><img src="/img/jvm/image-20210410173623801.png" srcset="/img/loading.gif" alt="对String进行switch对应字节码"></p>
+<p><img src="/img/jvm/image-20210410173623801.png" srcset="/img/loading.gif" lazyload alt="对String进行switch对应字节码"></p>
 <p>这里有几个比较关键的点，第5行中调用了String#hashCode()方法，并且选择使用lookupswitch指令，判断case后跳转到对应的行数。</p>
 <p>由于hash值相同的String也有可能是不同字符串，因此随后会调用String#equals()方法来判断是否是相等。这里使用了ifeq指令，ifeq用于判断栈顶数据是否等于0，是则跳转到对应的行数，相当于等于false时跳转。如果相等将会继续执行，使用iconst_0将常量0压入栈顶，表示匹配了case0，或者使用iconst_1将常量1压入栈顶，表示匹配了case1，随后使用istore_3存入局部变量表。</p>
 <p>接着就是第61~96行的处理了。61行拿到刚刚存入的0或者1，通过lookupswitch来判断跳转到不同的字节码行数执行case里面的操作。</p>
@@ -608,7 +661,7 @@
 <p>第11行：“iinc 1,1”对局部变量表slot = 1的变量(i)直接加1，但是这时候栈顶的元素没有变化，还是0.</p>
 <p>第14行：istore_1 将栈顶元素出栈赋值给局部变量表slot = 1的变量，也就是i。此时，局部变量i又被赋值为0，前面的iinc指令对i的加一操作被覆盖。</p>
 <p>整个过程局部变量表和操作数栈的变化如下图所示。</p>
-<p><img src="/img/jvm/image-20210411010713498.png" srcset="/img/loading.gif" alt="i = i++ 字节码执行过程"></p>
+<p><img src="/img/jvm/image-20210411010713498.png" srcset="/img/loading.gif" lazyload alt="i = i++ 字节码执行过程"></p>
 <p>如果把上面代码的i = i++替换成 i  = ++i，则可以正常输出打印50。替换后的字节码如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java">···<br><span class="hljs-number">10</span>: iinc          <span class="hljs-number">1</span>, <span class="hljs-number">1</span><br><span class="hljs-number">13</span>: iload_1<br><span class="hljs-number">14</span>: istore_1<br>···<br></code></pre></td></tr></table></figure>
 <p>与上面i++的字节码不同的是，这里先对局部变量表中第1位变量进行了加一，然后将其加载到操作数栈，随后重新存储到局部变量表中。</p>
@@ -627,36 +680,96 @@
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/35079283/">《深入理解JVM字节码》</a>
 <a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/34907497">《深入理解Java虚拟机》</a>
 <a href="#fnref:2" rev="footnote" class="footnote-backref"> ↩</a></span></span></li></ol></div></section>
-            </div>
-            <hr>
-            <div>
-              <div class="post-metas mb-3">
-                
-                  <div class="post-meta mr-3">
-                    <i class="iconfont icon-category"></i>
-                    
-                      <a class="hover-with-bg" href="/categories/JVM/">JVM</a>
-                    
-                  </div>
-                
-                
-                  <div class="post-meta">
-                    <i class="iconfont icon-tags"></i>
-                    
-                      <a class="hover-with-bg" href="/tags/Bytecode/">Bytecode</a>
-                    
-                  </div>
                 
               </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/JVM/" class="category-chain-item">JVM</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Bytecode/" class="print-no-link">#Bytecode</a>
+      
+    </div>
+  
+</div>
+
+
               
-                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>深入理解JVM（五）——字节码基础</div>
+      <div>https://www.sukaidev.top/2021/04/18/b6905ec7/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>sukaidev</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2021年4月18日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
               
               
-                <div class="post-prevnext">
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2021/04/25/d39e151e/">
+                      <a href="/2021/04/25/d39e151e/" title="深入理解JVM（六）——从字节码来看Lambda、泛型与协程">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">深入理解JVM（六）——从字节码来看Lambda、泛型与协程</span>
                         <span class="visible-mobile">上一篇</span>
@@ -666,7 +779,7 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2021/04/10/6e2382e5/">
+                      <a href="/2021/04/10/6e2382e5/" title="深入理解JVM（四）——虚拟机执行子系统">
                         <span class="hidden-mobile">深入理解JVM（四）——虚拟机执行子系统</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
@@ -678,12 +791,12 @@
             </div>
 
             
-              <!-- Comments -->
-              <article class="comments" id="comments">
-                
-                
+  
+  
+    <article id="comments" lazyload>
+      
   <script type="text/javascript">
-    Fluid.utils.waitElementVisible('comments', function() {
+    Fluid.utils.loadComments('#comments', function() {
       var light = 'github-light';
       var dark = 'github-dark';
       var schema = document.documentElement.getAttribute('data-user-color-scheme');
@@ -709,31 +822,64 @@
   <noscript>Please enable JavaScript to view the comments</noscript>
 
 
-              </article>
-            
+    </article>
+  
+
+
           </article>
         </div>
       </div>
     </div>
-    
-      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
-        <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
   <div class="toc-body" id="toc-body"></div>
 </div>
 
-      </div>
-    
+
+
+  </aside>
+
+
+    </div>
   </div>
 </div>
 
-<!-- Custom -->
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+
 
 
     
 
     
-      <a id="scroll-top-button" href="#" role="button">
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
         <i class="iconfont icon-arrowup" aria-hidden="true"></i>
       </a>
     
@@ -752,32 +898,34 @@
       <div class="modal-body mx-3">
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>
     </div>
   </div>
 </div>
+
     
 
     
   </main>
 
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
-  </div>
+  <footer>
+    <div class="footer-inner">
   
-
+    <div class="footer-content">
+       Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
   
-
   
-</footer>
+  
+</div>
 
-<!-- SCRIPTS -->
+  </footer>
 
+  <!-- Scripts -->
+  
   <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
 
@@ -792,83 +940,105 @@
 
 <script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
 <script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
-<script  src="/js/debouncer.js" ></script>
 <script  src="/js/events.js" ></script>
 <script  src="/js/plugins.js" ></script>
-
-<!-- Plugins -->
-
-
-  
-    <script  src="/js/lazyload.js" ></script>
-  
-
-
-
-  
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
-
-
-
-
-
-  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
-
-
-
-
 
 
   <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
   <script>
     (function (window, document) {
       var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
       
-      typing(title)
+        typing(text);
       
     })(window, document);
   </script>
 
 
 
-  <script  src="/js/local-search.js" ></script>
-  <script>
-    (function () {
-      var path = "/local-search.xml";
-      var inputArea = document.querySelector("#local-search-input");
-      inputArea.onclick = function () {
-        searchFunc(path, 'local-search-input', 'local-search-result');
-        this.onclick = null
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
       }
-    })()
-  </script>
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-<!-- 主题的启动项 保持在最底部 -->
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
 <script  src="/js/boot.js" ></script>
 
 
+  
 
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
 </body>
 </html>

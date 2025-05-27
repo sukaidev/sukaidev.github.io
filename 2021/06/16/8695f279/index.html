@@ -1,47 +1,60 @@
 
 
 <!DOCTYPE html>
-<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+<html lang="zh-CN" data-default-color-scheme=auto>
 
 
 
 <head>
   <meta charset="UTF-8">
+
   <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
-  <link rel="icon" type="image/png" href="/img/favicon.png">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <link rel="icon" href="/img/favicon.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
   <meta name="theme-color" content="#2f4154">
-  <meta name="description" content="Android Developer">
   <meta name="author" content="sukaidev">
   <meta name="keywords" content="Android sukaidev 苏海鸿">
+  
+    <meta name="description" content="注意（WARNING）：本文所贴源码全部来自 Android API 29 Platform，即 Android 10.0。   在前面的几篇文章中，AMS或者ATMS绝对是出现频率最高的缩写之一。关于ActivityManagerService（下文简称AMS），我们或多或少都知道它的一点职责，例如四大组件的启动和管理、管理ANR状态、发起应用程序进程启动请求等。 AMS可以说是Android">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android Framework（四）——ActivityManagerService">
+<meta property="og:url" content="https://www.sukaidev.top/2021/06/16/8695f279/index.html">
+<meta property="og:site_name" content="Sukai&#39;s Blog - Android Developer">
+<meta property="og:description" content="注意（WARNING）：本文所贴源码全部来自 Android API 29 Platform，即 Android 10.0。   在前面的几篇文章中，AMS或者ATMS绝对是出现频率最高的缩写之一。关于ActivityManagerService（下文简称AMS），我们或多或少都知道它的一点职责，例如四大组件的启动和管理、管理ANR状态、发起应用程序进程启动请求等。 AMS可以说是Android">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://www.sukaidev.top/img/cover_framework_ams_family.png">
+<meta property="article:published_time" content="2021-06-16T13:49:24.000Z">
+<meta property="article:modified_time" content="2021-09-03T15:15:42.478Z">
+<meta property="article:author" content="sukaidev">
+<meta property="article:tag" content="AOSP">
+<meta property="article:tag" content="AMS">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.sukaidev.top/img/cover_framework_ams_family.png">
+  
+  
+  
   <title>Android Framework（四）——ActivityManagerService - Sukai&#39;s Blog - Android Developer</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
 
 
+
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
   <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
 
-  
-    
-    
-      
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/atom-one-light.min.css" />
-    
-  
-
-  
-    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
-  
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
 
 
 
 <!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
 
 
 
@@ -50,24 +63,46 @@
 
 <link  rel="stylesheet" href="/css/main.css" />
 
-<!-- 自定义样式保持在最底部 -->
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
 
 
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"www.sukaidev.top","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.sukaidev.top","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
   </script>
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
 <meta name="generator" content="Hexo 5.3.0"></head>
 
 
 <body>
-  <header style="height: 70vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
-    <a class="navbar-brand"
-       href="/">&nbsp;<strong>Sukai's Blog</strong>&nbsp;</a>
+    <a class="navbar-brand" href="/">
+      <strong>Sukai&#39;s Blog</strong>
+    </a>
 
     <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
             data-target="#navbarSupportedContent"
@@ -84,9 +119,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/">
+              <a class="nav-link" href="/" target="_self">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                <span>首页</span>
               </a>
             </li>
           
@@ -96,9 +131,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/archives/">
+              <a class="nav-link" href="/archives/" target="_self">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                <span>归档</span>
               </a>
             </li>
           
@@ -108,9 +143,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/categories/">
+              <a class="nav-link" href="/categories/" target="_self">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                <span>分类</span>
               </a>
             </li>
           
@@ -120,9 +155,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/tags/">
+              <a class="nav-link" href="/tags/" target="_self">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                <span>标签</span>
               </a>
             </li>
           
@@ -132,23 +167,26 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/about/">
+              <a class="nav-link" href="/about/" target="_self">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                <span>关于</span>
               </a>
             </li>
           
         
         
           <li class="nav-item" id="search-btn">
-            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
-                class="iconfont icon-search"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
           </li>
+          
         
         
           <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" href="javascript:">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
           </li>
         
       </ul>
@@ -156,60 +194,71 @@
   </div>
 </nav>
 
-    <div class="banner" id="banner" parallax=true
-         style="background: url('/img/default.png') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="Android Framework（四）——ActivityManagerService">
-              
-            </span>
-
-            
-              <div class="mt-3">
-  
-  
-    <span class="post-meta">
-      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2021-06-16 21:49" pubdate>
-        2021年6月16日 晚上
-      </time>
-    </span>
-  
-</div>
-
-<div class="mt-1">
-  
-    
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-chart"></i>
-      7.9k 字
-    </span>
   
 
-  
-    
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-clock-fill"></i>
-      
-      
-      98
-       分钟
-    </span>
-  
-
-  
-  
-</div>
-
-            
-          </div>
-
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Android Framework（四）——ActivityManagerService"></span>
           
         </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-06-16 21:49" pubdate>
+          2021年6月16日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          7.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          62 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
       </div>
+
+      
     </div>
+  </div>
+</div>
+
+</div>
+
   </header>
 
   <main>
@@ -218,16 +267,21 @@
 
 <div class="container-fluid nopadding-x">
   <div class="row nomargin-x">
-    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
     <div class="col-lg-8 nopadding-x-md">
       <div class="container nopadding-x-md" id="board-ctn">
-        <div class="py-5" id="board">
+        <div id="board">
           <article class="post-content mx-auto">
-            <!-- SEO header -->
-            <h1 style="display: none">Android Framework（四）——ActivityManagerService</h1>
+            <h1 id="seo-header">Android Framework（四）——ActivityManagerService</h1>
             
-            <div class="markdown-body">
-              <blockquote>
+            
+              <div class="markdown-body">
+                
+                <blockquote>
 <p>注意（WARNING）：本文所贴源码全部来自 Android API 29 Platform，即 Android 10.0。</p>
 </blockquote>
 <p> 在前面的几篇文章中，<strong>AMS</strong>或者<strong>ATMS</strong>绝对是出现频率最高的缩写之一。关于ActivityManagerService（下文简称AMS），我们或多或少都知道它的一点职责，例如四大组件的启动和管理、管理ANR状态、发起应用程序进程启动请求等。</p>
@@ -689,11 +743,11 @@
 <p>那么Android系统是如何管理这些任务栈的呢？下面我们就来理一理Activity的栈管理机制。</p>
 <h3 id="Activity任务栈模型"><a href="#Activity任务栈模型" class="headerlink" title="Activity任务栈模型"></a>Activity任务栈模型</h3><p>Activity任务栈并不是凭空想象出来的，它是由多种数据结构共同组合而成。</p>
 <p>上一节我们介绍了许多数据结构，其中ActivityRecord、TaskRecord和ActivityStack共同组成了下图的Activity任务栈模型。</p>
-<p><img src="/img/image-20210624214422750.png" srcset="/img/loading.gif" alt="Activity任务栈模型"></p>
+<p><img src="/img/image-20210624214422750.png" srcset="/img/loading.gif" lazyload alt="Activity任务栈模型"></p>
 <p>其中ActivityRecord用来记录一个Activity的所有信息，TaskRecord用来管理栈中的ActivityRecord，它就是我们常说的任务栈，其中包含了多个ActivityRecord，一个App中会有多个任务栈。ActivityStack又包含了一个或者多个TaskRecord，它是TaskRecord的管理者。</p>
 <p>Activity栈管理是建立在Activity任务栈模型之上的，有了栈管理我们可以对Activity进行缓存复用，使得一个App可以有多个任务栈而不至于返回栈混乱，必要的时候我们还可以在启动其他Activity时将其任务栈置于当前App的顶部而达到跨进程的效果。</p>
 <p>举个例子，我们可以在App中通过隐式Intent的方式调起拨号界面，如下图所示。</p>
-<p><img src="/img/image-20210626091147254.png" srcset="/img/loading.gif" alt="调起系统拨号"></p>
+<p><img src="/img/image-20210626091147254.png" srcset="/img/loading.gif" lazyload alt="调起系统拨号"></p>
 <p>系统的拨号App的launchMode通常是singleInstance，使用singleInstance启动的Activity会有一个单独的任务栈，并且任务栈中只有一个Activity。当我们通过隐式Intent启动拨号Activity时，拨号界面对应的Task将会覆盖到当前App任务栈的栈顶，这使得我们可以进行跨任务栈的操作。</p>
 <p>为了更灵活的进行栈管理，Android系统中提供了很多配置，包括LaunchMode、Intent Flag、taskAffinity、allowTaskReparenting等，下面来重点了解一下这几个机制。</p>
 <h3 id="Launch-Mode"><a href="#Launch-Mode" class="headerlink" title="Launch Mode"></a>Launch Mode</h3><p>Launch Mode大家都不陌生，用于设定Activity的启动模式，无论是哪种启动模式所启动的Activity都会位于当前Activity栈的栈顶，Android中有4种LaunchMode。</p>
@@ -707,14 +761,14 @@
 <h4 id="standard模式的多实例特性"><a href="#standard模式的多实例特性" class="headerlink" title="standard模式的多实例特性"></a>standard模式的多实例特性</h4><p>上面我们提到standard启动模式的特性是“每次启动Activity都会创建一个新的Activity实例”，对于这个启动模式，网络上大部分的文章都是局限于单一的任务栈来分析。实际上我们应该更着重于其在Task与Task之间的逻辑。</p>
 <p>举个例子，当我们在短信App中点击一个电话号码的超链接，选择新建联系人时，就会以standard模式启动新建联系人的Activity，此Activity由通信录App提供。</p>
 <p>由于我们是使用standard模式启动的Activity，因此会新建一个Activity实例，并添加到当前短信App栈顶的任务栈中，如下图所示。</p>
-<p><img src="/img/image-20210627223003476.png" srcset="/img/loading.gif" alt="standard模式"></p>
+<p><img src="/img/image-20210627223003476.png" srcset="/img/loading.gif" lazyload alt="standard模式"></p>
 <p>这种情况下启动的新建联系人Activity将会直接加入到当前任务栈的栈顶，此时该Activity只与短信App的任务栈Task具有相关性，并不会影响到原有的通讯录App任务栈。</p>
 <p>当我们点击返回按键时，新建联系人Activity出栈，回到短信详情页，我们依旧处于短信App任务栈中。</p>
 <h4 id="singleTask任务栈切换"><a href="#singleTask任务栈切换" class="headerlink" title="singleTask任务栈切换"></a>singleTask任务栈切换</h4><p>不同于standard模式启动的Activity会直接加入到当前任务栈栈顶，singleTask模式启动的Activity只会存在于特定任务栈中，这个任务栈与其设置的taskAffinity有关。</p>
 <p>对于没有指定taskAffinity的Activity，其taskAffinity等于当前包名，这意味着如果我们在以singleTask启动一个当前App内的未指定taskAffinity的Activity，将不会发生任务栈的切换。</p>
 <p>这里我们主要讨论启动其它App中的，或者指定了taskAffinity的Activity，这种情况下启动的Activity没有办法入栈的话，如何让它显示在栈顶呢？</p>
 <p>只需要把此Activity所在的任务栈整体移到前台即可。不过此任务栈的栈顶可能并不是我们启动的Activity，这种时候就会进行一次“清顶”操作，将要启动的Activity上方所有Activity出栈，并且不会重建当前Activity。</p>
-<p><img src="/img/image-20210626231520598.png" srcset="/img/loading.gif" alt="singleTask模式"></p>
+<p><img src="/img/image-20210626231520598.png" srcset="/img/loading.gif" lazyload alt="singleTask模式"></p>
 <p>上图展示了一次singleTask模式启动Activity导致的任务栈切换，实际操作中会有较为明显的<strong>Task切换动画</strong>，而不是Activity切换动画。</p>
 <p>图中展示的是目标Activity所属任务栈已经存在的情况，<strong>如果启动目标Activity时其归属的任务栈还未启动，那么会先创建对应的任务栈TaskRecord</strong>。</p>
 <p>另外需要注意的是，目标Activity的回退栈可能还存在其它Activity，例如图中的“邮件首页”，此时会随着任务栈的切换一并移动到当前任务栈的上方，并且当我们按返回键时不会立刻回到App中而是先回到邮件首页。</p>
@@ -802,7 +856,7 @@
 <p>我们可以在AndroidManifest.xml为Activity配置android:allowTaskReparenting属性，表示允许此Activity更换其从属的任务栈。设置此属性的Activity一但当前Task切换到了后台，就会回到它“倾向”的任务栈中。如何理解这句话呢？我们依旧以新建联系人为例，如下图所示。</p>
 </li>
 </ol>
-<p><img src="/img/image-20210627224141969.png" srcset="/img/loading.gif" alt="allowTaskReparenting的Activity转移任务栈"></p>
+<p><img src="/img/image-20210627224141969.png" srcset="/img/loading.gif" lazyload alt="allowTaskReparenting的Activity转移任务栈"></p>
 <p>可以看到当我们启动了设置了allowTaskReparenting为true的Activity时，如果我们按下最近任务键，此Activity将会回到与其taskAffinity更相近的通讯录App的Task中，重新回到短信App时栈顶的Activity已经变成了短信详情页，而此时打开通讯录App会发现原先在首页的App已经在新建联系人页了。</p>
 <p>下面我们来看看源码中taskAffinity是如何应用的。</p>
 <p>同样的，在ActivityStarter的startActivityUnchecked方法中：</p>
@@ -825,38 +879,98 @@
 <li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/muouren/p/11706314.html">任务栈和Activity启动模式</a></li>
 </ol>
 
-            </div>
-            <hr>
-            <div>
-              <div class="post-metas mb-3">
-                
-                  <div class="post-meta mr-3">
-                    <i class="iconfont icon-category"></i>
-                    
-                      <a class="hover-with-bg" href="/categories/Android-Framework/">Android Framework</a>
-                    
-                  </div>
-                
-                
-                  <div class="post-meta">
-                    <i class="iconfont icon-tags"></i>
-                    
-                      <a class="hover-with-bg" href="/tags/AOSP/">AOSP</a>
-                    
-                      <a class="hover-with-bg" href="/tags/AMS/">AMS</a>
-                    
-                  </div>
                 
               </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Android-Framework/" class="category-chain-item">Android Framework</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/AOSP/" class="print-no-link">#AOSP</a>
+      
+        <a href="/tags/AMS/" class="print-no-link">#AMS</a>
+      
+    </div>
+  
+</div>
+
+
               
-                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Android Framework（四）——ActivityManagerService</div>
+      <div>https://www.sukaidev.top/2021/06/16/8695f279/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>sukaidev</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2021年6月16日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
               
               
-                <div class="post-prevnext">
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2021/06/25/19e6281/">
+                      <a href="/2021/06/25/19e6281/" title="深入理解JVM（七）——插件化注解处理器">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">深入理解JVM（七）——插件化注解处理器</span>
                         <span class="visible-mobile">上一篇</span>
@@ -866,7 +980,7 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2021/06/03/31b8eb1c/">
+                      <a href="/2021/06/03/31b8eb1c/" title="Android Framework（三）——应用程序进程启动流程">
                         <span class="hidden-mobile">Android Framework（三）——应用程序进程启动流程</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
@@ -878,12 +992,12 @@
             </div>
 
             
-              <!-- Comments -->
-              <article class="comments" id="comments">
-                
-                
+  
+  
+    <article id="comments" lazyload>
+      
   <script type="text/javascript">
-    Fluid.utils.waitElementVisible('comments', function() {
+    Fluid.utils.loadComments('#comments', function() {
       var light = 'github-light';
       var dark = 'github-dark';
       var schema = document.documentElement.getAttribute('data-user-color-scheme');
@@ -909,31 +1023,64 @@
   <noscript>Please enable JavaScript to view the comments</noscript>
 
 
-              </article>
-            
+    </article>
+  
+
+
           </article>
         </div>
       </div>
     </div>
-    
-      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
-        <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
   <div class="toc-body" id="toc-body"></div>
 </div>
 
-      </div>
-    
+
+
+  </aside>
+
+
+    </div>
   </div>
 </div>
 
-<!-- Custom -->
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+
 
 
     
 
     
-      <a id="scroll-top-button" href="#" role="button">
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
         <i class="iconfont icon-arrowup" aria-hidden="true"></i>
       </a>
     
@@ -952,32 +1099,34 @@
       <div class="modal-body mx-3">
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>
     </div>
   </div>
 </div>
+
     
 
     
   </main>
 
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
-  </div>
+  <footer>
+    <div class="footer-inner">
   
-
+    <div class="footer-content">
+       Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
   
-
   
-</footer>
+  
+</div>
 
-<!-- SCRIPTS -->
+  </footer>
 
+  <!-- Scripts -->
+  
   <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
 
@@ -992,83 +1141,105 @@
 
 <script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
 <script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
-<script  src="/js/debouncer.js" ></script>
 <script  src="/js/events.js" ></script>
 <script  src="/js/plugins.js" ></script>
-
-<!-- Plugins -->
-
-
-  
-    <script  src="/js/lazyload.js" ></script>
-  
-
-
-
-  
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
-
-
-
-
-
-  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
-
-
-
-
 
 
   <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
   <script>
     (function (window, document) {
       var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
       
-      typing(title)
+        typing(text);
       
     })(window, document);
   </script>
 
 
 
-  <script  src="/js/local-search.js" ></script>
-  <script>
-    (function () {
-      var path = "/local-search.xml";
-      var inputArea = document.querySelector("#local-search-input");
-      inputArea.onclick = function () {
-        searchFunc(path, 'local-search-input', 'local-search-result');
-        this.onclick = null
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
       }
-    })()
-  </script>
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-<!-- 主题的启动项 保持在最底部 -->
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
 <script  src="/js/boot.js" ></script>
 
 
+  
 
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
 </body>
 </html>

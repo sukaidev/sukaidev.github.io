@@ -1,47 +1,59 @@
 
 
 <!DOCTYPE html>
-<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+<html lang="zh-CN" data-default-color-scheme=auto>
 
 
 
 <head>
   <meta charset="UTF-8">
+
   <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
-  <link rel="icon" type="image/png" href="/img/favicon.png">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <link rel="icon" href="/img/favicon.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
   <meta name="theme-color" content="#2f4154">
-  <meta name="description" content="Android Developer">
   <meta name="author" content="sukaidev">
   <meta name="keywords" content="Android sukaidev 苏海鸿">
+  
+    <meta name="description" content="“Class 文件”并非特指某个存在于具体磁盘中的问题，而应当是一串二进制字节流，无论其以何种形式存在，包括但不限于磁盘文件、网络、数据库、内存或者动态产生等。  Java 能够实现”一次编译，到处运行”，这其中 class 文件要占大部分功劳。为了让 Java 语言具有良好的跨平台能力，Java 独具匠心的提供了一种可以在所有平台上都能使用的一种中间代码——字节码类文件（.class文件）。有">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入理解JVM（二）——类文件结构">
+<meta property="og:url" content="https://www.sukaidev.top/2021/03/19/233d21b7/index.html">
+<meta property="og:site_name" content="Sukai&#39;s Blog - Android Developer">
+<meta property="og:description" content="“Class 文件”并非特指某个存在于具体磁盘中的问题，而应当是一串二进制字节流，无论其以何种形式存在，包括但不限于磁盘文件、网络、数据库、内存或者动态产生等。  Java 能够实现”一次编译，到处运行”，这其中 class 文件要占大部分功劳。为了让 Java 语言具有良好的跨平台能力，Java 独具匠心的提供了一种可以在所有平台上都能使用的一种中间代码——字节码类文件（.class文件）。有">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://www.sukaidev.top/img/cover_jvm_class_file.png">
+<meta property="article:published_time" content="2021-03-19T13:38:01.000Z">
+<meta property="article:modified_time" content="2021-03-22T07:39:49.290Z">
+<meta property="article:author" content="sukaidev">
+<meta property="article:tag" content="Class File">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.sukaidev.top/img/cover_jvm_class_file.png">
+  
+  
+  
   <title>深入理解JVM（二）——类文件结构 - Sukai&#39;s Blog - Android Developer</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
 
 
+
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
   <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
 
-  
-    
-    
-      
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/atom-one-light.min.css" />
-    
-  
-
-  
-    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
-  
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
 
 
 
 <!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
 
 
 
@@ -50,24 +62,46 @@
 
 <link  rel="stylesheet" href="/css/main.css" />
 
-<!-- 自定义样式保持在最底部 -->
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
 
 
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"www.sukaidev.top","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.sukaidev.top","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
   </script>
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
 <meta name="generator" content="Hexo 5.3.0"></head>
 
 
 <body>
-  <header style="height: 70vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
-    <a class="navbar-brand"
-       href="/">&nbsp;<strong>Sukai's Blog</strong>&nbsp;</a>
+    <a class="navbar-brand" href="/">
+      <strong>Sukai&#39;s Blog</strong>
+    </a>
 
     <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
             data-target="#navbarSupportedContent"
@@ -84,9 +118,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/">
+              <a class="nav-link" href="/" target="_self">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                <span>首页</span>
               </a>
             </li>
           
@@ -96,9 +130,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/archives/">
+              <a class="nav-link" href="/archives/" target="_self">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                <span>归档</span>
               </a>
             </li>
           
@@ -108,9 +142,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/categories/">
+              <a class="nav-link" href="/categories/" target="_self">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                <span>分类</span>
               </a>
             </li>
           
@@ -120,9 +154,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/tags/">
+              <a class="nav-link" href="/tags/" target="_self">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                <span>标签</span>
               </a>
             </li>
           
@@ -132,23 +166,26 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/about/">
+              <a class="nav-link" href="/about/" target="_self">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                <span>关于</span>
               </a>
             </li>
           
         
         
           <li class="nav-item" id="search-btn">
-            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
-                class="iconfont icon-search"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
           </li>
+          
         
         
           <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" href="javascript:">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
           </li>
         
       </ul>
@@ -156,60 +193,71 @@
   </div>
 </nav>
 
-    <div class="banner" id="banner" parallax=true
-         style="background: url('/img/default.png') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="深入理解JVM（二）——类文件结构">
-              
-            </span>
-
-            
-              <div class="mt-3">
-  
-  
-    <span class="post-meta">
-      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2021-03-19 21:38" pubdate>
-        2021年3月19日 晚上
-      </time>
-    </span>
-  
-</div>
-
-<div class="mt-1">
-  
-    
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-chart"></i>
-      5.7k 字
-    </span>
   
 
-  
-    
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-clock-fill"></i>
-      
-      
-      63
-       分钟
-    </span>
-  
-
-  
-  
-</div>
-
-            
-          </div>
-
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="深入理解JVM（二）——类文件结构"></span>
           
         </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-03-19 21:38" pubdate>
+          2021年3月19日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          5.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          45 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
       </div>
+
+      
     </div>
+  </div>
+</div>
+
+</div>
+
   </header>
 
   <main>
@@ -218,23 +266,28 @@
 
 <div class="container-fluid nopadding-x">
   <div class="row nomargin-x">
-    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
     <div class="col-lg-8 nopadding-x-md">
       <div class="container nopadding-x-md" id="board-ctn">
-        <div class="py-5" id="board">
+        <div id="board">
           <article class="post-content mx-auto">
-            <!-- SEO header -->
-            <h1 style="display: none">深入理解JVM（二）——类文件结构</h1>
+            <h1 id="seo-header">深入理解JVM（二）——类文件结构</h1>
             
-            <div class="markdown-body">
-              <blockquote>
+            
+              <div class="markdown-body">
+                
+                <blockquote>
 <p>“Class 文件”并非特指某个存在于具体磁盘中的问题，而应当是一串二进制字节流，无论其以何种形式存在，包括但不限于磁盘文件、网络、数据库、内存或者动态产生等。</p>
 </blockquote>
 <p>Java 能够实现”一次编译，到处运行”，这其中 class 文件要占大部分功劳。为了让 Java 语言具有良好的跨平台能力，Java 独具匠心的提供了一种可以在所有平台上都能使用的一种中间代码——字节码类文件（.class文件）。有了字节码，无论是哪种平台（如：Mac、Windows、Linux 等），只要安装了虚拟机都可以直接运行字节码。</p>
 <p>有了字节码，也解除了 Java 虚拟机和 Java 语言之间的耦合。Java虚拟机并不一定只能运行Java语言编写的程序，而是只认Class文件，其他语言如Kotlin、Groovy、Scala等都可以只需要编译成符合《Java虚拟机规范》的Class文件都可以运行在Java虚拟机中。如下图所示：</p>
-<p><img src="/img/jvm/language_independence.png" srcset="/img/loading.gif" alt="JVM的语言无关性"></p>
+<p><img src="/img/jvm/language_independence.png" srcset="/img/loading.gif" lazyload alt="JVM的语言无关性"></p>
 <h2 id="Class文件结构"><a href="#Class文件结构" class="headerlink" title="Class文件结构"></a>Class文件结构</h2><p>Class文件是一组以 8 个字节为基础单位的二进制流，各个数据项目严格按照顺序紧凑地排列在文件之中，中间没有添加任何分隔符，这使得整个Class文件中存储的内容几乎全部是程运行的必要数据，没有空隙存在。当遇到需要占用 8 个字节以上空间的数据项时，则会按照<strong>高位在前（Big-Endian，大端）</strong>的方式分割成若干个 8 个字节进行存储。结构如下图所示。</p>
-<p><img src="/img/jvm/class_file_structure.png" srcset="/img/loading.gif" alt="class文件结构"></p>
+<p><img src="/img/jvm/class_file_structure.png" srcset="/img/loading.gif" lazyload alt="class文件结构"></p>
 <p>根据《Java虚拟机规范》的规定，Class文件格式采用一种类似于C语言结构体的伪结构来存储数据，这种伪结构中只有两种数据类型：<strong>无符号数</strong>和<strong>表</strong>。</p>
 <ul>
 <li>无符号数属于基本的数据类型，以 u1、u2、u4、u8 来分别代表 1 个字节、2 个字节、4 个字节和 8 个字节的无符号数，无符号数可以用来描述数字、索引引用、数量值或者按照UTF-8编码构成的字符值。</li>
@@ -347,21 +400,21 @@
 </tr>
 </tbody></table>
 <p>无符号数和表的关系可以用下图表示：</p>
-<p><img src="/img/jvm/relationship_between_two.png" srcset="/img/loading.gif" alt="表和无符号数之间的关系"></p>
+<p><img src="/img/jvm/relationship_between_two.png" srcset="/img/loading.gif" lazyload alt="表和无符号数之间的关系"></p>
 <p>可以看出，在一张表中可以包含其他无符号数和其他表格。伪代码可以如下所示：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 无符号数</span><br>u1 = <span class="hljs-keyword">byte</span>[<span class="hljs-number">1</span>];<br>u2 = <span class="hljs-keyword">byte</span>[<span class="hljs-number">2</span>];<br>u4 = <span class="hljs-keyword">byte</span>[<span class="hljs-number">4</span>];<br>u8 = <span class="hljs-keyword">byte</span>[<span class="hljs-number">8</span>];<br><br><span class="hljs-comment">// 表</span><br>class_table &#123;<br>    <span class="hljs-comment">// 表中可以引用各种无符号数，</span><br>    u1 tag;<br>    u2 index2;<br>    ...<br><br>    <span class="hljs-comment">// 表中也可以引用其它表</span><br>    method_table mt;<br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>接下来，我们通过编写一个例子来看看这个表中各个数据项的具体含义：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> java.io.Serializable;<br> <br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Test</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Serializable</span>, <span class="hljs-title">Cloneable</span></span>&#123;<br>      <span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> num = <span class="hljs-number">1</span>;<br> <br>      <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">add</span><span class="hljs-params">(<span class="hljs-keyword">int</span> i)</span> </span>&#123;<br>          <span class="hljs-keyword">int</span> j = <span class="hljs-number">10</span>;<br>          num = num + i;<br>          <span class="hljs-keyword">return</span> num;<br>     &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>我们通过 javac 编译下列代码生成 Test.class 字节码文件，然后使用 16 进制编辑器打开 class 文件查看内容：</p>
-<p><img src="/img/jvm/class_file_content.png" srcset="/img/loading.gif" alt="class文件内容"></p>
+<p><img src="/img/jvm/class_file_content.png" srcset="/img/loading.gif" lazyload alt="class文件内容"></p>
 <p>上图中都是一些 16 进制数字，每两个字符代表一个字节。</p>
 <h2 id="魔数与Class文件的版本"><a href="#魔数与Class文件的版本" class="headerlink" title="魔数与Class文件的版本"></a>魔数与Class文件的版本</h2><p>每个Class文件的头 4 个字节被称为<strong>魔数（Magic Number）</strong>，它的唯一作用是确定这个文件是否为一个能被虚拟机接受的 Class 文件。魔数被用作格式标准校验是很常见的行为，Class 文件中的魔数值为 0xCAFEBABE ，跟 Java 的”咖啡豆“含义相互呼应。</p>
-<p><img src="/img/jvm/class_file_magic_number.png" srcset="/img/loading.gif" alt="魔数"></p>
+<p><img src="/img/jvm/class_file_magic_number.png" srcset="/img/loading.gif" lazyload alt="魔数"></p>
 <p>紧接着魔数的 4 个字节存储的是 Class 文件的版本号：第 5 和第 6 个字节（<strong>0000</strong>）是次版本号，第 7 和第 8 个字节（<strong>0034</strong>）是主版本号。0034 对应的十进制是 52，也就是  <strong>jdk1.8.0</strong> 。</p>
-<p><img src="/img/jvm/class_file_version.png" srcset="/img/loading.gif" alt="版本号"></p>
+<p><img src="/img/jvm/class_file_version.png" srcset="/img/loading.gif" lazyload alt="版本号"></p>
 <h2 id="常量池"><a href="#常量池" class="headerlink" title="常量池"></a>常量池</h2><p>紧跟在版本号之后的是一个叫作<strong>常量池</strong>的表（cp_info）。在常量池中保存了类的各种相关信息，比如类的名称、父类的名称、类中的方法名、参数名称、参数类型等，这些信息都是以各种表的形式保存在常量池中的。</p>
 <p>由于常量池中常量的数量是不固定的，所以在常量池的入口需要放置一项u2类型的数据，代表<strong>常量池容量计数值（constant_pool_count）</strong>。例如本例中常量池大小为 <strong>0x001D</strong> ，即 <strong>29</strong> ，表示常量池中有 <strong>28</strong> 项常量，索引值范围为 <strong>1~28</strong> 。这里将 0 空出来是为了后面有表的索引值为 0 时，可以表达<strong>“不引用任何一个常量池项目”的含义。</strong></p>
-<p><img src="/img/jvm/class_file_constant_pool_size.png" srcset="/img/loading.gif" alt="常量池大小"></p>
+<p><img src="/img/jvm/class_file_constant_pool_size.png" srcset="/img/loading.gif" lazyload alt="常量池大小"></p>
 <p>常量池中主要存放两大类常量：<strong>字面量（Literal）</strong>和<strong>符号引用（Symbolic References）</strong>。字面量比较接近于 Java 语言层面的常量概念，如文本字符串、被声明为 final 的常量值等。而符号引用则属于编译原理方面的概念，主要包括下面几类常量：</p>
 <ul>
 <li>被模块导出或者开放的包（Package）</li>
@@ -483,9 +536,9 @@
 </ul>
 <p>而我们在java代码中声明的String字符串最终在class文件中的存储格式就是CONSTANT_utf8_info。因此一个字符串最大长度也就是u2所能代表的最大值65536个，但是需要使用2个字节来保存null值，因此<strong>一个字符串的最大长度为 65536 - 2 = 65534</strong>。</p>
 <p>不难看出，在常量池内部的表中也有相互之间的引用。用一张图来理解CONSTANT_Class_info和CONSTANT_utf8_info表格之间的关系，如下图所示：</p>
-<p><img src="/img/jvm/class_file_relationship_of_constant.png" srcset="/img/loading.gif" alt="常量表相互引用关系"></p>
+<p><img src="/img/jvm/class_file_relationship_of_constant.png" srcset="/img/loading.gif" lazyload alt="常量表相互引用关系"></p>
 <p>接下来我们继续基于上面的例子分析。上面说到版本号之后就是常量池大小，为0x001D即29，表示常量计数器为28。紧接着就是第一个常量，如下所示：</p>
-<p><img src="/img/jvm/class_file_first_constant.png" srcset="/img/loading.gif" alt="第一个常量tag"></p>
+<p><img src="/img/jvm/class_file_first_constant.png" srcset="/img/loading.gif" lazyload alt="第一个常量tag"></p>
 <p>第一个字节表示tag，<strong>0x0a</strong>转化为十进制后为10，通过上面的表格我们知道tag=10时的表类型为<strong>CONSTANT_Methodref_info</strong>，因此第一个常量表结构为方法引用表。其结构如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java">CONSTANT_Methodref_info &#123;<br>    u1 tag = <span class="hljs-number">10</span>;<br>    u2 class_index;        <span class="hljs-comment">// 指向此方法的所属类</span><br>    u2 name_type_index;    <span class="hljs-comment">// 指向此方法的名称和类型</span><br>&#125;<br></code></pre></td></tr></table></figure>
 <p>在“0a”之后的2个字节指向这个方法是属于哪个类，紧接的2个字节指向这个方法的名称和类型。它们的值分别是：</p>
@@ -496,14 +549,14 @@
 <p>由于每个常量表占用字节的长度是不一定的，所以我们必须顺序解析到第6个常量才能知道第6个常量是什么类型，不过这里我们可以利用javap命令来帮助我们查看常量池的内容：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">javap -v Test.class<br></code></pre></td></tr></table></figure>
 <p>命令执行后结果如下：</p>
-<p><img src="/img/jvm/class_file_javap.png" srcset="/img/loading.gif" alt="使用javap命令查看常量池"></p>
+<p><img src="/img/jvm/class_file_javap.png" srcset="/img/loading.gif" lazyload alt="使用javap命令查看常量池"></p>
 <p>正如我们刚才分析的一样，常量池中第一个常量是Methodref类型，指向下标6和下标21的常量。其中下标21的常量类型为<strong>NameAndType</strong>，它对应的数据结构如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java">CONSTANT_NameAndType_info&#123;<br>    u1 tag;<br>    u2 name_index;    <span class="hljs-comment">// 指向某字段或方法的名称字符串</span><br>    u2 type_index;    <span class="hljs-comment">// 指向某字段或方法的类型字符串</span><br>&#125;<br></code></pre></td></tr></table></figure>
 <p>而下标在21的NameAndType的name_index和type_index分别指向了13和14，也就是<strong>“<init>”</strong>和<strong>“()V”</strong>。因此最终解析下来常量池中第1个常量的解析过程以及最终值如下图所示：</p>
-<p><img src="/img/jvm/class_file_first_constant_reference.png" srcset="/img/loading.gif" alt="第1个常量引用链"></p>
+<p><img src="/img/jvm/class_file_first_constant_reference.png" srcset="/img/loading.gif" lazyload alt="第1个常量引用链"></p>
 <p>仔细解析层层引用，最后我们可以看出，Test.class文件中常量池的第1个常量保存的是Object中的默认构造器方法。</p>
 <h2 id="访问标志"><a href="#访问标志" class="headerlink" title="访问标志"></a>访问标志</h2><p>在常量池结束之后，紧接着的2个字节代表<strong>访问标志（access_flags）</strong>，如下图所示：</p>
-<p><img src="/img/jvm/class_file_access_flag.png" srcset="/img/loading.gif" alt="访问标志"></p>
+<p><img src="/img/jvm/class_file_access_flag.png" srcset="/img/loading.gif" lazyload alt="访问标志"></p>
 <p>这个标志用于识别一些类或者接口层次的访问信息，包括：这个Class是类还是接口；是否定义为public类型；是否定义为abstract类型；如果是类的话，是否被声明为final等等。具体的标志位以及标志的含义见下表：</p>
 <table>
 <thead>
@@ -562,9 +615,9 @@
 <p>我们定义的Test.java是一个普通Java类，不是接口、枚举或注解。并且被public修饰但没有被声明为final和abstract，并且它使用了JDK 1.2之后的编译器进行编译，因此它所对应的access_flags为<strong>0021</strong>（0X0001和0X0020相结合）。</p>
 <h2 id="类索引、父类索引与接口索引集合"><a href="#类索引、父类索引与接口索引集合" class="headerlink" title="类索引、父类索引与接口索引集合"></a>类索引、父类索引与接口索引集合</h2><p>在访问标志后的 2 个字节就是<strong>类索引（this_class）</strong>，类索引后的 2 个字节就是<strong>父类索引（super_class）</strong>，父类索引后的 2 个字节则是<strong>接口索引计数器（interfaces）</strong>。<strong>类索引用于确定这个类的全限定名，父类索引用于确定这个类的父类的全限定名。</strong>由于Java语言不允许多重继承，所以父类索引只有一个，除了java.lang.Object之外，所有的Java类都有父类，因此除了java.lang.Object外，所有Java类的父类索引都不为0。接口索引集合就用来描述这个类实现了哪些接口，这些被实现的接口将按implements关键字（如果这个Class文件表示的是一个接口，则应当是extends关键字）后的接口顺序从左到右排列在接口索引集合中。</p>
 <p>在我们的例子中如下图所示：</p>
-<p><img src="/img/jvm/class_file_this_super_class.png" srcset="/img/loading.gif" alt="类索引、父类索引、接口索引计数器"></p>
+<p><img src="/img/jvm/class_file_this_super_class.png" srcset="/img/loading.gif" lazyload alt="类索引、父类索引、接口索引计数器"></p>
 <p>可以看出类索引指向常量池中的第 5 个常量，父类索引指向常量池中的第 6 个常量，并且实现的接口个数为 2 个。再回顾下常量池中的数据：</p>
-<p><img src="/img/jvm/class_file_interfaces.png" srcset="/img/loading.gif" alt="常量池中索引"></p>
+<p><img src="/img/jvm/class_file_interfaces.png" srcset="/img/loading.gif" lazyload alt="常量池中索引"></p>
 <p>从图中可以看出，第 5 个常量和第 6 个常量均为 CONSTANT_Class_info 表类型，并且代表的类分别是“Test”和“Object”。再看接口计数器，因为接口计数器的值是 2，代表这个类实现了 2 个接口。查看在接口计数器之后的 4 个字节分别为：</p>
 <ul>
 <li>0007：指向常量池中的第7个常量，从图中可以看出第7个常量值为“Serializable”。</li>
@@ -573,7 +626,7 @@
 <p>综上所述，可以得出如下结论：当前类为 Test 继承自 Object 类，并实现了“Serializable”和“Cloneable”这两个接口。</p>
 <h2 id="字段表集合"><a href="#字段表集合" class="headerlink" title="字段表集合"></a>字段表集合</h2><p>紧跟在接口索引集合后面的就是<strong>字段表（field_info）</strong>了，字段表用于描述接口或者类中声明的变量。Java语言中的“字段”（Field）包括类级变量以及实例级变量，但不包括在方法内部声明的局部变量。</p>
 <p>同样, 一个类中的变量个数是不固定的，因此在字段表集合之前还是使用一个计数器来表示变量的个数，如下所示：</p>
-<p><img src="/img/jvm/class_file_field_info_count.png" srcset="/img/loading.gif" alt="字段表计数器"></p>
+<p><img src="/img/jvm/class_file_field_info_count.png" srcset="/img/loading.gif" lazyload alt="字段表计数器"></p>
 <p><strong>0002</strong> 表示类中声明了 2 个变量（在 class 文件中叫字段），字段计数器之后会紧跟着 2 个字段表的数据结构。</p>
 <p>字段表的具体结构如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java">CONSTANT_Fieldref_info&#123;<br>    u2  access_flags        <span class="hljs-comment">// 字段的访问标志</span><br>    u2  name_index          <span class="hljs-comment">// 字段的名称索引(也就是变量名)</span><br>    u2  descriptor_index    <span class="hljs-comment">// 字段的描述索引(也就是变量的类型)</span><br>    u2  attributes_count    <span class="hljs-comment">// 属性计数器</span><br>    attribute_info attributes <span class="hljs-comment">// 属性表集合</span><br>&#125;<br></code></pre></td></tr></table></figure>
@@ -686,9 +739,9 @@
 <p><strong>对于数组类型，每一维度将使用一个前置的“ [”字符来描述，如一个定义为“ jav-a.lang.String[][]”类型的二维数组将被记录成“ [[Ljava/lang/String;”，一个整型数组“ int []”将被记录成“ [I”。</strong></p>
 <p>描述符来描述方法时，按照先参数列表、后返回值的顺序描述，参数列表按照参数的严格顺序放在一组小括号“()”之内。如方法void inc()的描述符为“()V”，方法java.lang.String toString()的描述符为“()Ljava/lang/String;”，方法int indexOf(char[]so-urce，int sourceOffset，int sourceCount，char[] target，int targetOffset，int targetCount，int fromIndex)的描述符为“([CII[CIII)I”。</p>
 <p>继续解析 Text.class 中的字段表，其结构如下图所示：</p>
-<p><img src="/img/jvm/class_file_field_info.png" srcset="/img/loading.gif" alt="Text.class中的字段表"></p>
+<p><img src="/img/jvm/class_file_field_info.png" srcset="/img/loading.gif" lazyload alt="Text.class中的字段表"></p>
 <p>图中的访问标志的值为 <strong>0002</strong>，代表它是 private 类型。变量名索引指向常量池中的第 9 个常量，变量名类型索引指向常量池中第 10 个常量。第 9 和第 10 个常量分别为“num”和“I”，如下所示：</p>
-<p><img src="/img/jvm/class_file_field_info_name_index.png" srcset="/img/loading.gif" alt="字段名称和描述符"></p>
+<p><img src="/img/jvm/class_file_field_info_name_index.png" srcset="/img/loading.gif" lazyload alt="字段名称和描述符"></p>
 <p>因此可以得知类中有一个名为 num，类型为 int 类型的变量。对于第 2 个变量的解析过程也是一样，就不再过多介绍。</p>
 <p>注意事项：</p>
 <ul>
@@ -770,7 +823,7 @@
 </tr>
 </tbody></table>
 <p>我们主要来看下 add 方法，具体如下：</p>
-<p><img src="/img/jvm/class_file_method_add.png" srcset="/img/loading.gif" alt="add方法"></p>
+<p><img src="/img/jvm/class_file_method_add.png" srcset="/img/loading.gif" lazyload alt="add方法"></p>
 <p>从图中我们可以看出 add 方法的以下字段的具体值：</p>
 <ol>
 <li>access_flags = 0x0001 也就是访问权限为 public。</li>
@@ -850,46 +903,106 @@
 </ul>
 <p>关于code_length，有一件值得注意的事情，虽然它是一个u4类型的长度值，理论上最大值可以达到2的32次幂，但是《Java虚拟机规范》中明确限制了一个方法不允许超过65535条字节码指令，即它实际只使用了u2的长度，如果超过这个限制，Javac编译器就会拒绝编译。</p>
 <p>我们可以接着刚才解析方法表的思路继续往下分析：</p>
-<p><img src="/img/jvm/class_file_attr_count.png" srcset="/img/loading.gif" alt="属性计数和类型索引"></p>
+<p><img src="/img/jvm/class_file_attr_count.png" srcset="/img/loading.gif" lazyload alt="属性计数和类型索引"></p>
 <p>可以看到，在方法类型索引之后跟着的就是“add”方法的属性。0X0001 是属性计数器，代表只有一个属性。0X000f 是属性表类型索引，通过查看常量池可以看出它是一个 Code 属性表，如下所示：</p>
-<p><img src="/img/jvm/class_file_attr_index_15.png" srcset="/img/loading.gif" alt="索引15为Code"></p>
+<p><img src="/img/jvm/class_file_attr_index_15.png" srcset="/img/loading.gif" lazyload alt="索引15为Code"></p>
 <p>通过 javap -v Test.class 之后，可以看到方法的字节码，如下图显示的是 add 方法的字节码指令：</p>
-<p><img src="/img/jvm/class_file_attr_codebyte.png" srcset="/img/loading.gif" alt="add方法字节码指令"></p>
+<p><img src="/img/jvm/class_file_attr_codebyte.png" srcset="/img/loading.gif" lazyload alt="add方法字节码指令"></p>
 <p>JVM 执行 add 方法时，就通过这一系列指令来做相应的操作。</p>
 <h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/34907497">《深入理解Java虚拟机》</a>
 <a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:2" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://book.douban.com/subject/35079283/">《深入理解JVM字节码》</a>
 <a href="#fnref:2" rev="footnote" class="footnote-backref"> ↩</a></span></span></li><li><span id="fn:3" class="footnote-text"><span><a target="_blank" rel="noopener" href="https://kaiwu.lagou.com/course/courseInfo.htm?courseId=67">Android 工程师进阶 34 讲</a>
 <a href="#fnref:3" rev="footnote" class="footnote-backref"> ↩</a></span></span></li></ol></div></section>
-            </div>
-            <hr>
-            <div>
-              <div class="post-metas mb-3">
-                
-                  <div class="post-meta mr-3">
-                    <i class="iconfont icon-category"></i>
-                    
-                      <a class="hover-with-bg" href="/categories/JVM/">JVM</a>
-                    
-                  </div>
-                
-                
-                  <div class="post-meta">
-                    <i class="iconfont icon-tags"></i>
-                    
-                      <a class="hover-with-bg" href="/tags/Class-File/">Class File</a>
-                    
-                  </div>
                 
               </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/JVM/" class="category-chain-item">JVM</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Class-File/" class="print-no-link">#Class File</a>
+      
+    </div>
+  
+</div>
+
+
               
-                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>深入理解JVM（二）——类文件结构</div>
+      <div>https://www.sukaidev.top/2021/03/19/233d21b7/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>sukaidev</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2021年3月19日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
               
               
-                <div class="post-prevnext">
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2021/03/30/d90e9b80/">
+                      <a href="/2021/03/30/d90e9b80/" title="深入理解JVM（三）——类加载机制">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">深入理解JVM（三）——类加载机制</span>
                         <span class="visible-mobile">上一篇</span>
@@ -899,7 +1012,7 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2021/03/12/132bcd6f/">
+                      <a href="/2021/03/12/132bcd6f/" title="深入理解JVM（一）——自动内存管理">
                         <span class="hidden-mobile">深入理解JVM（一）——自动内存管理</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
@@ -911,12 +1024,12 @@
             </div>
 
             
-              <!-- Comments -->
-              <article class="comments" id="comments">
-                
-                
+  
+  
+    <article id="comments" lazyload>
+      
   <script type="text/javascript">
-    Fluid.utils.waitElementVisible('comments', function() {
+    Fluid.utils.loadComments('#comments', function() {
       var light = 'github-light';
       var dark = 'github-dark';
       var schema = document.documentElement.getAttribute('data-user-color-scheme');
@@ -942,31 +1055,64 @@
   <noscript>Please enable JavaScript to view the comments</noscript>
 
 
-              </article>
-            
+    </article>
+  
+
+
           </article>
         </div>
       </div>
     </div>
-    
-      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
-        <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
   <div class="toc-body" id="toc-body"></div>
 </div>
 
-      </div>
-    
+
+
+  </aside>
+
+
+    </div>
   </div>
 </div>
 
-<!-- Custom -->
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+
 
 
     
 
     
-      <a id="scroll-top-button" href="#" role="button">
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
         <i class="iconfont icon-arrowup" aria-hidden="true"></i>
       </a>
     
@@ -985,32 +1131,34 @@
       <div class="modal-body mx-3">
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>
     </div>
   </div>
 </div>
+
     
 
     
   </main>
 
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
-  </div>
+  <footer>
+    <div class="footer-inner">
   
-
+    <div class="footer-content">
+       Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
   
-
   
-</footer>
+  
+</div>
 
-<!-- SCRIPTS -->
+  </footer>
 
+  <!-- Scripts -->
+  
   <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
 
@@ -1025,83 +1173,105 @@
 
 <script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
 <script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
-<script  src="/js/debouncer.js" ></script>
 <script  src="/js/events.js" ></script>
 <script  src="/js/plugins.js" ></script>
-
-<!-- Plugins -->
-
-
-  
-    <script  src="/js/lazyload.js" ></script>
-  
-
-
-
-  
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
-
-
-
-
-
-  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
-
-
-
-
 
 
   <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
   <script>
     (function (window, document) {
       var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
       
-      typing(title)
+        typing(text);
       
     })(window, document);
   </script>
 
 
 
-  <script  src="/js/local-search.js" ></script>
-  <script>
-    (function () {
-      var path = "/local-search.xml";
-      var inputArea = document.querySelector("#local-search-input");
-      inputArea.onclick = function () {
-        searchFunc(path, 'local-search-input', 'local-search-result');
-        this.onclick = null
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
       }
-    })()
-  </script>
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-<!-- 主题的启动项 保持在最底部 -->
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
 <script  src="/js/boot.js" ></script>
 
 
+  
 
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
 </body>
 </html>

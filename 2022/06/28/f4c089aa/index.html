@@ -1,47 +1,61 @@
 
 
 <!DOCTYPE html>
-<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+<html lang="zh-CN" data-default-color-scheme=auto>
 
 
 
 <head>
   <meta charset="UTF-8">
+
   <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
-  <link rel="icon" type="image/png" href="/img/favicon.png">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <link rel="icon" href="/img/favicon.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
   <meta name="theme-color" content="#2f4154">
-  <meta name="description" content="Android Developer">
   <meta name="author" content="sukaidev">
   <meta name="keywords" content="Android sukaidev 苏海鸿">
+  
+    <meta name="description" content="本文转载自努比亚技术团队公众号。  在分析任何问题之前，我们都需要先弄清楚其基本原理，也就是要掌握了这个“道”，才能真正着手去分析问题，否者只能是弄得一头雾水，也没法真正的理解和解决问题。所以要想分析并解决界面掉帧卡顿问题，我们就先需要知道在Android系统上应用UI线程到底是如何完成一帧画面的上帧显示动作的（本文讲解的内容主要基于Android原生应用的绘制渲染流程，对于游戏应用和Flutt">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android性能优化（一）——卡顿优化">
+<meta property="og:url" content="https://www.sukaidev.top/2022/06/28/f4c089aa/index.html">
+<meta property="og:site_name" content="Sukai&#39;s Blog - Android Developer">
+<meta property="og:description" content="本文转载自努比亚技术团队公众号。  在分析任何问题之前，我们都需要先弄清楚其基本原理，也就是要掌握了这个“道”，才能真正着手去分析问题，否者只能是弄得一头雾水，也没法真正的理解和解决问题。所以要想分析并解决界面掉帧卡顿问题，我们就先需要知道在Android系统上应用UI线程到底是如何完成一帧画面的上帧显示动作的（本文讲解的内容主要基于Android原生应用的绘制渲染流程，对于游戏应用和Flutt">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://www.sukaidev.top/img/cover_frame_rate_opt.png">
+<meta property="article:published_time" content="2022-06-28T07:04:53.000Z">
+<meta property="article:modified_time" content="2024-06-27T09:33:51.222Z">
+<meta property="article:author" content="sukaidev">
+<meta property="article:tag" content="Repost">
+<meta property="article:tag" content="Android">
+<meta property="article:tag" content="Performance Optimization">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.sukaidev.top/img/cover_frame_rate_opt.png">
+  
+  
+  
   <title>Android性能优化（一）——卡顿优化 - Sukai&#39;s Blog - Android Developer</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
 
 
+
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
   <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
 
-  
-    
-    
-      
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/atom-one-light.min.css" />
-    
-  
-
-  
-    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
-  
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
 
 
 
 <!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
 
 
 
@@ -50,24 +64,46 @@
 
 <link  rel="stylesheet" href="/css/main.css" />
 
-<!-- 自定义样式保持在最底部 -->
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
 
 
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"www.sukaidev.top","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.sukaidev.top","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
   </script>
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
 <meta name="generator" content="Hexo 5.3.0"></head>
 
 
 <body>
-  <header style="height: 70vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
-    <a class="navbar-brand"
-       href="/">&nbsp;<strong>Sukai's Blog</strong>&nbsp;</a>
+    <a class="navbar-brand" href="/">
+      <strong>Sukai&#39;s Blog</strong>
+    </a>
 
     <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
             data-target="#navbarSupportedContent"
@@ -84,9 +120,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/">
+              <a class="nav-link" href="/" target="_self">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                <span>首页</span>
               </a>
             </li>
           
@@ -96,9 +132,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/archives/">
+              <a class="nav-link" href="/archives/" target="_self">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                <span>归档</span>
               </a>
             </li>
           
@@ -108,9 +144,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/categories/">
+              <a class="nav-link" href="/categories/" target="_self">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                <span>分类</span>
               </a>
             </li>
           
@@ -120,9 +156,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/tags/">
+              <a class="nav-link" href="/tags/" target="_self">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                <span>标签</span>
               </a>
             </li>
           
@@ -132,23 +168,26 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/about/">
+              <a class="nav-link" href="/about/" target="_self">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                <span>关于</span>
               </a>
             </li>
           
         
         
           <li class="nav-item" id="search-btn">
-            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
-                class="iconfont icon-search"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
           </li>
+          
         
         
           <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" href="javascript:">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
           </li>
         
       </ul>
@@ -156,60 +195,71 @@
   </div>
 </nav>
 
-    <div class="banner" id="banner" parallax=true
-         style="background: url('/img/default.png') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="Android性能优化（一）——卡顿优化">
-              
-            </span>
-
-            
-              <div class="mt-3">
-  
-  
-    <span class="post-meta">
-      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2022-06-28 15:04" pubdate>
-        2022年6月28日 下午
-      </time>
-    </span>
-  
-</div>
-
-<div class="mt-1">
-  
-    
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-chart"></i>
-      11.5k 字
-    </span>
   
 
-  
-    
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-clock-fill"></i>
-      
-      
-      136
-       分钟
-    </span>
-  
-
-  
-  
-</div>
-
-            
-          </div>
-
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Android性能优化（一）——卡顿优化"></span>
           
         </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2022-06-28 15:04" pubdate>
+          2022年6月28日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          11k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          94 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
       </div>
+
+      
     </div>
+  </div>
+</div>
+
+</div>
+
   </header>
 
   <main>
@@ -218,16 +268,21 @@
 
 <div class="container-fluid nopadding-x">
   <div class="row nomargin-x">
-    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
     <div class="col-lg-8 nopadding-x-md">
       <div class="container nopadding-x-md" id="board-ctn">
-        <div class="py-5" id="board">
+        <div id="board">
           <article class="post-content mx-auto">
-            <!-- SEO header -->
-            <h1 style="display: none">Android性能优化（一）——卡顿优化</h1>
+            <h1 id="seo-header">Android性能优化（一）——卡顿优化</h1>
             
-            <div class="markdown-body">
-              <blockquote>
+            
+              <div class="markdown-body">
+                
+                <blockquote>
 <p>本文转载自努比亚技术团队公众号。</p>
 </blockquote>
 <p>在分析任何问题之前，我们都需要先弄清楚其基本原理，也就是要掌握了这个“道”，才能真正着手去分析问题，否者只能是弄得一头雾水，也没法真正的理解和解决问题。所以要想分析并解决界面掉帧卡顿问题，我们就先需要知道在<code>Android</code>系统上应用<code>UI</code>线程到底是如何完成一帧画面的上帧显示动作的（本文讲解的内容主要基于<code>Android</code>原生应用的绘制渲染流程，对于游戏应用和<code>Flutter</code>开发的应用流程会不太一样，由于篇幅所限，本文暂不涉及，可以关注团队后续其它文章的内容）。由于大部分应用界面的上帧更新画面动作都是由用户手指触摸屏幕而触发，所以本文以手指上下滑动应用界面的操作场景为例，结合<code>Systrace</code>分析一下<code>Android</code>应用上帧显示的原理。</p>
@@ -245,7 +300,7 @@
 <li><code>App</code> 响应处理<code>Input</code> 事件，内部会在其界面<code>View</code>树中逐层分发和处理。</li>
 </ol>
 <p>用一张图描述整个过程大致如下（关于这部分详细的<code>Android</code>系统源码实现流程可以参考<a target="_blank" rel="noopener" href="https://juejin.cn/post/6956500920108580878">这篇文章</a>）：</p>
-<p><img src="/img/26874665-ab756e88f0bb89c2.webp" srcset="/img/loading.gif" alt="input模型"></p>
+<p><img src="/img/26874665-ab756e88f0bb89c2.webp" srcset="/img/loading.gif" lazyload alt="input模型"></p>
 <h3 id="1-2-结合Systrace分析"><a href="#1-2-结合Systrace分析" class="headerlink" title="1.2 结合Systrace分析"></a>1.2 结合Systrace分析</h3><p>从上面的系统机制的分析可以看出，整个<code>Input</code>触控事件的分发与处理主要涉及到两个进程：一个是<code>system_server</code>系统进程，另一个是当前焦点窗口所属的<code>Setting</code>应用进程。</p>
 <p><strong>一、<code>system_server</code>进程的处理过程：</strong></p>
 <ol>
@@ -254,7 +309,7 @@
 <li><p><code>InputDispatcher</code>被唤醒后会先将事件放到<code>InboundQueue</code>队列（也就是<code>Systrace</code>上看到的“<code>iq”</code>队列）中，然后找到具体处理此<code>input</code>事件的应用目标窗口，并将<code>Input</code>事件放入对应的应用目标窗口的<code>OutboundQueue</code>队列（也就是<code>Systrace</code>上看到的<code>“oq”</code>队列）中，等待进一步通过<code>SocketPair</code>双工信道发送<code>input</code>事件到应用目标窗口中；</p>
 </li>
 <li><p>最后当事件发送给具体的应用目标窗口后，会将事件移动到<code>WaitQueue</code>队列中（也就是<code>Systrace</code>上看到的<code>“wq”</code>队列）并一直等待收到到目标应用处理<code>Input</code>事件完成后的反馈后再从队列中移除，<strong>如果5秒内没有收到目标应用窗口处理完成此次<code>Input</code>事件的反馈，就会报该应用ANR异常事件</strong>。以上整个过程在<code>Android</code>系统<code>AOSP</code>源码中都加有相应的<code>Systrace tag</code>，如下<code>Systrace</code>截图所示：</p>
-<p><img src="/img/26874665-26d272761a9069fa.webp" srcset="/img/loading.gif" alt="input1"></p>
+<p><img src="/img/26874665-26d272761a9069fa.webp" srcset="/img/loading.gif" lazyload alt="input1"></p>
 </li>
 </ol>
 <p><strong>二、应用进程的处理过程：</strong></p>
@@ -267,7 +322,7 @@
 <li><p>最后触控事件处理完成后会调用<code>finishInputEvent</code>结束应用对触控事件处理逻辑，<strong>这里面会通过<code>JNI</code>调用到<code>native</code>层<code>InputConsumer</code>的<code>sendFinishedSignal</code>函数中通过socket消息通知系统框架中的<code>InputDispatcher</code>该<code>Input</code>事件处理完成</strong>，触发从<code>&quot;wq&quot;</code>队列中及时移除待处理事件以免报<code>ANR</code>异常。</p>
 </li>
 <li><p><strong>一次滑动过程的触控交互的<code>InputResponse</code>区域中一般会包含一个<code>Input</code>的<code>ACTION_DOWN</code>事件+多个<code>ACTION_MOVE</code>事件+一个<code>ACTION_UP</code>事件</strong>，<code>Settings</code>应用界面中的相关<code>View</code>控件在收到多个<code>ACTION_MOVE</code>触控事件后，经过判断为用户手指滑动行为，<strong>一般会调用<code>View#invalidate</code>等相关接口触发<code>UI</code>线程的绘制上帧更新画面的操作</strong>，具体流程后文会继续详细分析。以上过程如下<code>Systrace</code>截图所示：</p>
-<p><img src="/img/26874665-f7b8127610f84a36.webp" srcset="/img/loading.gif" alt="input2"></p>
+<p><img src="/img/26874665-f7b8127610f84a36.webp" srcset="/img/loading.gif" lazyload alt="input2"></p>
 </li>
 </ol>
 <h2 id="2-应用UI线程消息循环机制"><a href="#2-应用UI线程消息循环机制" class="headerlink" title="2 应用UI线程消息循环机制"></a>2 应用UI线程消息循环机制</h2><p><code>App</code>应用启动时，在<code>Fork</code>创建进程后会通过反射创建代表应用主线程的<code>ActivityThread</code>对象并执行其<code>main</code>函数，进行<code>UI</code>主线程的初始化工作：</p>
@@ -275,14 +330,14 @@
 <p>主线程初始化完成后，<strong>主线程就有了完整的 <code>Looper</code>、<code>MessageQueue</code>、<code>Handler</code>，此时 <code>ActivityThread</code> 的 <code>Handler</code> 就可以开始处理 <code>Message</code>，包括 <code>Application</code>、<code>Activity</code>、<code>ContentProvider</code>、<code>Service</code>、<code>Broadcast</code> 等组件的生命周期函数，都会以 <code>Message</code> 的形式，在主线程按照顺序处理</strong>，这就是 <code>App</code> 主线程的初始化和运行原理，部分处理的 <code>Message</code> 如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/*frameworks/base/core/java/android/app/ActivityThread.java*/</span><br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">H</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Handler</span> </span>&#123;<br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> BIND_APPLICATION        = <span class="hljs-number">110</span>;<br>        <span class="hljs-meta">@UnsupportedAppUsage</span><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> RECEIVER                = <span class="hljs-number">113</span>;<br>        <span class="hljs-meta">@UnsupportedAppUsage</span><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> CREATE_SERVICE          = <span class="hljs-number">114</span>;<br>        <span class="hljs-meta">@UnsupportedAppUsage</span><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> BIND_SERVICE            = <span class="hljs-number">121</span>;<br>        <br>        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">handleMessage</span><span class="hljs-params">(Message msg)</span> </span>&#123;<br>            <span class="hljs-keyword">switch</span> (msg.what) &#123;<br>                <span class="hljs-keyword">case</span> BIND_APPLICATION:<br>                    Trace.traceBegin(Trace.TRACE_TAG_ACTIVITY_MANAGER, <span class="hljs-string">&quot;bindApplication&quot;</span>);<br>                    AppBindData data = (AppBindData)msg.obj;<br>                    handleBindApplication(data);<br>                    Trace.traceEnd(Trace.TRACE_TAG_ACTIVITY_MANAGER);<br>                    <span class="hljs-keyword">break</span>;<br>                    ...<br>            &#125;<br>         &#125;<br>         ...<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>主线程初始化完成后，主线程就进入阻塞状态（进入<code>epoll_wait</code>状态，并释放<code>CPU</code>运行资源），等待 <code>Message</code>，一旦有 <code>Message</code> 发过来，主线程就会被唤醒，处理 <code>Message</code>，处理完成之后，如果没有其他的 <code>Message</code> 需要处理，那么主线程就会进入休眠阻塞状态继续等待。<strong>可以说<code>Android</code>系统的运行是受消息机制驱动的</strong>，而整个消息机制是由上面所说的四个关键角色相互配合实现的（<code>Handler</code>、<code>Looper</code><strong>、</strong><code>MessageQueue</code><strong>、</strong><code>Message</code>），其运行原理如下图所示：</p>
-<p><img src="/img/26874665-1c9a83dc71d8d91a.webp" srcset="/img/loading.gif" alt="Android消息机制"></p>
+<p><img src="/img/26874665-1c9a83dc71d8d91a.webp" srcset="/img/loading.gif" lazyload alt="Android消息机制"></p>
 <h2 id="3-Android屏幕刷新机制"><a href="#3-Android屏幕刷新机制" class="headerlink" title="3 Android屏幕刷新机制"></a>3 Android屏幕刷新机制</h2><h3 id="3-1-双缓存-Vsync"><a href="#3-1-双缓存-Vsync" class="headerlink" title="3.1 双缓存+Vsync"></a>3.1 双缓存+Vsync</h3><p>在一个典型的显示系统中，一般包括<code>CPU</code>、<code>GPU</code>、<code>Display</code>三个部分<strong>：<code>CPU</code>负责计算帧数据，把计算好的数据交给<code>GPU</code>，<code>GPU</code>会对图形数据进行渲染，渲染好后放到<code>buffer</code>(图像缓冲区)里存起来，然后<code>Display</code>（屏幕或显示器）负责把<code>Buffer</code>里的数据呈现到屏幕上</strong>。</p>
 <p>屏幕上显示的内容，是从<code>Buffer</code>图像帧缓冲区中读取的，大致读取过程为：从<code>Buffer</code>的起始地址开始，从上往下，从左往右扫描整个<code>Buffer</code>，将内容映射到显示屏上。如下图所示：</p>
-<p><img src="/img/26874665-1c01a8e3a68137d5.webp" srcset="/img/loading.gif" alt="显示系统1"></p>
+<p><img src="/img/26874665-1c01a8e3a68137d5.webp" srcset="/img/loading.gif" lazyload alt="显示系统1"></p>
 <p>当然，屏幕上显示的内容需要不断的更新，如果在同一个<code>Buffer</code>进行读取和写入操作，将会导致屏幕显示多帧内容而出现显示错乱。所以硬件层除了提供一个<code>Buffer</code>用于屏幕显示，还会提供了一个<code>Buffer</code>用于后台的<code>CPU/GPU</code>图形绘制与合成，也就是我们常说的<strong>双缓冲</strong>：让绘制和显示器拥有各自的<code>Buffer</code>：<code>CPU/GPU</code> 始终将完成的一帧图像数据写入到 后缓存区（<code>Back Buffer</code>），而显示器使用前缓存区（ <code>Front Buffer</code>），当屏幕刷新时，<code>Front Buffer</code> 并不会发生变化，当<code>Back Buffer</code>准备就绪后，它们才进行交换。如下图所示：</p>
-<p><img src="/img/26874665-f41a4955d482cfdc.webp" srcset="/img/loading.gif" alt="图形显示2"></p>
+<p><img src="/img/26874665-f41a4955d482cfdc.webp" srcset="/img/loading.gif" lazyload alt="图形显示2"></p>
 <p> 理想情况下假设前一帧显示完成，后一帧数据就准备好了，屏幕开始读取下一帧内容进行显示，也就是开始读取上图中的后缓冲区的内容：</p>
-<p><img src="/img/26874665-4f3e2ff95b14368f.webp" srcset="/img/loading.gif" alt="图形显示3"></p>
+<p><img src="/img/26874665-4f3e2ff95b14368f.webp" srcset="/img/loading.gif" lazyload alt="图形显示3"></p>
 <p> 此时，前后缓冲区进行一次角色交换，之前的后缓冲区变为前缓冲区，进行图形的显示，之前的前缓冲区则变为后缓冲区，进行图形的绘制合成。然而，理想很丰满，现实很骨感，上面假设“当前一帧显示完毕，后一帧准备好了”的情况，在现实中这两个事件并非同时完成。那么，屏幕读取缓冲区的速度和系统绘制合成帧的速度之间有什么关系呢，带着这个疑惑我们看看下面两个基本概念：</p>
 <ol>
 <li><strong>屏幕刷新率（<code>Screen Refresh Rate</code>）</strong>: 屏幕刷新率是一个硬件的概念，单位是<code>Hz</code>（赫兹），是说屏幕这个硬件刷新画面的频率：举例来说，<code>60Hz</code> 刷新率意思是：这个屏幕在 1 秒内，会刷新显示内容60 次；那么对应的，<code>90Hz</code> 是说在 1 秒内刷新显示内容 90 次。</li>
@@ -294,14 +349,14 @@
 </li>
 <li><p>系统帧率比屏幕刷新率快：</p>
 <p>此时，屏幕未完全把前缓冲区的一帧映射到屏幕，而系统已经在后缓冲区准备好了下一帧，并要求读取下一帧到屏幕，将会导致屏幕上半部分是上一帧的图形，而下半部分是下一帧的图形，造成屏幕上显示多帧，也就是屏幕撕裂现象，如下图所示：</p>
-<p><img src="/img/26874665-53bc711026d2e290.webp" srcset="/img/loading.gif" alt="画面撕裂"></p>
+<p><img src="/img/26874665-53bc711026d2e290.webp" srcset="/img/loading.gif" lazyload alt="画面撕裂"></p>
 </li>
 </ol>
 <p>所以上面两种情况，都会导致问题，根本原因就是两个缓冲区的操作速率不一致。解决办法就是：<strong>让屏幕控制前后缓冲区的切换时机，让系统帧速率配合屏幕刷新率的节奏</strong>。那么屏幕是如何控制这个节奏的呢？</p>
 <p>答案就是<strong>垂直同步（VSync）：</strong>当屏幕从缓冲区扫描完一帧到屏幕上之后，开始扫描下一帧之前，中间会有一个时间间隙，称为<code>Vetrical Blanking Interval (VBI)</code>，这个时间点其实就是进行前后缓存区交换的最佳时机，此时屏幕并没有在刷新，也就避免了屏幕撕裂现象的产生，所以在此时发出的一个同步<code>Vsync</code>信号，该信号用来切换前缓冲区和后缓冲区(本质就是内存地址的交换，瞬间即可完成)，即可达到最佳效果。</p>
 <p>通过上面的分析可以看出：<strong>屏幕的显示节奏是由屏幕刷新率的硬件参数决定且固定的，软件操作系统需要配合屏幕的显示，在固定的时间内准备好下一帧，以供屏幕进行显示，两者通过<code>VSync</code>信号来实现同步</strong>（<code>VSync</code>这个概念并不是<code>Google</code>首创的，它在早年的<code>PC</code>机领域就已经出现了）。</p>
 <h3 id="3-2-Drawing-with-Vsync"><a href="#3-2-Drawing-with-Vsync" class="headerlink" title="3.2 Drawing with Vsync"></a>3.2 Drawing with Vsync</h3><p>在<code>Android 4.1</code>之前，屏幕刷新也遵循上面介绍的 <strong>双缓存+<code>VSync</code></strong> 机制，整个流程与架构借用<code>2012</code>年<code>Google I/O</code>大会上展示的一张图如下所示：</p>
-<p><img src="/img/26874665-7fa5328dcd02825b.webp" srcset="/img/loading.gif" alt="Drawing without Vsync"></p>
+<p><img src="/img/26874665-7fa5328dcd02825b.webp" srcset="/img/loading.gif" lazyload alt="Drawing without Vsync"></p>
 <p> 上图中：<br> 一、纵轴表示<code>Buffer</code>的使用者，由如下三个角色构成：</p>
 <ol>
 <li><strong><code>CPU</code>：</strong>代表利用<code>CPU</code>对界面<code>View</code>的<code>Measure</code>尺寸测量、<code>Layout</code>位置布局、<code>Draw</code>绘制并最终生成纹理的操作；</li>
@@ -319,7 +374,7 @@
 </ol>
 <p>出现此掉帧卡顿问题的根本原因是：<strong>上层的<code>CPU</code>和<code>GPU</code>并不知道<code>Vsync</code>信号的到来，所以在底层屏幕的<code>Vsync</code>信号发出后并没有及时收到并开始下一帧画面的操作处理</strong>。根据前面的分析我们知道：双缓存的交换是在<code>Vsyn</code>信号到来时进行，交换后屏幕会读取<code>Front Buffer</code>内的新数据更新显示到屏幕上，而此时的<code>Back Buffer</code> 就可以供<code>GPU</code>准备下一帧数据了。如果 <code>Vsyn</code>到来时  <code>CPU/GPU</code>就开始操作的话，是有完整的<code>Vsync</code>周期时长来处理一帧数据，以避免卡顿的出现。那如何让 <code>CPU/GPU</code>的处理在 <code>Vsyn</code>信号到来时就开始进行呢？</p>
 <p>为了优化系统显示性能，<code>Google</code>在<code>Android 4.1</code>系统中对<code>Android Display</code>系统进行了重构，引入了<code>Project Butter</code>（黄油计划），其中很重要的一点修改就是实现了：<strong>在系统收到<code>VSync</code>信号后，上层<code>CPU</code>和<code>GPU</code>马上开始进行下一帧画面数据的处理，完成后及时将数据写入到<code>Buffer</code>中，<code>Google</code>称之为<code>Drawing with Vsync</code>。</strong>如下图所示：</p>
-<p><img src="/img/26874665-0311c942520a58cf.webp" srcset="/img/loading.gif" alt="Drawing with Vsync"></p>
+<p><img src="/img/26874665-0311c942520a58cf.webp" srcset="/img/loading.gif" lazyload alt="Drawing with Vsync"></p>
 <h3 id="3-3-Choreographer"><a href="#3-3-Choreographer" class="headerlink" title="3.3 Choreographer"></a>3.3 Choreographer</h3><p>上一节中讲到的，为了优化显示系统性能，<code>Google</code>在<code>Android 4.1</code>系统中对<code>Android Display</code>系统进行了重构，引入了<code>Project Butter</code>（黄油计划），其中很重要的一点修改就是实现了：<strong>在系统收到<code>VSync</code>信号后，上层<code>CPU</code>和<code>GPU</code>马上开始进行下一帧画面数据的处理，完成后及时将数据写入到<code>Buffer</code>中</strong>。为了实现这个效果，控制上层<code>CPU</code>和<code>GPU</code>在收到<code>Vsync</code>信号后马上开始一帧数据的处理，谷歌为此专门设计了一个名为<code>Choreographer</code>（中文翻译为“编舞者”）的类，来控制上层绘制的节奏。</p>
 <p><code>Choreographer</code> 的引入，主要是为了配合系统<code>Vsync</code>垂直同步机制，给上层 App 的渲染提供一个稳定的 <code>Message</code> 处理的时机，也就是 <code>Vsync</code> 到来的时候 ，系统通过对 <code>Vsync</code> 信号周期的调整，来控制每一帧绘制操作的时机。<code>Choreographer</code><strong>扮演 Android 渲染链路中承上启下的角色：</strong></p>
 <ol>
@@ -329,7 +384,7 @@
 <p><strong>一般应用<code>App</code>有界面<code>UI</code>的变化时，最终都会调用走到<code>ViewRootImpl#scheduleTraversals()</code>方法中</strong>，该方法中会往<code>Choreographer</code>中放入一个<code>CALLBACK_TRAVERSAL</code>类型的绘制任务，如下代码所示：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/*frameworks/base/core/java/android/view/ViewRootImpl.java*/</span><br><span class="hljs-meta">@UnsupportedAppUsage</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">scheduleTraversals</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (!mTraversalScheduled) &#123;<br>         ...<br>         <span class="hljs-comment">// 通过Choreographer往主线程消息队列添加CALLBACK_TRAVERSAL绘制类型的待执行消息，用于触发后续UI线程真正实现绘制动作</span><br>         mChoreographer.postCallback(<br>                    Choreographer.CALLBACK_TRAVERSAL, mTraversalRunnable, <span class="hljs-keyword">null</span>);<br>         ...<br>     &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p><code>Choreographer</code>在收到的绘制任务后，其内部的工作流程如下图所示：</p>
-<p><img src="/img/26874665-6f851c8e1d5bfcdf.webp" srcset="/img/loading.gif" alt="Choreographer工作原理"></p>
+<p><img src="/img/26874665-6f851c8e1d5bfcdf.webp" srcset="/img/loading.gif" lazyload alt="Choreographer工作原理"></p>
 <p><strong>从以上流程图可以看出上层一般<code>App</code>应用<code>UI</code>中<code>View</code>的绘制流程（包含SurfaceView的游戏应用的绘制流程会有一些差异，篇幅有限此处不再展开分析）</strong>：</p>
 <ol>
 <li><code>View#invalidate</code>触发更新视图请求，此动作会调用<code>ViewRootImpl#scheduleTraversals</code>函数；</li>
@@ -342,7 +397,7 @@
 <p>至此，底层的<code>VSync</code>控制上层绘制的逻辑就解释完了。</p>
 <h2 id="4-UI-线程绘制流程"><a href="#4-UI-线程绘制流程" class="headerlink" title="4 UI 线程绘制流程"></a>4 UI 线程绘制流程</h2><p>在前几节中分析了应用<code>UI</code>线程的消息循环机制和<code>Android</code>屏幕刷新机制之后，我们接着<code>1</code>小节中关于<code>Input</code>触控事件的处理流程继续往下分析。在<code>1</code>小节的分析中我们了解到：用户手指在应用界面上下滑动时，应用的<code>UI</code>线程中会收到<code>system_server</code>系统进程发送来的一系列<code>Input</code>事件（包含一个<code>ACTION_DOWN</code>、多个<code>ACTION_MOVE</code>和一个<code>ACTION_UP</code>事件），应用界面布局中的相关<code>View</code>控件在收到多个<code>ACTION_MOVE</code>触控事件后，判断为用户手指的滑动行为后，一般会调用<code>View#invalidate</code>等接口触发<code>UI</code>线程的绘制上帧更新画面的操作。</p>
 <p>在开始分析之前，我们先来看看<code>Android</code>系统的<code>GUI</code>显示系统在<code>APP</code>应用进程侧的核心架构，其整体架构如下图所示：</p>
-<p><img src="/img/26874665-51a975ff2b3a2186.webp" srcset="/img/loading.gif" alt="GUI_APP"></p>
+<p><img src="/img/26874665-51a975ff2b3a2186.webp" srcset="/img/loading.gif" lazyload alt="GUI_APP"></p>
 <ul>
 <li><code>Window</code>是一个抽象类，<strong>通过控制<code>DecorView</code>提供了一些标准的UI方案，比如<code>背景、标题、虚拟按键等</code>，</strong>而<code>PhoneWindow</code>是<code>Window</code>的唯一实现类，在<code>Activity</code>创建后的attach流程中创建，应用启动显示的内容装载到其内部的<code>mDecor</code>（<code>DecorView</code>）；</li>
 <li><code>DecorView</code>是整个界面布局View控件树的根节点，通过它可以遍历访问到整个<code>View</code>控件树上的任意节点；</li>
@@ -361,7 +416,7 @@
 <li>从界面View控件树的根节点<code>DecorView</code>出发，递归遍历整个<code>View</code>控件树，完成对整个<code>View</code><strong>控件树的<code>draw</code>绘制操作</strong>，如果开启并支持硬件绘制加速（从Android 4.X开始谷歌已经默认开启硬件加速），则走<code>GPU</code>硬件绘制的流程，否则走<code>CPU</code>软件绘制的流程；</li>
 </ol>
 <p>以上绘制过程从<code>systrace</code>上看如下图所示：</p>
-<p><img src="/img/26874665-bc0bedd86a62d3a1.webp" srcset="/img/loading.gif" alt="UI traversal"></p>
+<p><img src="/img/26874665-bc0bedd86a62d3a1.webp" srcset="/img/loading.gif" lazyload alt="UI traversal"></p>
 <h2 id="5-RenderThread-线程渲染流程"><a href="#5-RenderThread-线程渲染流程" class="headerlink" title="5 RenderThread 线程渲染流程"></a>5 RenderThread 线程渲染流程</h2><p>截止到目前，在<code>ViewRootImpl</code>中完成了对界面的<code>measure</code>、<code>layout</code>和<code>draw</code>等绘制流程后，用户依然还是看不到屏幕上显示的应用界面内容，因为整个<code>Android</code>系统的显示流程除了前面讲到的UI线程的绘制外，界面还需要经过<code>RenderThread</code>线程的渲染处理，渲染完成后，还需要通过<code>Binder</code>调用“上帧”交给<code>surfaceflinger</code>进程中进行合成后送显才能最终显示到屏幕上。本小节中，我们将接上一节中<code>ViewRootImpl</code>中最后draw的流程继续往下分析开启硬件加速情况下，<code>RenderThread</code>渲染线程的工作流程。由于目前Android 4.X之后系统默认界面是开启硬件加速的，所以本文我们重点分析硬件加速条件下的界面渲染流程，我们先分析一下简化的代码流程：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/*frameworks/base/core/java/android/view/ViewRootImpl.java*/</span><br><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">draw</span><span class="hljs-params">(<span class="hljs-keyword">boolean</span> fullRedrawNeeded)</span> </span>&#123;<br>    ...<br>    <span class="hljs-keyword">if</span> (mAttachInfo.mThreadedRenderer != <span class="hljs-keyword">null</span> &amp;&amp; mAttachInfo.mThreadedRenderer.isEnabled()) &#123;<br>        ...<br>        <span class="hljs-comment">// 硬件加速条件下的界面渲染流程</span><br>        mAttachInfo.mThreadedRenderer.draw(mView, mAttachInfo, <span class="hljs-keyword">this</span>);<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        ...<br>    &#125;<br>&#125;<br><br><span class="hljs-comment">/*frameworks/base/core/java/android/view/ThreadedRenderer.java*/</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">draw</span><span class="hljs-params">(View view, AttachInfo attachInfo, DrawCallbacks callbacks)</span> </span>&#123;<br>    ...<br>    <span class="hljs-comment">// 1.从DecorView根节点出发，递归遍历View控件树，记录每个View节点的绘制操作命令，完成绘制操作命令树的构建</span><br>    updateRootDisplayList(view, callbacks);<br>    ...<br>    <span class="hljs-comment">// 2.JNI调用同步Java层构建的绘制命令树到Native层的RenderThread渲染线程，并唤醒渲染线程利用OpenGL执行渲染任务；</span><br>    <span class="hljs-keyword">int</span> syncResult = syncAndDrawFrame(choreographer.mFrameInfo);<br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>从上面的代码可以看出，<strong>硬件加速绘制主要包括两个阶段</strong>：</p>
@@ -379,11 +434,11 @@
 <li>最后将根<code>View</code>的缓存<code>DisplayListOp</code>设置到<code>RootRenderNode</code>中，完成构建。</li>
 </ol>
 <p>以上整个构建绘制命令树的过程可以用如下流程图表示：</p>
-<p><img src="/img/26874665-20529fa058c44a07.webp" srcset="/img/loading.gif" alt="硬件加速绘制之绘制命令树构建"></p>
+<p><img src="/img/26874665-20529fa058c44a07.webp" srcset="/img/loading.gif" lazyload alt="硬件加速绘制之绘制命令树构建"></p>
 <p> 硬件加速下的整个界面的<code>View</code>树的结构如下图所示：</p>
-<p><img src="/img/26874665-6f1b95b11f3fe294.webp" srcset="/img/loading.gif"></p>
+<p><img src="/img/26874665-6f1b95b11f3fe294.webp" srcset="/img/loading.gif" lazyload></p>
 <p> 最后从<code>Systrace</code>上看这个过程如下图所示：</p>
-<p><img src="/img/26874665-b94a5aeb293a3dad.webp" srcset="/img/loading.gif" alt="构建View绘制命令树"></p>
+<p><img src="/img/26874665-b94a5aeb293a3dad.webp" srcset="/img/loading.gif" lazyload alt="构建View绘制命令树"></p>
 <h3 id="5-2-执行渲染绘制任务"><a href="#5-2-执行渲染绘制任务" class="headerlink" title="5.2 执行渲染绘制任务"></a>5.2 执行渲染绘制任务</h3><p>经过上一小节中的分析，应用在<code>UI</code>线程中从根节点<code>DecorView</code>出发，递归遍历每个子<code>View</code>节点，搜集其<code>drawXXX</code>绘制动作并转换成<code>DisplayListOp</code>命令，将其记录到<code>DisplayListData</code>并填充到<code>RenderNode</code>中，最终完成整个<code>View</code>绘制命令树的构建。从此UI线程的绘制任务就完成了。下一步<code>UI</code>线程将唤醒<code>RenderThread</code>渲染线程，触发其利用<code>OpenGL</code>执行界面的渲染任务，本小节中我们将重点分析这个流程。我们还是先看看这块代码的简化流程：</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/*frameworks/base/graphics/java/android/graphics/HardwareRenderer.java*/</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">syncAndDrawFrame</span><span class="hljs-params">(@NonNull FrameInfo frameInfo)</span> </span>&#123;<br>    <span class="hljs-comment">// JNI调用native层的相关函数</span><br>    <span class="hljs-keyword">return</span> nSyncAndDrawFrame(mNativeProxy, frameInfo.frameInfo, frameInfo.frameInfo.length);<br>&#125;<br><br><span class="hljs-comment">/*frameworks/base/libs/hwui/jni/android_graphics_HardwareRenderer.cpp*/</span><br><span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">int</span> <span class="hljs-title">android_view_ThreadedRenderer_syncAndDrawFrame</span><span class="hljs-params">(JNIEnv* env, jobject clazz,</span></span><br><span class="hljs-function"><span class="hljs-params">        jlong proxyPtr, jlongArray frameInfo, jint frameInfoSize)</span> </span>&#123;<br>    ...<br>    RenderProxy* proxy = <span class="hljs-keyword">reinterpret_cast</span>&lt;RenderProxy*&gt;(proxyPtr);<br>    env-&gt;GetLongArrayRegion(frameInfo, <span class="hljs-number">0</span>, frameInfoSize, proxy-&gt;frameInfo());<br>    <span class="hljs-keyword">return</span> proxy-&gt;syncAndDrawFrame();<br>&#125;<br><br><span class="hljs-comment">/*frameworks/base/libs/hwui/renderthread/RenderProxy.cpp*/</span><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">RenderProxy::syncAndDrawFrame</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-comment">// 唤醒RenderThread渲染线程，执行DrawFrame绘制任务</span><br>    <span class="hljs-keyword">return</span> mDrawFrameTask.drawFrame();<br>&#125;<br><br><span class="hljs-comment">/*frameworks/base/libs/hwui/renderthread/DrawFrameTask.cpp*/</span><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">DrawFrameTask::drawFrame</span><span class="hljs-params">()</span> </span>&#123;<br>    ...<br>    postAndWait();<br>    ...<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">DrawFrameTask::postAndWait</span><span class="hljs-params">()</span> </span>&#123;<br>    AutoMutex _lock(mLock);<br>    <span class="hljs-comment">// 向RenderThread渲染线程的MessageQueue消息队列放入一个待执行任务，以将其唤醒执行run函数</span><br>    mRenderThread-&gt;<span class="hljs-built_in">queue</span>().post([<span class="hljs-keyword">this</span>]() &#123; run(); &#125;);<br>    <span class="hljs-comment">// UI线程暂时进入wait等待状态</span><br>    mSignal.wait(mLock);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">DrawFrameTask::run</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-comment">// 原生标识一帧渲染绘制任务的systrace tag</span><br>    ATRACE_NAME(<span class="hljs-string">&quot;DrawFrame&quot;</span>);<br>    ...<br>    &#123;<br>        <span class="hljs-function">TreeInfo <span class="hljs-title">info</span><span class="hljs-params">(TreeInfo::MODE_FULL, *mContext)</span></span>;<br>        <span class="hljs-comment">//1.将UI线程构建的DisplayListOp绘制命令树同步到RenderThread渲染线程</span><br>        canUnblockUiThread = syncFrameState(info);<br>        ...<br>    &#125;<br>    ...<br>    <span class="hljs-comment">// 同步完成后则可以唤醒UI线程</span><br>    <span class="hljs-keyword">if</span> (canUnblockUiThread) &#123;<br>        unblockUiThread();<br>    &#125;<br>    ...<br>    <span class="hljs-keyword">if</span> (CC_LIKELY(canDrawThisFrame)) &#123;<br>        <span class="hljs-comment">// 2.执行draw渲染绘制动作</span><br>        context-&gt;draw();<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        ...<br>    &#125;<br>    ...<br>&#125;<br><br><span class="hljs-keyword">bool</span> DrawFrameTask::syncFrameState(TreeInfo&amp; info) &#123;<br>    ATRACE_CALL();<br>    ...<br>    <span class="hljs-comment">// 调用CanvasContext的prepareTree函数实现绘制命令树同步的流程</span><br>    mContext-&gt;prepareTree(info, mFrameInfo, mSyncQueued, mTargetNode);<br>    ...<br>&#125;<br><br><span class="hljs-comment">/*frameworks/base/libs/hwui/renderthread/CanvasContext.cpp*/</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">CanvasContext::prepareTree</span><span class="hljs-params">(TreeInfo&amp; info, <span class="hljs-keyword">int64_t</span>* uiFrameInfo, <span class="hljs-keyword">int64_t</span> syncQueued,</span></span><br><span class="hljs-function"><span class="hljs-params">                                RenderNode* target)</span> </span>&#123;<br>     ...<br>     <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> sp&lt;RenderNode&gt;&amp; node : mRenderNodes) &#123;<br>        ...<br>        <span class="hljs-comment">// 递归调用各个子View对应的RenderNode执行prepareTree动作</span><br>        node-&gt;prepareTree(info);<br>        ...<br>    &#125;<br>    ...<br>&#125;<br><br><span class="hljs-comment">/*frameworks/base/libs/hwui/RenderNode.cpp*/</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">RenderNode::prepareTree</span><span class="hljs-params">(TreeInfo&amp; info)</span> </span>&#123;<br>    ATRACE_CALL();<br>    ...<br>    prepareTreeImpl(observer, info, <span class="hljs-literal">false</span>);<br>    ...<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">RenderNode::prepareTreeImpl</span><span class="hljs-params">(TreeObserver&amp; observer, TreeInfo&amp; info, <span class="hljs-keyword">bool</span> functorsNeedLayer)</span> </span>&#123;<br>    ...<br>    <span class="hljs-keyword">if</span> (info.mode == TreeInfo::MODE_FULL) &#123;<br>        <span class="hljs-comment">// 同步绘制命令树</span><br>        pushStagingDisplayListChanges(observer, info);<br>    &#125;<br>    <span class="hljs-keyword">if</span> (mDisplayList) &#123;<br>        <span class="hljs-comment">// 遍历调用各个子View对应的RenderNode的prepareTreeImpl</span><br>        <span class="hljs-keyword">bool</span> isDirty = mDisplayList-&gt;prepareListAndChildren(<br>                observer, info, childFunctorsNeedLayer,<br>                [](RenderNode* child, TreeObserver&amp; observer, TreeInfo&amp; info,<br>                   <span class="hljs-keyword">bool</span> functorsNeedLayer) &#123;<br>                    child-&gt;prepareTreeImpl(observer, info, functorsNeedLayer);<br>                &#125;);<br>        ...<br>    &#125;<br>    ...<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">RenderNode::pushStagingDisplayListChanges</span><span class="hljs-params">(TreeObserver&amp; observer, TreeInfo&amp; info)</span> </span>&#123;<br>    ...<br>    syncDisplayList(observer, &amp;info);<br>    ...<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">RenderNode::syncDisplayList</span><span class="hljs-params">(TreeObserver&amp; observer, TreeInfo* info)</span> </span>&#123;<br>    ...<br>    <span class="hljs-comment">// 完成赋值同步DisplayList对象</span><br>    mDisplayList = mStagingDisplayList;<br>    mStagingDisplayList = <span class="hljs-literal">nullptr</span>;<br>    ...<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">CanvasContext::draw</span><span class="hljs-params">()</span> </span>&#123;<br>    ...<br>    <span class="hljs-comment">// 1.调用OpenGL库使用GPU，按照构建好的绘制命令完成界面的渲染</span><br>    <span class="hljs-keyword">bool</span> drew = mRenderPipeline-&gt;draw(frame, windowDirty, dirty, mLightGeometry, &amp;mLayerUpdateQueue,<br>                                      mContentDrawBounds, mOpaque, mLightInfo, mRenderNodes,<br>                                      &amp;(profiler()));<br>    ...<br>    <span class="hljs-comment">// 2.将前面已经绘制渲染好的图形缓冲区Binder上帧给SurfaceFlinger合成和显示</span><br>    <span class="hljs-keyword">bool</span> didSwap =<br>            mRenderPipeline-&gt;swapBuffers(frame, drew, windowDirty, mCurrentFrameInfo, &amp;requireSwap);<br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>从以上代码可以看出：<code>UI</code>线程利用<code>RenderProxy</code>向<code>RenderThread</code>线程发送一个<code>DrawFrameTask</code>任务请求，<code>RenderThread</code><strong>被唤醒，开始渲染，大致流程如下</strong>：</p>
@@ -393,11 +448,11 @@
 <li>将前面已经绘制渲染好的图形缓冲区<code>Binder</code>上帧给<code>SurfaceFlinger</code>合成和显示；</li>
 </ol>
 <p>整个过程可以用如下流程图表示：</p>
-<p><img src="/img/26874665-a849cafb9e09dc39.webp" srcset="/img/loading.gif" alt="RenderThread线程渲染流程"></p>
+<p><img src="/img/26874665-a849cafb9e09dc39.webp" srcset="/img/loading.gif" lazyload alt="RenderThread线程渲染流程"></p>
 <p> 从<code>Systrace</code>上这个过程如下图所示：</p>
-<p><img src="/img/26874665-f4ce565d0be1d9da.webp" srcset="/img/loading.gif" alt="RenderThread渲染流程"></p>
+<p><img src="/img/26874665-f4ce565d0be1d9da.webp" srcset="/img/loading.gif" lazyload alt="RenderThread渲染流程"></p>
 <h2 id="6-SurfaceFlinger图形合成"><a href="#6-SurfaceFlinger图形合成" class="headerlink" title="6 SurfaceFlinger图形合成"></a>6 SurfaceFlinger图形合成</h2><p><code>SurfaceFlinger</code>合成显示部分属于<code>Android</code>系统<code>GUI</code>中图形显示的内容，简单的说<code>SurfaceFlinger</code>作为系统中独立运行的一个<code>Native</code>进程，<strong>借用<code>Android</code>官网的描述，其职责就是负责接受来自多个来源的数据缓冲区，对它们进行合成，然后发送到显示设备。</strong>如下图所示：</p>
-<p><img src="/img/26874665-e7f57fd02b8effb1.webp" srcset="/img/loading.gif" alt="SurfaceFlinger工作原理"></p>
+<p><img src="/img/26874665-e7f57fd02b8effb1.webp" srcset="/img/loading.gif" lazyload alt="SurfaceFlinger工作原理"></p>
 <p> 从上图可以看出，其实<code>SurfaceFlinger</code>在<code>Android</code>系统的整个图形显示系统中是起到一个<strong>承上启下的作用</strong>：</p>
 <ul>
 <li><strong>对上</strong>：通过<code>Surface</code>与不同的应用进程建立联系，接收它们写入<code>Surface</code>中的绘制缓冲数据，对它们进行统一合成。</li>
@@ -405,7 +460,7 @@
 </ul>
 <p>图形的传递是通过<code>Buffer</code>作为载体，<code>Surface</code>是对<code>Buffer</code>的进一步封装，也就是说<code>Surface</code>内部具有多个<code>Buffer</code>供上层使用，如何管理这些<code>Buffer</code>呢？答案就是<code>BufferQueue</code> ，下面我们来看看<code>BufferQueue</code>的工作原理。</p>
 <h3 id="6-1-BufferQueue机制"><a href="#6-1-BufferQueue机制" class="headerlink" title="6.1 BufferQueue机制"></a>6.1 BufferQueue机制</h3><p>借用一张经典的图来描述<code>BufferQueue</code>的工作原理：</p>
-<p><img src="/img/26874665-23d55ad35fecf5dd.webp" srcset="/img/loading.gif" alt="BufferQueue状态转换图"></p>
+<p><img src="/img/26874665-23d55ad35fecf5dd.webp" srcset="/img/loading.gif" lazyload alt="BufferQueue状态转换图"></p>
 <p><code>BufferQueue</code>是一个<strong>典型的生产者-消费者模型中的数据结构</strong>。在<code>Android</code>应用的渲染流程中，应用扮演的就是“生产者”的角色，而<code>SurfaceFlinger</code>扮演的则是“消费者”的角色，<strong>其配合工作的流程如下</strong>：</p>
 <ol>
 <li>应用进程中在开始界面的绘制渲染之前，需要通过<code>Binder</code>调用<code>dequeueBuffer</code>接口从<code>SurfaceFlinger</code>进程中管理的<code>BufferQueue</code> 中申请一张处于<code>free</code>状态的可用<code>Buffer</code>，如果此时没有可用<code>Buffer</code>则阻塞等待；</li>
@@ -419,14 +474,14 @@
 <li><code>sf</code>类型的<code>Vsync</code>:<strong><code>sf</code>类型的<code>Vsync</code>是用于控制<code>SurfaceFlinger</code>的合成消费节奏</strong>。应用完成界面的绘制渲染后，通过<code>Binder</code>调用<code>queueBuffer</code>接口将缓存数据返还给应用对应的<code>BufferQueue</code>时，会申请<code>sf</code>类型的<code>Vsync</code>，待<code>SurfaceFlinger</code> 在其UI线程中收到 <code>Vsync</code> 信号之后，便开始进行界面的合成操作。</li>
 </ol>
 <p><strong><code>Vsync</code>信号的生成是参考屏幕硬件的刷新周期的</strong>，其架构如下图所示：</p>
-<p><img src="/img/26874665-04b831a664ca42a5.webp" srcset="/img/loading.gif" alt="vsync"></p>
+<p><img src="/img/26874665-04b831a664ca42a5.webp" srcset="/img/loading.gif" lazyload alt="vsync"></p>
 <h3 id="6-3-帧数据的提交消费过程"><a href="#6-3-帧数据的提交消费过程" class="headerlink" title="6.3 帧数据的提交消费过程"></a>6.3 帧数据的提交消费过程</h3><p>我们接着<code>3.5.2</code>小节中的分析，应用进程的<code>RenderThread</code>渲染线程在执行完一帧画面的渲染操作的最后，会通过<code>Binder</code>调用<code>queueBuffer</code>接口将一帧数据提交给<code>SurfaceFlinger</code>进程进行消费合成显示。我们结合相关简化的源码流程（这里基于<code>Android 11</code>源代码分析）来看看<code>SurfaceFlinger</code>中是如何处理应用的请求的。</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/*frameworks/native/libs/gui/BufferQueueProducer.cpp*/</span><br><span class="hljs-function"><span class="hljs-keyword">status_t</span> <span class="hljs-title">BufferQueueProducer::queueBuffer</span><span class="hljs-params">(<span class="hljs-keyword">int</span> slot,</span></span><br><span class="hljs-function"><span class="hljs-params">        <span class="hljs-keyword">const</span> QueueBufferInput &amp;input, QueueBufferOutput *output)</span> </span>&#123;<br>    ATRACE_CALL();<br>    ......<br>     <span class="hljs-keyword">if</span> (frameAvailableListener != <span class="hljs-literal">nullptr</span>) &#123;<br>        frameAvailableListener-&gt;onFrameAvailable(item);<br>     &#125;<br>    ......<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>上面的<code>frameAvailableListener</code>是<code>BufferQueueLayer</code>：</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/*frameworks/native/services/surfaceflinger/BufferQueueLayer.cpp*/</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">BufferQueueLayer::onFrameAvailable</span><span class="hljs-params">(<span class="hljs-keyword">const</span> BufferItem&amp; item)</span> </span>&#123;<br>    ......<br>     mFlinger-&gt;signalLayerUpdate();<span class="hljs-comment">//这里触发申请一下个Vsync-sf信号</span><br>    ......<br>&#125;<br><br><span class="hljs-comment">/*frameworks/native/services/surfaceflinger/SurfaceFlinger.cpp*/</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">SurfaceFlinger::signalLayerUpdate</span><span class="hljs-params">()</span> </span>&#123;<br>    ......<br>    mEventQueue-&gt;invalidate();<br>    ......<br>&#125;<br><br><span class="hljs-comment">/*frameworks/native/services/surfaceflinger/Scheduler/MessageQueue.cpp*/</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">MessageQueue::invalidate</span><span class="hljs-params">()</span> </span>&#123;<br>    ......<br>    mEvents-&gt;requestNextVsync();<span class="hljs-comment">// 申请一下个Vsync-sf信号</span><br>    ......<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>以上过程从<code>Systrace</code>上看如下图所示：</p>
-<p><img src="/img/26874665-f6784d876edd3964-6410947.webp" srcset="/img/loading.gif" alt="sf_Vsync1"></p>
-<p><img src="/img/26874665-db743387780c416e.webp" srcset="/img/loading.gif" alt="sf_Vsync2"></p>
+<p><img src="/img/26874665-f6784d876edd3964-6410947.webp" srcset="/img/loading.gif" lazyload alt="sf_Vsync1"></p>
+<p><img src="/img/26874665-db743387780c416e.webp" srcset="/img/loading.gif" lazyload alt="sf_Vsync2"></p>
 <p> 由上面分析可知，只要有<code>layer</code>上帧，那么就会申请下一次的<code>Vsync-sf</code>信号， 当<code>Vsync-sf</code>信号来时会调用<code>onMessageReceived</code>函数来处理帧数据：</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/*frameworks/native/services/surfaceflinger/SurfaceFlinger.cpp*/</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">SurfaceFlinger::onMessageInvalidate</span><span class="hljs-params">(<span class="hljs-keyword">nsecs_t</span> expectedVSyncTime)</span> </span>&#123;<br>    ATRACE_CALL();<br>    ......<br>    refreshNeeded |= handleMessageInvalidate();<br>    ......<br>    signalRefresh();<span class="hljs-comment">//再次向消息队列发送一个消息，消息到达时会调用onMessageRefresh</span><br>    ......<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">bool</span> <span class="hljs-title">SurfaceFlinger::handleMessageInvalidate</span><span class="hljs-params">()</span> </span>&#123;<br>    ATRACE_CALL();<br>    <span class="hljs-keyword">bool</span> refreshNeeded = handlePageFlip();<br>    ......<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>在<code>handleMessageInvalidate</code>里一个比较重要的函数是<code>handlePageFlip</code>():</p>
@@ -436,10 +491,10 @@
 <p>这里调用到了<code>BufferLayerConsumer</code>的基类<code>ConsumerBase</code>里：</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/*frameworks/native/libs/gui/ConsumerBase.cpp*/</span><br><span class="hljs-function"><span class="hljs-keyword">status_t</span> <span class="hljs-title">ConsumerBase::acquireBufferLocked</span><span class="hljs-params">(BufferItem *item,</span></span><br><span class="hljs-function"><span class="hljs-params">        <span class="hljs-keyword">nsecs_t</span> presentWhen, <span class="hljs-keyword">uint64_t</span> maxFrameNumber)</span> </span>&#123;<br>    ......<br>    <span class="hljs-keyword">status_t</span> err = mConsumer-&gt;acquireBuffer(item, presentWhen, maxFrameNumber);<br>    ......<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>到这里<code>onMessageInvalidate</code>中的主要工作结束，在这个函数的处理中：<code>SurfaceFlinger</code><strong>主要是检查每个<code>Layer</code>是否有新提交的<code>Buffer</code>， 如果有则调用<code>latchBuffer</code>将每个<code>BufferQueue</code>中的<code>Slot</code> 通过<code>acquireBuffer</code>拿走。</strong>此过程从<code>Systrace</code>上看如下图有所示：</p>
-<p><img src="/img/26874665-5ae751371232e148.webp" srcset="/img/loading.gif" alt="sf_Vsync3"><br> 之后<code>acquireBuffer</code>拿走的<code>Buffer</code>(<code>Slot</code>对应的状态是<code>ACQUIRED</code>状态)会被交由<code>HWC``Service</code>处理，这部分是在<code>onMessageRefresh</code>中处理的：</p>
+<p><img src="/img/26874665-5ae751371232e148.webp" srcset="/img/loading.gif" lazyload alt="sf_Vsync3"><br> 之后<code>acquireBuffer</code>拿走的<code>Buffer</code>(<code>Slot</code>对应的状态是<code>ACQUIRED</code>状态)会被交由<code>HWC``Service</code>处理，这部分是在<code>onMessageRefresh</code>中处理的：</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/*frameworks/native/services/surfaceflinger/SurfaceFlinger.cpp*/</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">SurfaceFlinger::onMessageRefresh</span><span class="hljs-params">()</span> </span>&#123;<br>    ATRACE_CALL();<br>    ......<br>    mCompositionEngine-&gt;present(refreshArgs);<br>    ......<br>｝<br><br><span class="hljs-comment">/*frameworks/native/services/surfaceflinger/CompositionEngine/src/CompositionEngine.cpp*/</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">CompositionEngine::present</span><span class="hljs-params">(CompositionRefreshArgs&amp; args)</span> </span>&#123;<br>    ATRACE_CALL();<br>    ......<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> <span class="hljs-keyword">auto</span>&amp; output : args.outputs) &#123;<br>        output-&gt;present(args);<br>    &#125;<br>    ......<br>&#125;<br><br><span class="hljs-comment">/*frameworks/native/services/surfaceflinger/CompositionEngine/src/Output.cpp*/</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">Output::present</span><span class="hljs-params">(<span class="hljs-keyword">const</span> compositionengine::CompositionRefreshArgs&amp; refreshArgs)</span> </span>&#123;<br>    ATRACE_CALL();<br>    ......<br>    updateAndWriteCompositionState(refreshArgs);<span class="hljs-comment">//告知HWC service有哪些layer要参与合成</span><br>    ......<br>    beginFrame();<br>    prepareFrame();<br>    ......<br>    finishFrame(refreshArgs);<br>    postFramebuffer();<span class="hljs-comment">//这里会调用到HWC service的接口去present display合成画面</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">Output::postFramebuffer</span><span class="hljs-params">()</span> </span>&#123;<br>    ......<br>    <span class="hljs-keyword">auto</span> frame = presentAndGetFrameFences();<br>    ......<br>&#125;<br><br><span class="hljs-comment">/*frameworks/native/services/surfaceflinger/displayhardware/HWComposer.cpp*/</span><br><span class="hljs-function"><span class="hljs-keyword">status_t</span> <span class="hljs-title">HWComposer::presentAndGetReleaseFences</span><span class="hljs-params">(DisplayId displayId)</span> </span>&#123;<br>    ATRACE_CALL();<br>    ......<br>    <span class="hljs-keyword">auto</span> error = hwcDisplay-&gt;present(&amp;displayData.lastPresentFence);<span class="hljs-comment">//送去HWC service合成</span><br>    ......<br>    <span class="hljs-built_in">std</span>::<span class="hljs-built_in">unordered_map</span>&lt;HWC2::Layer*, sp&lt;Fence&gt;&gt; releaseFences;<br>    error = hwcDisplay-&gt;getReleaseFences(&amp;releaseFences);<br>    RETURN_IF_HWC_ERROR_FOR(<span class="hljs-string">&quot;getReleaseFences&quot;</span>, error, displayId, UNKNOWN_ERROR);<br><br>    displayData.releaseFences = <span class="hljs-built_in">std</span>::move(releaseFences);<span class="hljs-comment">//获取releaseFence, 以便通知到各个Slot, buffer被release后会通过dequeueBuffer给到应用，应用在绘图前会等待releaseFence</span><br>    ......<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>以上过程从<code>systrace</code>上看如下图所示：</p>
-<p><img src="/img/26874665-2644e13bdbda7cb0.webp" srcset="/img/loading.gif" alt="sf_Vsync4"></p>
+<p><img src="/img/26874665-2644e13bdbda7cb0.webp" srcset="/img/loading.gif" lazyload alt="sf_Vsync4"></p>
 <p> 最后总结一下应用调用<code>queueBuffer</code>将一帧<code>Buffer</code>数据提到<code>SurfaceFlinger</code>后<code>SurfaceFlinger</code>的主要处理流程，：</p>
 <ol>
 <li>首先<code>Binder</code>线程会通过<code>BufferQueue</code>机制把应用上帧的<code>Slot</code>状态改为<code>QUEUED</code>, 然后把这个<code>Slot</code>放入<code>mQueue</code>队列， 然后通过<code>onFrameAvailable</code>回调通知到<code>BufferQueueLayer</code>, 在处理函数里会请求下一次的<code>Vsync-sf</code>信号；</li>
@@ -448,7 +503,7 @@
 </ol>
 <p>后续<code>HWC service</code>的合成以及屏幕的详细显示原理由于篇幅有限就不展开说明，感兴趣的读者可以参考<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/df46e4b39428">系列文章</a>。</p>
 <h2 id="7-流程总结与卡顿定义"><a href="#7-流程总结与卡顿定义" class="headerlink" title="7 流程总结与卡顿定义"></a>7 流程总结与卡顿定义</h2><h3 id="7-1-应用绘制上帧流程总结"><a href="#7-1-应用绘制上帧流程总结" class="headerlink" title="7.1 应用绘制上帧流程总结"></a>7.1 应用绘制上帧流程总结</h3><p>在本节中我们以用户手指上下滑动应用界面的操作场景为例，结合系统源码和<code>Systrace</code>工具，按照执行顺序分析了<code>Android</code>应用绘制上帧显示的系统运行机制与总体流程，我们以一张图描述如下：</p>
-<p><img src="/img/26874665-7d1cb09267361b98.webp" srcset="/img/loading.gif" alt="Android应用滑动上帧显示流程"></p>
+<p><img src="/img/26874665-7d1cb09267361b98.webp" srcset="/img/loading.gif" lazyload alt="Android应用滑动上帧显示流程"></p>
 <p><strong>最后总结整个流程大致如下</strong>：</p>
 <ol>
 <li>用户手指触摸屏幕后，屏幕驱动产生<code>Input</code>触控事件；框架<code>system_server</code>进程中的<code>EventHub</code>通过<code>epoll</code>机制监听到驱动产生的<code>Input</code>触控事件上报，由<code>InputReader</code>读取到<code>Input</code>事件后，唤醒<code>InputDispatcher</code>找到当前触控焦点应用窗口，并通过事先建立的<code>socket</code>通道发送<code>Input</code>事件到对应的应用进程；</li>
@@ -467,36 +522,96 @@
 <li>从 <code>App</code> 的角度来看，如果渲染线程在一个 <code>Vsync</code> 周期内没有 <code>queueBuffer</code> 到 <code>SurfaceFlinger</code> 中 <code>App</code> 对应的 <code>BufferQueue</code> 中，那么我们认为这里发生了卡顿。</li>
 </ol>
 
-            </div>
-            <hr>
-            <div>
-              <div class="post-metas mb-3">
-                
-                  <div class="post-meta mr-3">
-                    <i class="iconfont icon-category"></i>
-                    
-                      <a class="hover-with-bg" href="/categories/Android-Performance-Optimization/">Android Performance Optimization</a>
-                    
-                  </div>
-                
-                
-                  <div class="post-meta">
-                    <i class="iconfont icon-tags"></i>
-                    
-                      <a class="hover-with-bg" href="/tags/Repost/">Repost</a>
-                    
-                      <a class="hover-with-bg" href="/tags/Android/">Android</a>
-                    
-                      <a class="hover-with-bg" href="/tags/Performance-Optimization/">Performance Optimization</a>
-                    
-                  </div>
                 
               </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Android-Performance-Optimization/" class="category-chain-item">Android Performance Optimization</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Repost/" class="print-no-link">#Repost</a>
+      
+        <a href="/tags/Android/" class="print-no-link">#Android</a>
+      
+        <a href="/tags/Performance-Optimization/" class="print-no-link">#Performance Optimization</a>
+      
+    </div>
+  
+</div>
+
+
               
-                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Android性能优化（一）——卡顿优化</div>
+      <div>https://www.sukaidev.top/2022/06/28/f4c089aa/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>sukaidev</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2022年6月28日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
               
               
-                <div class="post-prevnext">
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
                     
@@ -504,7 +619,7 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2021/08/12/d2738127/">
+                      <a href="/2021/08/12/d2738127/" title="Java并发编程——从ReentrantLock来看AQS的应用">
                         <span class="hidden-mobile">Java并发编程——从ReentrantLock来看AQS的应用</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
@@ -516,12 +631,12 @@
             </div>
 
             
-              <!-- Comments -->
-              <article class="comments" id="comments">
-                
-                
+  
+  
+    <article id="comments" lazyload>
+      
   <script type="text/javascript">
-    Fluid.utils.waitElementVisible('comments', function() {
+    Fluid.utils.loadComments('#comments', function() {
       var light = 'github-light';
       var dark = 'github-dark';
       var schema = document.documentElement.getAttribute('data-user-color-scheme');
@@ -547,31 +662,64 @@
   <noscript>Please enable JavaScript to view the comments</noscript>
 
 
-              </article>
-            
+    </article>
+  
+
+
           </article>
         </div>
       </div>
     </div>
-    
-      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
-        <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
   <div class="toc-body" id="toc-body"></div>
 </div>
 
-      </div>
-    
+
+
+  </aside>
+
+
+    </div>
   </div>
 </div>
 
-<!-- Custom -->
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+
 
 
     
 
     
-      <a id="scroll-top-button" href="#" role="button">
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
         <i class="iconfont icon-arrowup" aria-hidden="true"></i>
       </a>
     
@@ -590,32 +738,34 @@
       <div class="modal-body mx-3">
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>
     </div>
   </div>
 </div>
+
     
 
     
   </main>
 
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
-  </div>
+  <footer>
+    <div class="footer-inner">
   
-
+    <div class="footer-content">
+       Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
   
-
   
-</footer>
+  
+</div>
 
-<!-- SCRIPTS -->
+  </footer>
 
+  <!-- Scripts -->
+  
   <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
 
@@ -630,83 +780,105 @@
 
 <script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
 <script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
-<script  src="/js/debouncer.js" ></script>
 <script  src="/js/events.js" ></script>
 <script  src="/js/plugins.js" ></script>
-
-<!-- Plugins -->
-
-
-  
-    <script  src="/js/lazyload.js" ></script>
-  
-
-
-
-  
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
-
-
-
-
-
-  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
-
-
-
-
 
 
   <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
   <script>
     (function (window, document) {
       var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
       
-      typing(title)
+        typing(text);
       
     })(window, document);
   </script>
 
 
 
-  <script  src="/js/local-search.js" ></script>
-  <script>
-    (function () {
-      var path = "/local-search.xml";
-      var inputArea = document.querySelector("#local-search-input");
-      inputArea.onclick = function () {
-        searchFunc(path, 'local-search-input', 'local-search-result');
-        this.onclick = null
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
       }
-    })()
-  </script>
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-<!-- 主题的启动项 保持在最底部 -->
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
 <script  src="/js/boot.js" ></script>
 
 
+  
 
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
 </body>
 </html>

@@ -1,47 +1,63 @@
 
 
 <!DOCTYPE html>
-<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+<html lang="zh-CN" data-default-color-scheme=auto>
 
 
 
 <head>
   <meta charset="UTF-8">
+
   <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
-  <link rel="icon" type="image/png" href="/img/favicon.png">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <link rel="icon" href="/img/favicon.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
   <meta name="theme-color" content="#2f4154">
-  <meta name="description" content="Android Developer">
   <meta name="author" content="sukaidev">
   <meta name="keywords" content="Android sukaidev 苏海鸿">
+  
+    <meta name="description" content="前言OOM全称为Out Of Memory，内存溢出，指的是请求的内存超过了剩余内存的容量。在Android中，App中已经使用的内存加上新申请的内存大于Android系统分配给App进程的最大内存时，就会发生OOM，导致程序直接崩溃，使得我们的App的用户体验非常糟糕。因此如何避免OOM就成了Android内存优化中比较关键的一点， 这篇文章就是关于内存优化中如何避免OOM的总结性概要文章。 5">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android性能优化之OOM">
+<meta property="og:url" content="https://www.sukaidev.top/2019/03/20/f803055f/index.html">
+<meta property="og:site_name" content="Sukai&#39;s Blog - Android Developer">
+<meta property="og:description" content="前言OOM全称为Out Of Memory，内存溢出，指的是请求的内存超过了剩余内存的容量。在Android中，App中已经使用的内存加上新申请的内存大于Android系统分配给App进程的最大内存时，就会发生OOM，导致程序直接崩溃，使得我们的App的用户体验非常糟糕。因此如何避免OOM就成了Android内存优化中比较关键的一点， 这篇文章就是关于内存优化中如何避免OOM的总结性概要文章。 5">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://www.sukaidev.top/img/20190407220651.png">
+<meta property="og:image" content="https://www.sukaidev.top/img/sparse_array.png">
+<meta property="og:image" content="https://www.sukaidev.top/img/arraymap_deletion_and_insertion.png">
+<meta property="og:image" content="https://www.sukaidev.top/img/%E4%BD%BF%E7%94%A8%E5%90%88%E9%80%82%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84.png">
+<meta property="og:image" content="https://www.sukaidev.top/img/1916953-acf949d643ece848.jpeg">
+<meta property="article:published_time" content="2019-03-20T14:36:00.000Z">
+<meta property="article:modified_time" content="2021-06-20T14:45:10.191Z">
+<meta property="article:author" content="sukaidev">
+<meta property="article:tag" content="OOM">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.sukaidev.top/img/20190407220651.png">
+  
+  
+  
   <title>Android性能优化之OOM - Sukai&#39;s Blog - Android Developer</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
 
 
+
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
   <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
 
-  
-    
-    
-      
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/atom-one-light.min.css" />
-    
-  
-
-  
-    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
-  
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
 
 
 
 <!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
 
 
 
@@ -50,24 +66,46 @@
 
 <link  rel="stylesheet" href="/css/main.css" />
 
-<!-- 自定义样式保持在最底部 -->
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
 
 
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"www.sukaidev.top","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.sukaidev.top","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
   </script>
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
 <meta name="generator" content="Hexo 5.3.0"></head>
 
 
 <body>
-  <header style="height: 70vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
-    <a class="navbar-brand"
-       href="/">&nbsp;<strong>Sukai's Blog</strong>&nbsp;</a>
+    <a class="navbar-brand" href="/">
+      <strong>Sukai&#39;s Blog</strong>
+    </a>
 
     <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
             data-target="#navbarSupportedContent"
@@ -84,9 +122,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/">
+              <a class="nav-link" href="/" target="_self">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                <span>首页</span>
               </a>
             </li>
           
@@ -96,9 +134,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/archives/">
+              <a class="nav-link" href="/archives/" target="_self">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                <span>归档</span>
               </a>
             </li>
           
@@ -108,9 +146,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/categories/">
+              <a class="nav-link" href="/categories/" target="_self">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                <span>分类</span>
               </a>
             </li>
           
@@ -120,9 +158,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/tags/">
+              <a class="nav-link" href="/tags/" target="_self">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                <span>标签</span>
               </a>
             </li>
           
@@ -132,23 +170,26 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/about/">
+              <a class="nav-link" href="/about/" target="_self">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                <span>关于</span>
               </a>
             </li>
           
         
         
           <li class="nav-item" id="search-btn">
-            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
-                class="iconfont icon-search"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
           </li>
+          
         
         
           <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" href="javascript:">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
           </li>
         
       </ul>
@@ -156,60 +197,71 @@
   </div>
 </nav>
 
-    <div class="banner" id="banner" parallax=true
-         style="background: url('/img/default.png') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="Android性能优化之OOM">
-              
-            </span>
-
-            
-              <div class="mt-3">
-  
-  
-    <span class="post-meta">
-      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2019-03-20 22:36" pubdate>
-        2019年3月20日 晚上
-      </time>
-    </span>
-  
-</div>
-
-<div class="mt-1">
-  
-    
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-chart"></i>
-      4.2k 字
-    </span>
   
 
-  
-    
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-clock-fill"></i>
-      
-      
-      44
-       分钟
-    </span>
-  
-
-  
-  
-</div>
-
-            
-          </div>
-
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Android性能优化之OOM"></span>
           
         </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2019-03-20 22:36" pubdate>
+          2019年3月20日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          4.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          35 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
       </div>
+
+      
     </div>
+  </div>
+</div>
+
+</div>
+
   </header>
 
   <main>
@@ -218,18 +270,23 @@
 
 <div class="container-fluid nopadding-x">
   <div class="row nomargin-x">
-    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
     <div class="col-lg-8 nopadding-x-md">
       <div class="container nopadding-x-md" id="board-ctn">
-        <div class="py-5" id="board">
+        <div id="board">
           <article class="post-content mx-auto">
-            <!-- SEO header -->
-            <h1 style="display: none">Android性能优化之OOM</h1>
+            <h1 id="seo-header">Android性能优化之OOM</h1>
             
-            <div class="markdown-body">
-              <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>OOM全称为Out Of Memory，内存溢出，指的是请求的内存超过了剩余内存的容量。在Android中，App中已经使用的内存加上新申请的内存大于Android系统分配给App进程的最大内存时，就会发生OOM，导致程序直接崩溃，使得我们的App的用户体验非常糟糕。因此如何避免OOM就成了Android内存优化中比较关键的一点， 这篇文章就是关于内存优化中如何避免OOM的总结性概要文章。</p>
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>OOM全称为Out Of Memory，内存溢出，指的是请求的内存超过了剩余内存的容量。在Android中，App中已经使用的内存加上新申请的内存大于Android系统分配给App进程的最大内存时，就会发生OOM，导致程序直接崩溃，使得我们的App的用户体验非常糟糕。因此如何避免OOM就成了Android内存优化中比较关键的一点， 这篇文章就是关于内存优化中如何避免OOM的总结性概要文章。</p>
 <h2 id="5R法则"><a href="#5R法则" class="headerlink" title="5R法则"></a>5R法则</h2><p>在网上看了一篇腾讯大佬写的关于Android中的内存优化的文章，文章中根据他的经验总结出了一个内存优化的“5R法则”，如下所示：</p>
-<p><img src="/img/20190407220651.png" srcset="/img/loading.gif" alt="内存优化5R法则"></p>
+<p><img src="/img/20190407220651.png" srcset="/img/loading.gif" lazyload alt="内存优化5R法则"></p>
 <p>这个5R法则标明了内存优化需要注意的5种情况，下面就这5种情况来进行分析。</p>
 <h2 id="Reduce"><a href="#Reduce" class="headerlink" title="Reduce"></a>Reduce</h2><p>缩减，就是要减小对象的内存占用，避免OOM的第一步就是要尽量减少新分配出来的对象占用内存的大小，尽量使用更加轻量的对象。</p>
 <h3 id="使用更小的资源图片"><a href="#使用更小的资源图片" class="headerlink" title="使用更小的资源图片"></a>使用更小的资源图片</h3><p>在设计给到资源图片的时候，我们需要特别留意这张图片是否存在可以压缩的空间，是否可以使用一张更小的图片。尽量使用更小的图片不仅仅可以减少内存的使用，还可以避免出现大量的InflationException。假设有一张很大的图片被XML文件直接引用，很有可能在初始化视图的时候就会因为内存不足而发生InflationException，这个问题的根本原因其实是发生了OOM。</p>
@@ -248,19 +305,19 @@
 <p>但是HashMap也有不少的缺点，例如当Key或Value为基本类型时，由于Java中泛型的特点，使得HashMap在存储过程中需要频繁的进行装箱和拆箱操作，非常浪费性能。而在Android中使用最大的问题就是HashMap的内存浪费问题。HashMap默认数组大小为16，若为空，那么这个HashMap就占用了16个Entry对象的内存。HashMap每次扩容都是2倍，当数据越来越多的时候，每次扩若所产生的unused对象就越多，导致HashMap占用大量内存。</p>
 <p>为了解决HashMap自动装拆箱的问题，Android提供了性能更强的<a target="_blank" rel="noopener" href="https://android.googlesource.com/platform/frameworks/base.git/+/master/core/java/android/util/SparseArray.java">SparseArray</a>。SparseArray将Map中的key值直接规定为整型，这样的话直接就解决了Key为Integer时的装拆箱开销。SparseArray内部采用两个数组分别存储key和Value的形式存储数组，同时为了优化性能，它内部对数据还采取了压缩的方式来表示稀疏数组的数据。</p>
 <p>关于稀疏数组中的压缩，借用网上的一张图片：</p>
-<p><img src="/img/sparse_array.png" srcset="/img/loading.gif" alt="稀疏数组的压缩策略"></p>
+<p><img src="/img/sparse_array.png" srcset="/img/loading.gif" lazyload alt="稀疏数组的压缩策略"></p>
 <p>从图中可以看出，SparseArray使用两个数组的方式，由原来的63缩小18，极大的减少了内存的开销。</p>
 <p>而为了解决HashMap更占内存的弊端，Android也提供了内存效率更高的<a target="_blank" rel="noopener" href="https://android.googlesource.com/platform/frameworks/base.git/+/master/core/java/android/util/ArrayMap.java">ArrayMap</a>。ArrayMap的内部也是使用两个数组进行工作的，其中一个数组记录Key hash过后的顺序列表，另外一个数组按key的顺序记录Key-Value，那么首先我们就想到ArrayMap是有序的。ArrayMap支持缩容，当元素被移除时以0.5被进行缩容。同时其内部维护了一些小数组，当元素特别少的场景时，无需额外申请内存空间，直接复用这些小数组，采用池的思想解决了内存浪费的问题。</p>
 <p>ArrayMap在查找时，会先计算输入key的hash值，然后对key数组进行二分查找寻找对应的index，然后通过这个index可以直接访问到另一个数组中需要的键值对（当然也会存在hash碰撞）。这跟HashMap不同，HashMap在获取到key的hash值后，先要获取通过(hash&amp;n-1)的方式到对应数组中的index，然后再进行链表或者红黑树的遍历。这样来看ArrayMap的查找性能虽然不差，但还是远不如HashMap的，而且当数据越多，hash冲突越频繁时，其性能还会大幅度下降。</p>
 <p>那么在删除和插入的时候呢？其实这个问题不用想就知道是肯定比HashMap差远了，毕竟使用的是两个数组。Google官方这样描述ArrayMap的删除和插入操作：</p>
-<p><img src="/img/arraymap_deletion_and_insertion.png" srcset="/img/loading.gif" alt="ArrayMap的删除和插入"></p>
+<p><img src="/img/arraymap_deletion_and_insertion.png" srcset="/img/loading.gif" lazyload alt="ArrayMap的删除和插入"></p>
 <p>很明显，ArrayMap的插入与删除的效率是不够高的，它其实是在内存和效率之间做的一个平衡。但是如果数组的列表只是在一百这个数量级上，则完全不用担心这些插入与删除的效率问题。</p>
 <p>那么如何使用“合适”的数据结构呢？这里我画了一张图：</p>
-<p><img src="/img/%E4%BD%BF%E7%94%A8%E5%90%88%E9%80%82%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84.png" srcset="/img/loading.gif" alt="使用合适的数据结构"></p>
+<p><img src="/img/%E4%BD%BF%E7%94%A8%E5%90%88%E9%80%82%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84.png" srcset="/img/loading.gif" lazyload alt="使用合适的数据结构"></p>
 <p>按照图中的方法去选择合适的数据结构，避免在代码阶段就隐藏了OOM的风险。</p>
 <h2 id="Reuse"><a href="#Reuse" class="headerlink" title="Reuse"></a>Reuse</h2><p>大多数对象的复用，最终实施的方案都是利用对象池技术，要么是在编写代码的时候显式的在程序里面去创建对象池，然后处理好复用的实现逻辑，要么就是利用系统框架既有的某些复用特性达到减少对象的重复创建，从而减少内存的分配与回收。</p>
 <h3 id="复用系统自带资源"><a href="#复用系统自带资源" class="headerlink" title="复用系统自带资源"></a>复用系统自带资源</h3><p>Android系统本身内置了很多的资源，例如字符串/颜色/图片/动画/样式以及简单布局等等，这些资源都可以在应用程序中直接引用。这样做不仅仅可以减少应用程序的自身负重，减小APK的大小，另外还可以一定程度上减少内存的开销，复用性更好。但是也有必要留意Android系统的版本差异性，对那些不同系统版本上表现存在很大差异，不符合需求的情况，还是需要应用程序自身内置进去。</p>
-<h3 id="在ListView-GridView中对ConvertView复用"><a href="#在ListView-GridView中对ConvertView复用" class="headerlink" title="在ListView/GridView中对ConvertView复用"></a>在ListView/GridView中对ConvertView复用</h3><p><img src="/img/1916953-acf949d643ece848.jpeg" srcset="/img/loading.gif" alt="复用ConvertView"></p>
+<h3 id="在ListView-GridView中对ConvertView复用"><a href="#在ListView-GridView中对ConvertView复用" class="headerlink" title="在ListView/GridView中对ConvertView复用"></a>在ListView/GridView中对ConvertView复用</h3><p><img src="/img/1916953-acf949d643ece848.jpeg" srcset="/img/loading.gif" lazyload alt="复用ConvertView"></p>
 <h3 id="Bitmap对象的缓存和复用"><a href="#Bitmap对象的缓存和复用" class="headerlink" title="Bitmap对象的缓存和复用"></a>Bitmap对象的缓存和复用</h3><p>在ListView与RecyclerView等显示大量图片的控件里面需要使用LRU的机制来缓存处理好的Bitmap，也就是我们常说的图片三级缓存。</p>
 <h3 id="避免在onDraw方法里面创建对象"><a href="#避免在onDraw方法里面创建对象" class="headerlink" title="避免在onDraw方法里面创建对象"></a>避免在onDraw方法里面创建对象</h3><p>类似onDraw等频繁调用的方法，一定需要注意避免在这里做创建对象的操作，因为他会迅速增加内存的使用，而且很容易引起频繁的gc，甚至是内存抖动。</p>
 <h2 id="Recycle"><a href="#Recycle" class="headerlink" title="Recycle"></a>Recycle</h2><p>内存对象的泄漏，会导致一些不再使用的对象无法及时释放，这样一方面占用了宝贵的内存空间，很容易导致后续需要分配内存的时候，空闲空间不足而出现OOM。显然，这还使得每级Generation的内存区域可用空间变小，gc就会更容易被触发，容易出现内存抖动，从而引起性能问题。</p>
@@ -287,36 +344,96 @@
 <p>Youtube：<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=qk5F6Bxqhr4&list=PLWz5rJ2EKKc9CBxr3BVjPTPoDPLdPIFCE">Android Performance Patterns 系列视频</a></p>
 <p>参考了胡凯大佬的博客，学到了很多： <a target="_blank" rel="noopener" href="http://hukai.me/">胡凯</a></p>
 
-            </div>
-            <hr>
-            <div>
-              <div class="post-metas mb-3">
-                
-                  <div class="post-meta mr-3">
-                    <i class="iconfont icon-category"></i>
-                    
-                      <a class="hover-with-bg" href="/categories/Performance-Optimization/">Performance Optimization</a>
-                    
-                  </div>
-                
-                
-                  <div class="post-meta">
-                    <i class="iconfont icon-tags"></i>
-                    
-                      <a class="hover-with-bg" href="/tags/OOM/">OOM</a>
-                    
-                  </div>
                 
               </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Performance-Optimization/" class="category-chain-item">Performance Optimization</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/OOM/" class="print-no-link">#OOM</a>
+      
+    </div>
+  
+</div>
+
+
               
-                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Android性能优化之OOM</div>
+      <div>https://www.sukaidev.top/2019/03/20/f803055f/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>sukaidev</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2019年3月20日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
               
               
-                <div class="post-prevnext">
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2019/09/12/d497a59/">
+                      <a href="/2019/09/12/d497a59/" title="Android Studio金丝雀版更新  原生View Binding要来了？">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">Android Studio金丝雀版更新  原生View Binding要来了？</span>
                         <span class="visible-mobile">上一篇</span>
@@ -326,7 +443,7 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2019/03/06/c63415c3/">
+                      <a href="/2019/03/06/c63415c3/" title="Android性能优化之Bitmap高效加载">
                         <span class="hidden-mobile">Android性能优化之Bitmap高效加载</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
@@ -338,12 +455,12 @@
             </div>
 
             
-              <!-- Comments -->
-              <article class="comments" id="comments">
-                
-                
+  
+  
+    <article id="comments" lazyload>
+      
   <script type="text/javascript">
-    Fluid.utils.waitElementVisible('comments', function() {
+    Fluid.utils.loadComments('#comments', function() {
       var light = 'github-light';
       var dark = 'github-dark';
       var schema = document.documentElement.getAttribute('data-user-color-scheme');
@@ -369,31 +486,64 @@
   <noscript>Please enable JavaScript to view the comments</noscript>
 
 
-              </article>
-            
+    </article>
+  
+
+
           </article>
         </div>
       </div>
     </div>
-    
-      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
-        <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
   <div class="toc-body" id="toc-body"></div>
 </div>
 
-      </div>
-    
+
+
+  </aside>
+
+
+    </div>
   </div>
 </div>
 
-<!-- Custom -->
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+
 
 
     
 
     
-      <a id="scroll-top-button" href="#" role="button">
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
         <i class="iconfont icon-arrowup" aria-hidden="true"></i>
       </a>
     
@@ -412,32 +562,34 @@
       <div class="modal-body mx-3">
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>
     </div>
   </div>
 </div>
+
     
 
     
   </main>
 
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
-  </div>
+  <footer>
+    <div class="footer-inner">
   
-
+    <div class="footer-content">
+       Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
   
-
   
-</footer>
+  
+</div>
 
-<!-- SCRIPTS -->
+  </footer>
 
+  <!-- Scripts -->
+  
   <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
 
@@ -452,83 +604,105 @@
 
 <script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
 <script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
-<script  src="/js/debouncer.js" ></script>
 <script  src="/js/events.js" ></script>
 <script  src="/js/plugins.js" ></script>
-
-<!-- Plugins -->
-
-
-  
-    <script  src="/js/lazyload.js" ></script>
-  
-
-
-
-  
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
-
-
-
-
-
-  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
-
-
-
-
 
 
   <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
   <script>
     (function (window, document) {
       var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
       
-      typing(title)
+        typing(text);
       
     })(window, document);
   </script>
 
 
 
-  <script  src="/js/local-search.js" ></script>
-  <script>
-    (function () {
-      var path = "/local-search.xml";
-      var inputArea = document.querySelector("#local-search-input");
-      inputArea.onclick = function () {
-        searchFunc(path, 'local-search-input', 'local-search-result');
-        this.onclick = null
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
       }
-    })()
-  </script>
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-<!-- 主题的启动项 保持在最底部 -->
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
 <script  src="/js/boot.js" ></script>
 
 
+  
 
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
 </body>
 </html>

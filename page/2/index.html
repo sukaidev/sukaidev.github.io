@@ -1,31 +1,49 @@
 
 
 <!DOCTYPE html>
-<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+<html lang="zh-CN" data-default-color-scheme=auto>
 
 
 
 <head>
   <meta charset="UTF-8">
+
   <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
-  <link rel="icon" type="image/png" href="/img/favicon.png">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <link rel="icon" href="/img/favicon.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
   <meta name="theme-color" content="#2f4154">
-  <meta name="description" content="Android Developer">
   <meta name="author" content="sukaidev">
   <meta name="keywords" content="Android sukaidev 苏海鸿">
+  
+    <meta name="description" content="Android Developer">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Sukai&#39;s Blog - Android Developer">
+<meta property="og:url" content="https://www.sukaidev.top/page/2/index.html">
+<meta property="og:site_name" content="Sukai&#39;s Blog - Android Developer">
+<meta property="og:description" content="Android Developer">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:author" content="sukaidev">
+<meta property="article:tag" content="Android sukaidev 苏海鸿">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
   <title>Sukai&#39;s Blog - Android Developer</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
 
 
 
-<!-- 主题依赖的图标库，不要自行修改 -->
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
 
 
 
@@ -34,24 +52,46 @@
 
 <link  rel="stylesheet" href="/css/main.css" />
 
-<!-- 自定义样式保持在最底部 -->
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
 
 
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"www.sukaidev.top","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.sukaidev.top","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
   </script>
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
 <meta name="generator" content="Hexo 5.3.0"></head>
 
 
 <body>
-  <header style="height: 100vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 100vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
-    <a class="navbar-brand"
-       href="/">&nbsp;<strong>Sukai's Blog</strong>&nbsp;</a>
+    <a class="navbar-brand" href="/">
+      <strong>Sukai&#39;s Blog</strong>
+    </a>
 
     <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
             data-target="#navbarSupportedContent"
@@ -68,9 +108,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/">
+              <a class="nav-link" href="/" target="_self">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                <span>首页</span>
               </a>
             </li>
           
@@ -80,9 +120,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/archives/">
+              <a class="nav-link" href="/archives/" target="_self">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                <span>归档</span>
               </a>
             </li>
           
@@ -92,9 +132,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/categories/">
+              <a class="nav-link" href="/categories/" target="_self">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                <span>分类</span>
               </a>
             </li>
           
@@ -104,9 +144,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/tags/">
+              <a class="nav-link" href="/tags/" target="_self">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                <span>标签</span>
               </a>
             </li>
           
@@ -116,23 +156,26 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/about/">
+              <a class="nav-link" href="/about/" target="_self">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                <span>关于</span>
               </a>
             </li>
           
         
         
           <li class="nav-item" id="search-btn">
-            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
-                class="iconfont icon-search"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
           </li>
+          
         
         
           <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" href="javascript:">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
           </li>
         
       </ul>
@@ -140,34 +183,40 @@
   </div>
 </nav>
 
-    <div class="banner" id="banner" parallax=true
-         style="background: url('/img/default.png') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="Greate hopes make greate man.">
-              
-            </span>
+  
 
-            
-          </div>
-
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
           
-            <div class="scroll-down-bar">
-              <i class="iconfont icon-arrowdown"></i>
-            </div>
+            <span id="subtitle" data-typed-text="Greate hopes make greate man."></span>
           
         </div>
+
+        
       </div>
+
+      
+        <div class="scroll-down-bar">
+          <i class="iconfont icon-arrowdown"></i>
+        </div>
+      
     </div>
+  </div>
+</div>
+
+</div>
+
   </header>
 
   <main>
     
       <div class="container nopadding-x-md">
-        <div class="py-5" id="board"
-          style=margin-top:0>
+        <div id="board"
+          style="margin-top: 0">
           
           <div class="container">
             <div class="row">
@@ -180,30 +229,24 @@
     
       <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2021/05/14/7ca6484e/" target="_self">
-          <img src="/img/cover_framework_system_process_startup.png" srcset="/img/loading.gif" alt="Android Framework（一）——关键系统进程启动过程">
+          <img src="/img/cover_framework_system_process_startup.png" srcset="/img/loading.gif" lazyload alt="Android Framework（一）——关键系统进程启动过程">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
-        <a href="/2021/05/14/7ca6484e/">Android Framework（一）——关键系统进程启动过程</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/05/14/7ca6484e/">
-          
-          
-            
-          
-          
-注意（WARNING）：本文含有大量AOSP源码，阅读过程中如出现头晕、目眩、恶心、犯困等症状属正常情况，作者本人亦无法避免症状产生，故不承担任何法律责任。
-本文所贴源码全部来自 Android API 29 Platform，即 Android 10.0。
-阅读本文需要有一定的C/C++基础。
-
-Android系统架构当我们看到”Android系统架构“这几个字时，通常会联想到Google官方
+        <a href="/2021/05/14/7ca6484e/" target="_self">
+          Android Framework（一）——关键系统进程启动过程
         </a>
-      </p>
+      </h2>
+
+      
+      <a class="index-excerpt " href="/2021/05/14/7ca6484e/" target="_self">
+        <div>
+          注意（WARNING）：本文含有大量AOSP源码，阅读过程中如出现头晕、目眩、恶心、犯困等症状属正常情况，作者本人亦无法避免症状产生，故不承担任何法律责任。 本文所贴源码全部来自 Android API 29 Platform，即 Android 10.0。 阅读本文需要有一定的C/C++基础。  Android系统架构当我们看到”Android系统架构“这几个字时，通常会联想到Google官方
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -215,22 +258,36 @@ Android系统架构当我们看到”Android系统架构“这几个字时，通
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/Android-Framework/">Android Framework</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Android-Framework/" class="category-chain-item">Android Framework</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/AOSP/">AOSP</a>
+              <a href="/tags/AOSP/">#AOSP</a>
             
-              <a href="/tags/Zygote/">Zygote</a>
+              <a href="/tags/Zygote/">#Zygote</a>
             
-              <a href="/tags/SystemServer/">SystemServer</a>
+              <a href="/tags/SystemServer/">#SystemServer</a>
             
           </div>
         
@@ -243,26 +300,24 @@ Android系统架构当我们看到”Android系统架构“这几个字时，通
     
       <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2021/05/06/40879c1f/" target="_self">
-          <img src="/img/cover_kotlin_coroutines.png" srcset="/img/loading.gif" alt="深入理解Kotlin协程（六）——从字节码角度理解协程">
+          <img src="/img/cover_kotlin_coroutines.png" srcset="/img/loading.gif" lazyload alt="深入理解Kotlin协程（六）——从字节码角度理解协程">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
-        <a href="/2021/05/06/40879c1f/">深入理解Kotlin协程（六）——从字节码角度理解协程</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/05/06/40879c1f/">
-          
-          
-            
-          
-          之前的协程文章中并没有采用字节码来分析，原因一是当时对字节码不是很熟悉，二是不好用一个更难的概念来解释一个没那么难的概念。我们知道协程的关键实现都是由 kotlinc 即编译器来完成，而 IDE 反编译的代码阅读性很差，那么现在学习了字节码之后就可以通过 javap 来一探究竟了。
-suspend functionkotlin协程的”黑魔法“基础是 suspend 关键字，先来这个方法看看背后做了
+        <a href="/2021/05/06/40879c1f/" target="_self">
+          深入理解Kotlin协程（六）——从字节码角度理解协程
         </a>
-      </p>
+      </h2>
+
+      
+      <a class="index-excerpt " href="/2021/05/06/40879c1f/" target="_self">
+        <div>
+          之前的协程文章中并没有采用字节码来分析，原因一是当时对字节码不是很熟悉，二是不好用一个更难的概念来解释一个没那么难的概念。我们知道协程的关键实现都是由 kotlinc 即编译器来完成，而 IDE 反编译的代码阅读性很差，那么现在学习了字节码之后就可以通过 javap 来一探究竟了。 suspend functionkotlin协程的”黑魔法“基础是 suspend 关键字，先来这个方法看看背后做了
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -274,20 +329,34 @@ suspend functionkotlin协程的”黑魔法“基础是 suspend 关键字，先�
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/Kotlin/">Kotlin</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Kotlin/" class="category-chain-item">Kotlin</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Bytecode/">Bytecode</a>
+              <a href="/tags/Bytecode/">#Bytecode</a>
             
-              <a href="/tags/Coroutines/">Coroutines</a>
+              <a href="/tags/Coroutines/">#Coroutines</a>
             
           </div>
         
@@ -300,26 +369,24 @@ suspend functionkotlin协程的”黑魔法“基础是 suspend 关键字，先�
     
       <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2021/04/25/d39e151e/" target="_self">
-          <img src="/img/cover_jvm_byte-code.png" srcset="/img/loading.gif" alt="深入理解JVM（六）——从字节码来看Lambda、泛型与协程">
+          <img src="/img/cover_jvm_byte-code.png" srcset="/img/loading.gif" lazyload alt="深入理解JVM（六）——从字节码来看Lambda、泛型与协程">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
-        <a href="/2021/04/25/d39e151e/">深入理解JVM（六）——从字节码来看Lambda、泛型与协程</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/04/25/d39e151e/">
-          
-          
-            
-          
-          在上一篇文章熟悉了字节码的基础指令之后，一些以往难懂的、被编译器隐藏的“黑盒子”知识点就可以尝试通过字节码去分析了。下面尝试分析 Java 8 中 Lambda 表达式与 Kotlin 中 Lambda 表达式的区别、Java 和 Kotlin 中的泛型来加深对 Java 、Kotlin 语言的理解。
-Lambda表达式原理Java 在 1.8 版本中引用了一个重要特性——Lambda表达式。该特
+        <a href="/2021/04/25/d39e151e/" target="_self">
+          深入理解JVM（六）——从字节码来看Lambda、泛型与协程
         </a>
-      </p>
+      </h2>
+
+      
+      <a class="index-excerpt " href="/2021/04/25/d39e151e/" target="_self">
+        <div>
+          在上一篇文章熟悉了字节码的基础指令之后，一些以往难懂的、被编译器隐藏的“黑盒子”知识点就可以尝试通过字节码去分析了。下面尝试分析 Java 8 中 Lambda 表达式与 Kotlin 中 Lambda 表达式的区别、Java 和 Kotlin 中的泛型来加深对 Java 、Kotlin 语言的理解。 Lambda表达式原理Java 在 1.8 版本中引用了一个重要特性——Lambda表达式。该特
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -331,22 +398,36 @@ Lambda表达式原理Java 在 1.8 版本中引用了一个重要特性——Lamb
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/JVM/">JVM</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/JVM/" class="category-chain-item">JVM</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Bytecode/">Bytecode</a>
+              <a href="/tags/Bytecode/">#Bytecode</a>
             
-              <a href="/tags/Generic/">Generic</a>
+              <a href="/tags/Generic/">#Generic</a>
             
-              <a href="/tags/Lambda/">Lambda</a>
+              <a href="/tags/Lambda/">#Lambda</a>
             
           </div>
         
@@ -359,27 +440,24 @@ Lambda表达式原理Java 在 1.8 版本中引用了一个重要特性——Lamb
     
       <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2021/04/18/b6905ec7/" target="_self">
-          <img src="/img/cover_jvm_byte-code.png" srcset="/img/loading.gif" alt="深入理解JVM（五）——字节码基础">
+          <img src="/img/cover_jvm_byte-code.png" srcset="/img/loading.gif" lazyload alt="深入理解JVM（五）——字节码基础">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
-        <a href="/2021/04/18/b6905ec7/">深入理解JVM（五）——字节码基础</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/04/18/b6905ec7/">
-          
-          
-            
-          
-          上篇文章中了解了虚拟机执行子系统中的栈和栈帧结构，并且学习了一些方法调用相关的字节码指令，对于方法的分派过程有了更深入的理解，接下来这篇文章来了解一下基础的字节码指令。
-字节码指令字节码指令主要有加载和存储指令、操作数栈指令、运算和类型转换指令、控制转移指令等，这一部分是了解字节码的基础。
-加载和存储指令加载（load）和存储（store）相关的指令是使用得最频繁的指令，分为load类、store
+        <a href="/2021/04/18/b6905ec7/" target="_self">
+          深入理解JVM（五）——字节码基础
         </a>
-      </p>
+      </h2>
+
+      
+      <a class="index-excerpt " href="/2021/04/18/b6905ec7/" target="_self">
+        <div>
+          上篇文章中了解了虚拟机执行子系统中的栈和栈帧结构，并且学习了一些方法调用相关的字节码指令，对于方法的分派过程有了更深入的理解，接下来这篇文章来了解一下基础的字节码指令。 字节码指令字节码指令主要有加载和存储指令、操作数栈指令、运算和类型转换指令、控制转移指令等，这一部分是了解字节码的基础。 加载和存储指令加载（load）和存储（store）相关的指令是使用得最频繁的指令，分为load类、store
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -391,18 +469,32 @@ Lambda表达式原理Java 在 1.8 版本中引用了一个重要特性——Lamb
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/JVM/">JVM</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/JVM/" class="category-chain-item">JVM</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Bytecode/">Bytecode</a>
+              <a href="/tags/Bytecode/">#Bytecode</a>
             
           </div>
         
@@ -415,28 +507,24 @@ Lambda表达式原理Java 在 1.8 版本中引用了一个重要特性——Lamb
     
       <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2021/04/10/6e2382e5/" target="_self">
-          <img src="/img/cover_jvm_execution_subsystem.png" srcset="/img/loading.gif" alt="深入理解JVM（四）——虚拟机执行子系统">
+          <img src="/img/cover_jvm_execution_subsystem.png" srcset="/img/loading.gif" lazyload alt="深入理解JVM（四）——虚拟机执行子系统">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
-        <a href="/2021/04/10/6e2382e5/">深入理解JVM（四）——虚拟机执行子系统</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/04/10/6e2382e5/">
-          
-          
-            
-          
-          
-Java 虚拟机的指令由一个操作码（opcode）和紧随其后的可选操作数（operand）组成，占一个字节长度，故称其为“字节码（bytecode）“。
-
-Java虚拟机栈和栈帧虚拟机常见的实现方式有两种：基于栈（Stack based）和基于寄存器（Register based）。Hotspot JVM是一种典型的基于栈的虚拟机，而Android开发者熟知的DalvikVM则是基于寄存器的虚拟
+        <a href="/2021/04/10/6e2382e5/" target="_self">
+          深入理解JVM（四）——虚拟机执行子系统
         </a>
-      </p>
+      </h2>
+
+      
+      <a class="index-excerpt " href="/2021/04/10/6e2382e5/" target="_self">
+        <div>
+          Java 虚拟机的指令由一个操作码（opcode）和紧随其后的可选操作数（operand）组成，占一个字节长度，故称其为“字节码（bytecode）“。  Java虚拟机栈和栈帧虚拟机常见的实现方式有两种：基于栈（Stack based）和基于寄存器（Register based）。Hotspot JVM是一种典型的基于栈的虚拟机，而Android开发者熟知的DalvikVM则是基于寄存器的虚拟
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -448,18 +536,32 @@ Java虚拟机栈和栈帧虚拟机常见的实现方式有两种：基于栈（S
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/JVM/">JVM</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/JVM/" class="category-chain-item">JVM</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Execution-Subsystem/">Execution Subsystem</a>
+              <a href="/tags/Execution-Subsystem/">#Execution Subsystem</a>
             
           </div>
         
@@ -472,28 +574,24 @@ Java虚拟机栈和栈帧虚拟机常见的实现方式有两种：基于栈（S
     
       <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2021/03/30/d90e9b80/" target="_self">
-          <img src="/img/cover_jvm_class_loader.png" srcset="/img/loading.gif" alt="深入理解JVM（三）——类加载机制">
+          <img src="/img/cover_jvm_class_loader.png" srcset="/img/loading.gif" lazyload alt="深入理解JVM（三）——类加载机制">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
-        <a href="/2021/03/30/d90e9b80/">深入理解JVM（三）——类加载机制</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/03/30/d90e9b80/">
-          
-          
-            
-          
-          
-Java虚拟机把描述类的数据从Class文件加载到内存，并对数据进行校验、转换解析和初始化，最终形成可以被虚拟机直接使用的Java类型，这个过程被称作虚拟机的类加载机制。——《深入理解Java虚拟机》
-
-类加载的时机一个类型从被加载到虚拟机内存中开始，到卸载出内存为止，它的整个生命周期将会经历加载 （Loading）、验证（Verification）、准备（Preparation）、解析（Res
+        <a href="/2021/03/30/d90e9b80/" target="_self">
+          深入理解JVM（三）——类加载机制
         </a>
-      </p>
+      </h2>
+
+      
+      <a class="index-excerpt " href="/2021/03/30/d90e9b80/" target="_self">
+        <div>
+          Java虚拟机把描述类的数据从Class文件加载到内存，并对数据进行校验、转换解析和初始化，最终形成可以被虚拟机直接使用的Java类型，这个过程被称作虚拟机的类加载机制。——《深入理解Java虚拟机》  类加载的时机一个类型从被加载到虚拟机内存中开始，到卸载出内存为止，它的整个生命周期将会经历加载 （Loading）、验证（Verification）、准备（Preparation）、解析（Res
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -505,18 +603,32 @@ Java虚拟机把描述类的数据从Class文件加载到内存，并对数据�
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/JVM/">JVM</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/JVM/" class="category-chain-item">JVM</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/ClassLoader/">ClassLoader</a>
+              <a href="/tags/ClassLoader/">#ClassLoader</a>
             
           </div>
         
@@ -529,28 +641,24 @@ Java虚拟机把描述类的数据从Class文件加载到内存，并对数据�
     
       <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2021/03/19/233d21b7/" target="_self">
-          <img src="/img/cover_jvm_class_file.png" srcset="/img/loading.gif" alt="深入理解JVM（二）——类文件结构">
+          <img src="/img/cover_jvm_class_file.png" srcset="/img/loading.gif" lazyload alt="深入理解JVM（二）——类文件结构">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
-        <a href="/2021/03/19/233d21b7/">深入理解JVM（二）——类文件结构</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/03/19/233d21b7/">
-          
-          
-            
-          
-          
-“Class 文件”并非特指某个存在于具体磁盘中的问题，而应当是一串二进制字节流，无论其以何种形式存在，包括但不限于磁盘文件、网络、数据库、内存或者动态产生等。
-
-Java 能够实现”一次编译，到处运行”，这其中 class 文件要占大部分功劳。为了让 Java 语言具有良好的跨平台能力，Java 独具匠心的提供了一种可以在所有平台上都能使用的一种中间代码——字节码类文件（.class文件）。有
+        <a href="/2021/03/19/233d21b7/" target="_self">
+          深入理解JVM（二）——类文件结构
         </a>
-      </p>
+      </h2>
+
+      
+      <a class="index-excerpt " href="/2021/03/19/233d21b7/" target="_self">
+        <div>
+          “Class 文件”并非特指某个存在于具体磁盘中的问题，而应当是一串二进制字节流，无论其以何种形式存在，包括但不限于磁盘文件、网络、数据库、内存或者动态产生等。  Java 能够实现”一次编译，到处运行”，这其中 class 文件要占大部分功劳。为了让 Java 语言具有良好的跨平台能力，Java 独具匠心的提供了一种可以在所有平台上都能使用的一种中间代码——字节码类文件（.class文件）。有
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -562,18 +670,32 @@ Java 能够实现”一次编译，到处运行”，这其中 class 文件要�
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/JVM/">JVM</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/JVM/" class="category-chain-item">JVM</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Class-File/">Class File</a>
+              <a href="/tags/Class-File/">#Class File</a>
             
           </div>
         
@@ -586,26 +708,24 @@ Java 能够实现”一次编译，到处运行”，这其中 class 文件要�
     
       <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2021/03/12/132bcd6f/" target="_self">
-          <img src="/img/cover_jvm_memory_management.png" srcset="/img/loading.gif" alt="深入理解JVM（一）——自动内存管理">
+          <img src="/img/cover_jvm_memory_management.png" srcset="/img/loading.gif" lazyload alt="深入理解JVM（一）——自动内存管理">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
-        <a href="/2021/03/12/132bcd6f/">深入理解JVM（一）——自动内存管理</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/03/12/132bcd6f/">
-          
-          
-            
-          
-          Java内存区域与内存溢出异常对于从事C、C++程序开发的开发人员来说，在内存管理领域，他们既是拥有最高权力的“皇帝”， 又是从事最基础工作的劳动人民——既拥有每一个对象的“所有权”，又担负着每一个对象生命从开始到终结的维护责任。
-对于Java程序员来说，在虚拟机自动内存管理机制的帮助下，不再需要为每一个new操作去写配对 的delete/free代码，不容易出现内存泄漏和内存溢出问题，看起来由虚
+        <a href="/2021/03/12/132bcd6f/" target="_self">
+          深入理解JVM（一）——自动内存管理
         </a>
-      </p>
+      </h2>
+
+      
+      <a class="index-excerpt " href="/2021/03/12/132bcd6f/" target="_self">
+        <div>
+          Java内存区域与内存溢出异常对于从事C、C++程序开发的开发人员来说，在内存管理领域，他们既是拥有最高权力的“皇帝”， 又是从事最基础工作的劳动人民——既拥有每一个对象的“所有权”，又担负着每一个对象生命从开始到终结的维护责任。 对于Java程序员来说，在虚拟机自动内存管理机制的帮助下，不再需要为每一个new操作去写配对 的delete/free代码，不容易出现内存泄漏和内存溢出问题，看起来由虚
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -617,18 +737,32 @@ Java 能够实现”一次编译，到处运行”，这其中 class 文件要�
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/JVM/">JVM</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/JVM/" class="category-chain-item">JVM</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Memory-Management/">Memory Management</a>
+              <a href="/tags/Memory-Management/">#Memory Management</a>
             
           </div>
         
@@ -641,29 +775,24 @@ Java 能够实现”一次编译，到处运行”，这其中 class 文件要�
     
       <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2021/02/28/c18f109d/" target="_self">
-          <img src="/img/cover_kotlin_coroutines.png" srcset="/img/loading.gif" alt="深入理解Kotlin协程（五）——官方框架">
+          <img src="/img/cover_kotlin_coroutines.png" srcset="/img/loading.gif" lazyload alt="深入理解Kotlin协程（五）——官方框架">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
-        <a href="/2021/02/28/c18f109d/">深入理解Kotlin协程（五）——官方框架</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/02/28/c18f109d/">
-          
-          
-            
-          
-          协程框架概述Kotlin协程的官方框架kotlin.coroutines是一套独立于标准库之外的以生产为目的的框架，框架本身提供了丰富的API来支撑生产环境中异步程序的设计和实现。主要包含以下几个部分：
-
-core：框架的核心逻辑，包含前两篇文章实现的内容和Channel、Flow等特性。
-ui：包含android、javafx、swing三个库，用于提供各平台的UI调度器和一些特有的逻辑。
-re
+        <a href="/2021/02/28/c18f109d/" target="_self">
+          深入理解Kotlin协程（五）——官方框架
         </a>
-      </p>
+      </h2>
+
+      
+      <a class="index-excerpt " href="/2021/02/28/c18f109d/" target="_self">
+        <div>
+          协程框架概述Kotlin协程的官方框架kotlin.coroutines是一套独立于标准库之外的以生产为目的的框架，框架本身提供了丰富的API来支撑生产环境中异步程序的设计和实现。主要包含以下几个部分：  core：框架的核心逻辑，包含前两篇文章实现的内容和Channel、Flow等特性。 ui：包含android、javafx、swing三个库，用于提供各平台的UI调度器和一些特有的逻辑。 re
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -675,18 +804,32 @@ re
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/Kotlin/">Kotlin</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Kotlin/" class="category-chain-item">Kotlin</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Coroutines/">Coroutines</a>
+              <a href="/tags/Coroutines/">#Coroutines</a>
             
           </div>
         
@@ -699,28 +842,24 @@ re
     
       <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2021/02/21/dd192d66/" target="_self">
-          <img src="/img/cover_kotlin_coroutines.png" srcset="/img/loading.gif" alt="深入理解Kotlin协程（四）——Kotlin协程框架初探（二）">
+          <img src="/img/cover_kotlin_coroutines.png" srcset="/img/loading.gif" lazyload alt="深入理解Kotlin协程（四）——Kotlin协程框架初探（二）">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
+      <h2 class="index-header">
         
-        <a href="/2021/02/21/dd192d66/">深入理解Kotlin协程（四）——Kotlin协程框架初探（二）</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/02/21/dd192d66/">
-          
-          
-            
-          
-          本篇继续探讨协程的取消、异常处理以及作用域问题。
-协程的取消协程的取消本质是协作式的取消，这点跟线程的中断一致，除了自身状态置为取消外，也需要协程体的执行逻辑能够检查状态的变化来响应取消。
-完善协程的取消逻辑我们的Job目前还有两个函数空着没有实现，分别是cancle和invokeOnCancel。后者的实现与doOnCompleted类似，如下所示。
-1234567891011121314151
+        <a href="/2021/02/21/dd192d66/" target="_self">
+          深入理解Kotlin协程（四）——Kotlin协程框架初探（二）
         </a>
-      </p>
+      </h2>
+
+      
+      <a class="index-excerpt " href="/2021/02/21/dd192d66/" target="_self">
+        <div>
+          本篇继续探讨协程的取消、异常处理以及作用域问题。 协程的取消协程的取消本质是协作式的取消，这点跟线程的中断一致，除了自身状态置为取消外，也需要协程体的执行逻辑能够检查状态的变化来响应取消。 完善协程的取消逻辑我们的Job目前还有两个函数空着没有实现，分别是cancle和invokeOnCancel。后者的实现与doOnCompleted类似，如下所示。 1234567891011121314151
+        </div>
+      </a>
 
       <div class="index-btm post-metas">
         
@@ -732,18 +871,32 @@ re
           </div>
         
         
-          <div class="post-meta mr-3">
+          <div class="post-meta mr-3 d-flex align-items-center">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/Kotlin/">Kotlin</a>
-            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Kotlin/" class="category-chain-item">Kotlin</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
           </div>
         
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Coroutines/">Coroutines</a>
+              <a href="/tags/Coroutines/">#Coroutines</a>
             
           </div>
         
@@ -755,15 +908,9 @@ re
 
   <nav aria-label="navigation">
     <span class="pagination" id="pagination">
-      <a class="extend prev" rel="prev" href="/"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/3/"><i class="iconfont icon-arrowright"></i></a>
+      <a class="extend prev" rel="prev" href="/"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/#board">3</a><a class="page-number" href="/page/4/#board">4</a><a class="extend next" rel="next" href="/page/3/#board"><i class="iconfont icon-arrowright"></i></a>
     </span>
   </nav>
-  
-  <script>
-    for (ele of document.getElementById("pagination").getElementsByTagName("a")) {
-      ele.href += '#board';
-    }
-  </script>
 
 
 
@@ -775,7 +922,7 @@ re
     
 
     
-      <a id="scroll-top-button" href="#" role="button">
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
         <i class="iconfont icon-arrowup" aria-hidden="true"></i>
       </a>
     
@@ -794,32 +941,34 @@ re
       <div class="modal-body mx-3">
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>
     </div>
   </div>
 </div>
+
     
 
     
   </main>
 
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
-  </div>
+  <footer>
+    <div class="footer-inner">
   
-
+    <div class="footer-content">
+       Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
   
-
   
-</footer>
+  
+</div>
 
-<!-- SCRIPTS -->
+  </footer>
 
+  <!-- Scripts -->
+  
   <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
 
@@ -834,79 +983,50 @@ re
 
 <script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
 <script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
-<script  src="/js/debouncer.js" ></script>
 <script  src="/js/events.js" ></script>
 <script  src="/js/plugins.js" ></script>
-
-<!-- Plugins -->
-
-
-  
-    <script  src="/js/lazyload.js" ></script>
-  
-
-
-
-  
-
-
-
-
-
-
-
-
-
-  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
-
-
-
-
 
 
   <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
   <script>
     (function (window, document) {
       var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
       
-      typing(title)
+        typing(text);
       
     })(window, document);
   </script>
 
 
 
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
   <script  src="/js/local-search.js" ></script>
-  <script>
-    (function () {
-      var path = "/local-search.xml";
-      var inputArea = document.querySelector("#local-search-input");
-      inputArea.onclick = function () {
-        searchFunc(path, 'local-search-input', 'local-search-result');
-        this.onclick = null
-      }
-    })()
-  </script>
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-<!-- 主题的启动项 保持在最底部 -->
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
 <script  src="/js/boot.js" ></script>
 
 
+  
 
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
 </body>
 </html>

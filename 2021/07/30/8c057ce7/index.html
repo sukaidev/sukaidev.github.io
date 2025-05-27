@@ -1,47 +1,61 @@
 
 
 <!DOCTYPE html>
-<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+<html lang="zh-CN" data-default-color-scheme=auto>
 
 
 
 <head>
   <meta charset="UTF-8">
+
   <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
-  <link rel="icon" type="image/png" href="/img/favicon.png">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <link rel="icon" href="/img/favicon.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
   <meta name="theme-color" content="#2f4154">
-  <meta name="description" content="Android Developer">
   <meta name="author" content="sukaidev">
   <meta name="keywords" content="Android sukaidev 苏海鸿">
+  
+    <meta name="description" content="最近看了几篇关于ANR机制的文章，本篇文章来源码跟踪一下ANR消息的产生、消费与dump的全过程，彻底理解ANR出现的原因，并且讨论如何监控ANR的产生。 ANR机制原理ANR（Application Not Responding）机制是Android系统中一种监控用户App是否长时间未响应的一种机制，类似于Windows系统中的“程序未响应”。 既然是监控耗时，类似于我们监控一个方法的执行时间，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android Framework（六）——ANR机制从产生到消费">
+<meta property="og:url" content="https://www.sukaidev.top/2021/07/30/8c057ce7/index.html">
+<meta property="og:site_name" content="Sukai&#39;s Blog - Android Developer">
+<meta property="og:description" content="最近看了几篇关于ANR机制的文章，本篇文章来源码跟踪一下ANR消息的产生、消费与dump的全过程，彻底理解ANR出现的原因，并且讨论如何监控ANR的产生。 ANR机制原理ANR（Application Not Responding）机制是Android系统中一种监控用户App是否长时间未响应的一种机制，类似于Windows系统中的“程序未响应”。 既然是监控耗时，类似于我们监控一个方法的执行时间，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://www.sukaidev.top/img/cover_framework_anr.png">
+<meta property="article:published_time" content="2021-07-30T13:36:11.000Z">
+<meta property="article:modified_time" content="2022-05-12T11:41:42.337Z">
+<meta property="article:author" content="sukaidev">
+<meta property="article:tag" content="AOSP">
+<meta property="article:tag" content="ANR">
+<meta property="article:tag" content="Service">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.sukaidev.top/img/cover_framework_anr.png">
+  
+  
+  
   <title>Android Framework（六）——ANR机制从产生到消费 - Sukai&#39;s Blog - Android Developer</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
 
 
+
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
   <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
 
-  
-    
-    
-      
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/atom-one-light.min.css" />
-    
-  
-
-  
-    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
-  
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
 
 
 
 <!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
 
 
 
@@ -50,24 +64,46 @@
 
 <link  rel="stylesheet" href="/css/main.css" />
 
-<!-- 自定义样式保持在最底部 -->
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
 
 
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"www.sukaidev.top","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.sukaidev.top","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":60,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":false,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null},"gtag":null,"woyaola":null,"cnzz":null},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
   </script>
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
 <meta name="generator" content="Hexo 5.3.0"></head>
 
 
 <body>
-  <header style="height: 70vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
-    <a class="navbar-brand"
-       href="/">&nbsp;<strong>Sukai's Blog</strong>&nbsp;</a>
+    <a class="navbar-brand" href="/">
+      <strong>Sukai&#39;s Blog</strong>
+    </a>
 
     <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
             data-target="#navbarSupportedContent"
@@ -84,9 +120,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/">
+              <a class="nav-link" href="/" target="_self">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                <span>首页</span>
               </a>
             </li>
           
@@ -96,9 +132,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/archives/">
+              <a class="nav-link" href="/archives/" target="_self">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                <span>归档</span>
               </a>
             </li>
           
@@ -108,9 +144,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/categories/">
+              <a class="nav-link" href="/categories/" target="_self">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                <span>分类</span>
               </a>
             </li>
           
@@ -120,9 +156,9 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/tags/">
+              <a class="nav-link" href="/tags/" target="_self">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                <span>标签</span>
               </a>
             </li>
           
@@ -132,23 +168,26 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/about/">
+              <a class="nav-link" href="/about/" target="_self">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                <span>关于</span>
               </a>
             </li>
           
         
         
           <li class="nav-item" id="search-btn">
-            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
-                class="iconfont icon-search"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
           </li>
+          
         
         
           <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" href="javascript:">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
           </li>
         
       </ul>
@@ -156,60 +195,71 @@
   </div>
 </nav>
 
-    <div class="banner" id="banner" parallax=true
-         style="background: url('/img/default.png') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="Android Framework（六）——ANR机制从产生到消费">
-              
-            </span>
-
-            
-              <div class="mt-3">
-  
-  
-    <span class="post-meta">
-      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2021-07-30 21:36" pubdate>
-        2021年7月30日 晚上
-      </time>
-    </span>
-  
-</div>
-
-<div class="mt-1">
-  
-    
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-chart"></i>
-      4.5k 字
-    </span>
   
 
-  
-    
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-clock-fill"></i>
-      
-      
-      63
-       分钟
-    </span>
-  
-
-  
-  
-</div>
-
-            
-          </div>
-
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Android Framework（六）——ANR机制从产生到消费"></span>
           
         </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-07-30 21:36" pubdate>
+          2021年7月30日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          4.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          35 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
       </div>
+
+      
     </div>
+  </div>
+</div>
+
+</div>
+
   </header>
 
   <main>
@@ -218,16 +268,21 @@
 
 <div class="container-fluid nopadding-x">
   <div class="row nomargin-x">
-    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
     <div class="col-lg-8 nopadding-x-md">
       <div class="container nopadding-x-md" id="board-ctn">
-        <div class="py-5" id="board">
+        <div id="board">
           <article class="post-content mx-auto">
-            <!-- SEO header -->
-            <h1 style="display: none">Android Framework（六）——ANR机制从产生到消费</h1>
+            <h1 id="seo-header">Android Framework（六）——ANR机制从产生到消费</h1>
             
-            <div class="markdown-body">
-              <p>最近看了几篇关于ANR机制的文章，本篇文章来源码跟踪一下ANR消息的产生、消费与dump的全过程，彻底理解ANR出现的原因，并且讨论如何监控ANR的产生。</p>
+            
+              <div class="markdown-body">
+                
+                <p>最近看了几篇关于ANR机制的文章，本篇文章来源码跟踪一下ANR消息的产生、消费与dump的全过程，彻底理解ANR出现的原因，并且讨论如何监控ANR的产生。</p>
 <h2 id="ANR机制原理"><a href="#ANR机制原理" class="headerlink" title="ANR机制原理"></a>ANR机制原理</h2><p>ANR（Application Not Responding）机制是Android系统中一种监控用户App是否长时间未响应的一种机制，类似于Windows系统中的“程序未响应”。</p>
 <p>既然是监控耗时，类似于我们监控一个方法的执行时间，一定会在方法执行前做一些记录，然后与方法执行结束后进行对比，ANR中也是类似的。</p>
 <h3 id="触发场景"><a href="#触发场景" class="headerlink" title="触发场景"></a>触发场景</h3><p>那么哪些场景下会导致ANR呢？主要有以下几种情况：</p>
@@ -332,7 +387,7 @@
 </ol>
 <p>到这里整个触发流程就结束了，下面来看看对于没有达到触发ANR边界的消息，是如何移除的。</p>
 <h3 id="消息移除"><a href="#消息移除" class="headerlink" title="消息移除"></a>消息移除</h3><p>我们可以通过全局搜索的方式来寻找ANR消息类型的remove是在何时调用的：</p>
-<p><img src="/img/image-20210731173001359.png" srcset="/img/loading.gif" alt="消息移除搜索"></p>
+<p><img src="/img/image-20210731173001359.png" srcset="/img/loading.gif" lazyload alt="消息移除搜索"></p>
 <p>可以看到是在ActiveServices中的<code>serviceDoneExecutingLocked</code>进行消息的移除。</p>
 <p>继续利用全局搜索我们可以知道最早的调用时机是在Service的<strong>Create</strong>生命周期中，具体是在ActivityThread的<code>handleCreateService</code>方法中，接着来看这个方法。</p>
 <h4 id="ActivityThread-handleCreateService"><a href="#ActivityThread-handleCreateService" class="headerlink" title="ActivityThread#handleCreateService"></a>ActivityThread#handleCreateService</h4><blockquote>
@@ -345,19 +400,19 @@
 <h3 id="模拟死锁导致ANR"><a href="#模拟死锁导致ANR" class="headerlink" title="模拟死锁导致ANR"></a>模拟死锁导致ANR</h3><p>利用synchronized可以很容易写出死锁代码：</p>
 <figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs kotlin"><span class="hljs-keyword">private</span> <span class="hljs-keyword">val</span> lock1 = Object()<br><span class="hljs-keyword">private</span> <span class="hljs-keyword">val</span> lock2 = Object()<br><br><span class="hljs-keyword">private</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">tryDeadLock</span><span class="hljs-params">()</span></span> &#123;<br>    thread &#123;<br>        <span class="hljs-comment">// 子线程持有锁1</span><br>        synchronized(lock1) &#123;<br>            <span class="hljs-keyword">try</span> &#123;<br>                Thread.sleep(<span class="hljs-number">100L</span>)<br>            &#125; <span class="hljs-keyword">catch</span> (e: Exception) &#123;<br>                e.printStackTrace()<br>            &#125;<br><br>            <span class="hljs-comment">// 竞争锁2</span><br>            synchronized(lock2) &#123;<br><br>            &#125;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-comment">// 主线程持有锁2</span><br>    synchronized(lock2) &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            Thread.sleep(<span class="hljs-number">100L</span>)<br>        &#125; <span class="hljs-keyword">catch</span> (e: Exception) &#123;<br>            e.printStackTrace()<br>        &#125;<br><br>        <span class="hljs-comment">// 竞争锁1</span><br>        synchronized(lock1) &#123;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>然后提供一个按钮来触发ANR，界面如下所示：</p>
-<center><img src="/img/Screenshot_1630502913.png" srcset="/img/loading.gif" style="zoom: 25%;" /></center><br>
+<center><img src="/img/Screenshot_1630502913.png" srcset="/img/loading.gif" lazyload style="zoom: 25%;" /></center><br>
 
 <p>点击Button会调用<code>tryDeadLock</code>方法，为了触发ANR效果，我们需要再点击一下屏幕发送一些触摸事件，过一会就会看到ANR 弹窗了。</p>
-<center><img src="/img/Screenshot_1630503270.png" srcset="/img/loading.gif" style="zoom: 25%;" /></center><br>
+<center><img src="/img/Screenshot_1630503270.png" srcset="/img/loading.gif" lazyload style="zoom: 25%;" /></center><br>
 
 <h3 id="分析日志"><a href="#分析日志" class="headerlink" title="分析日志"></a>分析日志</h3><p>产生ANR之后可以使用Device File Explorer看到/data/anr目录下出现了一个日志文件了，可以直接打开也可以使用adb pull命令从手机传到电脑中，需要注意的是如果使用的是Google Play版的镜像创建的模拟器是没有权限访问这个目录的，文件如下：</p>
-<p><img src="/img/image-20210801220402848.png" srcset="/img/loading.gif" alt="ANR日志文件"></p>
+<p><img src="/img/image-20210801220402848.png" srcset="/img/loading.gif" lazyload alt="ANR日志文件"></p>
 <p>由于参与dump的进程和线程很多，因此这个文件里面的日志可能会非常多，善用搜索可以找到关键信息。</p>
 <p>首先搜索main，来看主线程：</p>
-<p><img src="/img/image-20210801221855284.png" srcset="/img/loading.gif" alt="主线程dump日志"></p>
+<p><img src="/img/image-20210801221855284.png" srcset="/img/loading.gif" lazyload alt="主线程dump日志"></p>
 <p>可以看到第一行就清晰的指出了当前主线程状态为”blocked“，也就是阻塞状态。</p>
 <p>下面的堆栈信息告诉我们，MainActivity的<code>tryDeadLock</code>方法中主线程在等待一个lock&lt;0x0475d18b&gt;释放，这个lock被id为2的线程持有，并且主线程持有一个Object类型的锁，地址为&lt;0x0dc0eb5a&gt;。</p>
-<p>那么我们可以搜索tid=2的线程查看其堆栈情况：<br><img src="/img/image-20210801222536830.png" srcset="/img/loading.gif" alt="tid为2线程dump日志"></p>
+<p>那么我们可以搜索tid=2的线程查看其堆栈情况：<br><img src="/img/image-20210801222536830.png" srcset="/img/loading.gif" lazyload alt="tid为2线程dump日志"></p>
 <p>可以看到这个tid为2的线程同样处于阻塞状态，并且日志告诉我们它也在等待一个锁&lt;0x0dc0eb5a&gt;释放，而这个锁则被id为1的线程持有，同时它持有锁&lt;0x0475d18b&gt;。</p>
 <p>id为1的线程实际上就是我们的主线程main。到这里我们发现线程2与主线程互相持有对方需要的锁，并且同时又在请求对方线程持有的锁，造成了循环等待，产生死锁。通过ANR日志，可以很清楚分析出这个ANR是死锁导致的，并且有具体堆栈信息。</p>
 <p>上面只是举例一种非常简单的ANR情况，实际项目中可能会有很多意料之外的ANR，而且可能会涉及到多个进程例如system_server，那么对于线上项目，要如何拿到这个ANR日志文件呢？下面就来讨论一下微信的ANR监控方案。</p>
@@ -368,40 +423,100 @@
 <li><a target="_blank" rel="noopener" href="http://gityuan.com/2016/07/02/android-anr/">理解Android ANR的触发原理</a></li>
 </ol>
 
-            </div>
-            <hr>
-            <div>
-              <div class="post-metas mb-3">
-                
-                  <div class="post-meta mr-3">
-                    <i class="iconfont icon-category"></i>
-                    
-                      <a class="hover-with-bg" href="/categories/Android-Framework/">Android Framework</a>
-                    
-                  </div>
-                
-                
-                  <div class="post-meta">
-                    <i class="iconfont icon-tags"></i>
-                    
-                      <a class="hover-with-bg" href="/tags/AOSP/">AOSP</a>
-                    
-                      <a class="hover-with-bg" href="/tags/ANR/">ANR</a>
-                    
-                      <a class="hover-with-bg" href="/tags/Service/">Service</a>
-                    
-                  </div>
                 
               </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Android-Framework/" class="category-chain-item">Android Framework</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/AOSP/" class="print-no-link">#AOSP</a>
+      
+        <a href="/tags/ANR/" class="print-no-link">#ANR</a>
+      
+        <a href="/tags/Service/" class="print-no-link">#Service</a>
+      
+    </div>
+  
+</div>
+
+
               
-                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Android Framework（六）——ANR机制从产生到消费</div>
+      <div>https://www.sukaidev.top/2021/07/30/8c057ce7/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>sukaidev</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2021年7月30日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
               
               
-                <div class="post-prevnext">
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2021/08/05/d2738127/">
+                      <a href="/2021/08/05/d2738127/" title="Java并发编程——AQS原理">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">Java并发编程——AQS原理</span>
                         <span class="visible-mobile">上一篇</span>
@@ -411,7 +526,7 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2021/07/15/e90b373e/">
+                      <a href="/2021/07/15/e90b373e/" title="Android Framework（五）——Activity生命周期分析">
                         <span class="hidden-mobile">Android Framework（五）——Activity生命周期分析</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
@@ -423,12 +538,12 @@
             </div>
 
             
-              <!-- Comments -->
-              <article class="comments" id="comments">
-                
-                
+  
+  
+    <article id="comments" lazyload>
+      
   <script type="text/javascript">
-    Fluid.utils.waitElementVisible('comments', function() {
+    Fluid.utils.loadComments('#comments', function() {
       var light = 'github-light';
       var dark = 'github-dark';
       var schema = document.documentElement.getAttribute('data-user-color-scheme');
@@ -454,31 +569,64 @@
   <noscript>Please enable JavaScript to view the comments</noscript>
 
 
-              </article>
-            
+    </article>
+  
+
+
           </article>
         </div>
       </div>
     </div>
-    
-      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
-        <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
   <div class="toc-body" id="toc-body"></div>
 </div>
 
-      </div>
-    
+
+
+  </aside>
+
+
+    </div>
   </div>
 </div>
 
-<!-- Custom -->
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+
 
 
     
 
     
-      <a id="scroll-top-button" href="#" role="button">
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
         <i class="iconfont icon-arrowup" aria-hidden="true"></i>
       </a>
     
@@ -497,32 +645,34 @@
       <div class="modal-body mx-3">
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>
     </div>
   </div>
 </div>
+
     
 
     
   </main>
 
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
-  </div>
+  <footer>
+    <div class="footer-inner">
   
-
+    <div class="footer-content">
+       Powered by  <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> , Theme  <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
   
-
   
-</footer>
+  
+</div>
 
-<!-- SCRIPTS -->
+  </footer>
 
+  <!-- Scripts -->
+  
   <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
 
@@ -537,83 +687,105 @@
 
 <script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
 <script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
-<script  src="/js/debouncer.js" ></script>
 <script  src="/js/events.js" ></script>
 <script  src="/js/plugins.js" ></script>
-
-<!-- Plugins -->
-
-
-  
-    <script  src="/js/lazyload.js" ></script>
-  
-
-
-
-  
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
-
-
-
-
-
-  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
-
-
-
-
 
 
   <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
   <script>
     (function (window, document) {
       var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
       
-      typing(title)
+        typing(text);
       
     })(window, document);
   </script>
 
 
 
-  <script  src="/js/local-search.js" ></script>
-  <script>
-    (function () {
-      var path = "/local-search.xml";
-      var inputArea = document.querySelector("#local-search-input");
-      inputArea.onclick = function () {
-        searchFunc(path, 'local-search-input', 'local-search-result');
-        this.onclick = null
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
       }
-    })()
-  </script>
+    });
+  });
+</script>
+
+
+  <script src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-<!-- 主题的启动项 保持在最底部 -->
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
 <script  src="/js/boot.js" ></script>
 
 
+  
 
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
 </body>
 </html>
